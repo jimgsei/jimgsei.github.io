@@ -4,10 +4,13 @@ body {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
+  background-color: #000;  /* Fondo negro */
+  color: #fff;  /* Texto blanco */
 }
 
 .video-container {
   width: 560px;
+  max-width: 100%;  /* Adaptar ancho en móviles */
   height: 315px;
 }
 
@@ -18,7 +21,7 @@ body {
 
 .creditos {
   text-align: center;
-  margin-top: 80px; /* Aumenta el valor para bajar el texto */
+  margin-top: 80px;
 }
 
 .creditos span {
@@ -28,6 +31,7 @@ body {
 .creditos a img {
   width: 24px;
   margin-left: 10px;
+filter: invert(1);
 }
 
 /* Media queries para dispositivos móviles */
