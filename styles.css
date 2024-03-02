@@ -1,0 +1,93 @@
+/* Estilo general */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: sans-serif;
+    background-color: #000;
+    color: #fff;
+
+}
+
+/* Contenedor principal */
+.contenedor {
+    width: 100%;
+    max-width: 960px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+/* Encabezado */
+h1 {
+    font-size: 2em;
+    margin-top: 20px;
+}
+
+/* Contenedor de botones */
+.botones {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 40px;
+}
+
+/* Botones */
+.boton {
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 5px;
+    margin: 10px;
+    text-decoration: none;
+    color: #fff;
+    font-size: 16px;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 0 5px #888;
+}
+
+.boton:hover {
+    background-color: #333;
+}
+
+
+/* Media queries para dispositivos móviles */
+@media (max-width: 768px) {
+    .botones {
+        flex-direction: column;
+    }
+    .firma {
+        margin-top: 20px;
+    }
+}
+
+.contenedor {
+  background-image: linear-gradient(-45deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0) 51%, rgba(255, 255, 255, 0) 100%);
+  animation: waves 5s linear infinite;
+}
+
+@keyframes waves {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 400px 0;
+  }
+}
+
+.creditos {
+  place-items: center;
+  text-align: center;
+  margin-top: 10px;
+}
+
+.creditos span {
+  font-size: 16px;
+}
+
+.creditos a img {
+  width: 24px;
+  margin-left: 10px;
+filter: invert(1);
+}
