@@ -1,6 +1,7 @@
 body {
   margin: 0;
-  display: flex;
+  display: grid;
+  grid-template-rows: auto 1fr;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
@@ -19,7 +20,9 @@ body {
   font-size: 2em;
 }
 
+
 .creditos {
+  place-items: center;
   text-align: center;
   margin-top: 80px;
 }
