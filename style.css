@@ -30,3 +30,14 @@ body {
   margin-left: 10px;
 }
 
+/* Media queries para dispositivos móviles */
+@media (max-width: 768px) {
+  .video-container {
+    width: 90%;  /* Reducir ancho en móviles */
+  }
+
+  .creditos {
+    margin-top: 20px;  /* Ajustar margen en móviles */
+  }
+}
+
