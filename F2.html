@@ -19,16 +19,30 @@
         <img src="https://img.icons8.com/ios/50/000000/github.png" alt="Github">
       </a>
     </div>
-    <script type="text/javascript"
-      src="https://cdn.jsdelivr.net/npm/clappr@latest/dist/clappr.min.js">
-  </script>
-</head>
-<body>
-  <div id="player"></div>
-  <script>
-    var player = new Clappr.Player({source: "https://tv4.live/api/stream/jsk.choi@gmail.com/394165/livetv.epg/movistar.formula.1.es.m3u8", parentId: "#player"});
-  </script>  
+    <div class="videos-container">
+      <div id="player"></div>
+
+      <div class="separador">
+        <br>
+        <span>Segunda opción</span>
+      </div>
+
+      <div id="player2"></div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/clappr@latest/dist/clappr.min.js"></script>
+
+    <script>
+      var player = new Clappr.Player({
+        source: "https://tv4.live/api/stream/jsk.choi@gmail.com/394165/livetv.epg/movistar.formula.1.es.m3u8",
+        parentId: "#player"
+      });
+
+      var player2 = new Clappr.Player({
+        source: "https://vkvsd22.mycdn.me/hls/6089278097946.m3u8/sig/6hT5t15nhQk/srcIp/37.14.45.69/urls/45.136.20.35/expires/1710433142682/clientType/14/srcAg/CHROME_ANDROID/fromCache/1/mid/6973973801754/id/6089278097946/6089278097946_fullhd/index.m3u8",
+        parentId: "#player2"
+      });
+    </script>
   </main>
-</body>
+  </body>
 </html>
