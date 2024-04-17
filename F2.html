@@ -8,35 +8,31 @@
 </head>
 <body>
   <header>
-    
+    <img src="https://www.adslzone.net/app/uploads-adslzone.net/2021/03/dazn-f1.jpg" alt="Logo Dazn F1" width="100" height="50">
   </header>
+
   <main>
     <div class="video-container">
       <h1>F1</h1>
-<div class="creditos">
-      <span>Creado por Jimgsey</span>
-      <a href="https://github.com/jimgsey" target="_blank">
-        <img src="https://img.icons8.com/ios/50/000000/github.png" alt="Github">
-      </a>
-    </div>
-    <div class="videos-container">
-      <div id="player"></div>
 
-      <div class="separador">
-        <br>
-        <span>Opción 2</span>
-      </div>
+      <section class="opcion" id="opcion1">
+        <h2>Opción 1</h2>
+         <iframe width="560" height="315" src="https://live.sportsnews.id/p/dazn-f1.html" allow="encrypted-media" scrolling="no" frameborder="0" height="100%" width="100%" gesture="media" allowfullscreen="allowfullscreen"></iframe>
+      
+      </section>
 
-      <div id="player2"></div>
+      <section class="opcion" id="opcion2">
+        <h2>Opción 2</h2>
+        <div id="player"></div>
+      </section>
 
-      <div class="opcion-3">
-        <span>Opción 3</span>
-       <iframe src="https://live.sportsnews.id/p/dazn-f1.html" allow="encrypted-media" scrolling="no" frameborder="0" height="100%" width="100%" gesture="media" allowfullscreen="allowfullscreen"></iframe>
-      </div>
+      <section class="opcion" id="opcion3">
+        <h2>Opción 3</h2>
+        <div id="player2"></div>
+      </section>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/clappr@latest/dist/clappr.min.js"></script>
-
     <script>
       var player = new Clappr.Player({
         source: "https://trans.mrgaminghoster.xyz/mrgamingf1es.m3u8",
@@ -48,6 +44,14 @@
         parentId: "#player2"
       });
     </script>
+
+    <section class="creditos">
+      <span>Creado por Jimgsey</span>
+      <a href="https://github.com/jimgsey" target="_blank">
+        <img src="https://img.icons8.com/ios/50/000000/github.png" alt="Github">
+      </a>
+    </section>
   </main>
-  </body>
+</body>
 </html>
+
