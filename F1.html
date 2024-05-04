@@ -14,42 +14,18 @@
     <div class="video-container">
       <h1>F1</h1>
 
-      <div class="separador">
-        <video id="video-player" width="560" height="315" controls>
-          <source src="https://live.sportsnews.id/p/dazn-f1.html" type="video/mp4">
-          Your browser does not support the video tag.
-        </video>
+<div class="separador">
+
+       <iframe width="560" height="315" src="https://live.sportsnews.id/p/dazn-f1.html" allow="encrypted-media" scrolling="no" frameborder="0" height="100%" width="100%" gesture="media" allowfullscreen="allowfullscreen"></iframe>
       </div>
 
-      <div class="creditos">
-        <span>Creado por Jimgsey</span>
-        <a href="https://github.com/jimgsey" target="_blank">
-          <img src="https://img.icons8.com/ios/50/000000/github.png" alt="Github">
-        </a>
-        <button onclick="togglePiP()">Ver en Picture-in-Picture</button>
-      </div>
+<div class="creditos">
+      <span>Creado por Jimgsey</span>
+      <a href="https://github.com/jimgsey" target="_blank">
+        <img src="https://img.icons8.com/ios/50/000000/github.png" alt="Github">
+      </a>
     </div>
 
-    <script>
-      var videoPlayer = document.getElementById('video-player');
-
-      // Función para activar/desactivar Picture-in-Picture
-      function togglePiP() {
-        if (document.pictureInPictureElement) {
-          document.exitPictureInPicture()
-            .catch(error => {
-              console.error('Error al salir de Picture-in-Picture: ', error);
-            });
-        } else {
-          if (videoPlayer.readyState === 4) { // Check if video is loaded
-            videoPlayer.requestPictureInPicture()
-              .catch(error => {
-                console.error('Error al iniciar Picture-in-Picture: ', error);
-              });
-          }
-        }
-      }
-    </script>
   </main>
-</body>
+  </body>
 </html>
