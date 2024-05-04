@@ -5,27 +5,80 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>F1 | Jimgsey</title>
   <link rel="stylesheet" href="style.css">
+  
+  <!-- Castable Video script -->
+  <script src="https://unpkg.com/castable-video"></script>
+  
+  <style>
+    /* Styling for the Cast banner */
+    #castBanner {
+      background-color: #000;
+      color: white;
+      padding: 10px 20px;
+      text-align: center;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 1000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #castButton {
+      background-color: #fff;
+      color: #007bff;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+
+    /* Styling for the Chrome icon */
+    #chromeIcon {
+      width: 30px;
+      height: 30px;
+      margin-right: 10px; /* Added margin to separate the icon from the text */
+    }
+  </style>
 </head>
 <body>
+  <!-- Cast banner -->
+  <div id="castBanner">
+    <img id="chromeIcon" src="https://img.icons8.com/ios-filled/50/ffffff/google-chrome.png" alt="Chrome Icon">
+    <span>Enviar a Chrome Cast</span>
+    <button id="castButton">Cast</button>
+  </div>
+
   <header>
-    
+    <!-- Header content goes here -->
   </header>
   <main>
     <div class="video-container">
       <h1>F1</h1>
-
-<div class="separador">
-
-       <iframe width="560" height="315" src="https://live.sportsnews.id/p/dazn-f1.html" allow="encrypted-media" scrolling="no" frameborder="0" height="100%" width="100%" gesture="media" allowfullscreen="allowfullscreen"></iframe>
+      <div class="separador">
+        <iframe width="560" height="315" src="https://live.sportsnews.id/p/dazn-f1.html" allow="encrypted-media" scrolling="no" frameborder="0" height="100%" width="100%" gesture="media" allowfullscreen="allowfullscreen"></iframe>
       </div>
-
-<div class="creditos">
-      <span>Creado por Jimgsey</span>
-      <a href="https://github.com/jimgsey" target="_blank">
-        <img src="https://img.icons8.com/ios/50/000000/github.png" alt="Github">
-      </a>
+      <div class="creditos">
+        <span>Creado por Jimgsey</span>
+        <a href="https://github.com/jimgsey" target="_blank">
+          <img src="https://img.icons8.com/ios/50/000000/github.png" alt="Github">
+        </a>
+      </div>
     </div>
-
   </main>
-  </body>
+
+  <script>
+    // Initialize the Castable Video library
+    castablevideo.initialize();
+
+    // Add the Cast button functionality
+    document.getElementById('castButton').addEventListener('click', function() {
+      castablevideo.cast(document.querySelector('iframe'));
+    });
+  </script>
+</body>
 </html>
+
