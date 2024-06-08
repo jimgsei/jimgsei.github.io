@@ -39,6 +39,13 @@
       width: 100%;
       height: calc(100vh - 180px); /* Calcula el alto del video */
     }
+
+    /* Estilo para el nombre del Gran Premio */
+    #race-name {
+      margin: 20px 0;
+      font-size: 24px;
+      color: #333;
+    }
   </style>
 </head>
 <body>
@@ -48,7 +55,7 @@
   <main>
     <div class="container">
       <h1>F1</h1>
-
+      <div id="race-name">Cargando nombre del Gran Premio...</div>
       <div id="info-container">
         <table>
           <thead>
@@ -151,16 +158,35 @@
       }
     }
 
-    // Fetch the positions for both drivers when the page loads
+    async function fetchCurrentRaceData() {
+      try {
+        const response = await fetch('https://ergast.com/api/f1/current/next.json');
+        const data = await response.json();
+        const race = data.MRData.RaceTable.Races[0];
+
+        // Mostrar el nombre del próximo Gran Premio
+        displayRaceName(race.raceName);
+      } catch (error) {
+        document.getElementById('race-name').textContent = 'Hubo un error al obtener los datos del Gran Premio actual de F1.';
+        console.error('Error fetching the data:', error);
+      }
+    }
+
+    function displayRaceName(raceName) {
+      const content = document.getElementById('race-name');
+      content.innerHTML = `<h2>${raceName}</h2>`;
+    }
+
+    // Fetch the positions for both drivers and the current race data when the page loads
     window.onload = function() {
       fetchDriverPosition(14, 'position-14', 'date-14');
       fetchDriverPosition(55, 'position-55', 'date-55');
       setInterval(function() {
         fetchDriverPosition(14, 'position-14', 'date-14');
         fetchDriverPosition(55, 'position-55', 'date-55');
-      }, 1000); // Reload positions and dates every 5 seconds (20000 milliseconds)
+      }, 1000); // Reload positions and dates every second (1000 milliseconds)
+      fetchCurrentRaceData();
     };
   </script>
 </body>
 </html>
-
