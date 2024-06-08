@@ -130,17 +130,17 @@
         if (position !== undefined) {
           document.getElementById(positionElementId).textContent = position;
         } else {
-          document.getElementById(positionElementId).textContent = `Posición no encontrada para el conductor ${driverNumber}`;
+          document.getElementById(positionElementId).textContent = `Error ${driverNumber}`;
         }
 
         if (madridTime !== undefined) {
           document.getElementById(dateElementId).textContent = madridTime;
         } else {
-          document.getElementById(dateElementId).textContent = `Fecha no encontrada para el conductor ${driverNumber}`;
+          document.getElementById(dateElementId).textContent = `Error ${driverNumber}`;
         }
       } catch (error) {
         console.error(`Error fetching data for driver ${driverNumber}:`, error);
-        document.getElementById(positionElementId).textContent = `Error al cargar los datos para el conductor ${driverNumber}`;
+        document.getElementById(positionElementId).textContent = `Error ${driverNumber}`;
         document.getElementById(dateElementId).textContent = '';
       }
     }
