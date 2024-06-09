@@ -5,185 +5,183 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>F1 | Jimgsey</title>
   <style>
-  /* Estilos base */
-body {
-  background-color: black; /* Color de fondo negro */
-  color: white; /* Color de texto blanco */
-}
+    /* Estilos base */
+    body {
+      background-color: black; /* Color de fondo negro */
+      color: white; /* Color de texto blanco */
+    }
 
-.container {
-  text-align: center; /* Centrar contenido */
-  width: 90%; /* Ancho del 90% de la pantalla */
-  margin: 0 auto; /* Centrar el contenido */
-  background-color: black; /* Color de fondo negro */
-  color: white; /* Color de texto blanco */
-}
+    .container {
+      text-align: center; /* Centrar contenido */
+      width: 90%; /* Ancho del 90% de la pantalla */
+      margin: 0 auto; /* Centrar el contenido */
+      background-color: black; /* Color de fondo negro */
+      color: white; /* Color de texto blanco */
+    }
 
-/* Estilo para el título */
-h1 {
-  text-align: center; /* Centrar el texto */
-}
+    /* Estilo para el título */
+    h1 {
+      text-align: center; /* Centrar el texto */
+    }
 
-/* Estilo para la tabla */
-table {
-  border-collapse: collapse;
-  width: 100%; /* Ancho del 100% del contenedor */
-  margin: 0 auto; /* Centrar la tabla */
-}
+    /* Estilo para la tabla */
+    table {
+      border-collapse: collapse;
+      width: 100%; /* Ancho del 100% del contenedor */
+      margin: 0 auto; /* Centrar la tabla */
+    }
 
-th, td {
-  border: none;
-  padding: 6px;
-  text-align: left;
-}
+    th, td {
+      border: none;
+      padding: 6px;
+      text-align: left;
+    }
 
-/* Estilo para la cabecera de la tabla */
-th {
-  font-weight: bold;
-}
+    /* Estilo para la cabecera de la tabla */
+    th {
+      font-weight: bold;
+    }
 
-/* Estilo para la separación entre la tabla y el video */
-.separator {
-  margin-top: 20px;
-}
+    /* Estilo para la separación entre la tabla y el video */
+    .separator {
+      margin-top: 20px;
+    }
 
-/* Estilo para el nombre del Gran Premio */
-#race-name {
-  margin: 20px 0;
-  font-size: 24px;
-  color: white;
-  text-align: center; /* Centrar el texto */
-}
+    /* Estilo para el nombre del Gran Premio */
+    #race-name {
+      margin: 20px 0;
+      font-size: 24px;
+      color: white;
+      text-align: center; /* Centrar el texto */
+    }
 
-/* Estilos para las tablas de clasificación */
-.table-wrapper {
-  display: flex;
-  flex-wrap: wrap; /* Permitir que los contenedores se envuelvan en dispositivos estrechos */
-  justify-content: space-between;
-  margin-top: 20px;
-}
+    /* Estilos para las tablas de clasificación */
+    .table-wrapper {
+      display: flex;
+      flex-wrap: wrap; /* Permitir que los contenedores se envuelvan en dispositivos estrechos */
+      justify-content: space-between;
+      margin-top: 20px;
+    }
 
-.table-container {
-  width: 100%;
-  margin-bottom: 20px;
-}
+    .table-container {
+      width: 100%;
+      margin-bottom: 20px;
+    }
 
-.table-container table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 20px;
-}
+    .table-container table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
 
-.table-container th,
-.table-container td {
-  padding: 8px;
-  border: 1px solid #ddd;
-}
+    .table-container th,
+    .table-container td {
+      padding: 8px;
+      border: 1px solid #ddd;
+    }
 
-.table-container th {
-  background-color: red;
-  color: white;
-}
+    .table-container th {
+      background-color: red;
+      color: white;
+    }
 
-/* Estilos adicionales para filas destacadas */
-.highlight {
-  font-weight: bold;
-}
+    /* Estilos adicionales para filas destacadas */
+    .highlight {
+      font-weight: bold;
+    }
 
-/* Estilos para la información del circuito */
-.circuit-info {
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  padding: 10px;
-  margin: 10px auto; /* Centrado horizontalmente */
-  max-width: 300px;
-}
+    /* Estilos para la información del circuito */
+    .circuit-info {
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 10px;
+      margin: 10px auto; /* Centrado horizontalmente */
+      max-width: 300px;
+    }
 
-.circuit-info img {
-  max-width: 100%;
-  display: block;
-  margin: 0 auto; /* Centrado horizontalmente */
-}
+    .circuit-info img {
+      max-width: 100%;
+      display: block;
+      margin: 0 auto; /* Centrado horizontalmente */
+    }
 
-/* Estilos para los títulos */
-h2 {
-  text-align: center; /* Centrar el texto */
-}
+    /* Estilos para los títulos */
+    h2 {
+      text-align: center; /* Centrar el texto */
+    }
 
-/* Estilos para los contenedores de carreras */
-.race-container {
-  max-width: 100%; /* Ancho máximo igual al del dispositivo */
-  margin: 0 auto; /* Centrado horizontalmente */
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Columnas adaptables */
-  grid-gap: 20px;
-  padding: 20px;
-}
+    /* Estilos para los contenedores de carreras */
+    .race-container {
+      max-width: 100%; /* Ancho máximo igual al del dispositivo */
+      margin: 0 auto; /* Centrado horizontalmente */
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Columnas adaptables */
+      grid-gap: 20px;
+      padding: 20px;
+    }
 
-.race-card {
-  border: 1px solid #ccc;
-  padding: 20px;
-  border-radius: 5px;
-  background-color: #f9f9f9;
-  color: black;
-}
+    .race-card {
+      border: 1px solid #ccc;
+      padding: 20px;
+      border-radius: 5px;
+      background-color: #f9f9f9;
+      color: black;
+    }
 
-.race-name {
-  font-weight: bold;
-  font-size: 18px;
-  margin-bottom: 10px;
-}
+    .race-name {
+      font-weight: bold;
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
 
-.race-info {
-  font-style: italic;
-  margin-bottom: 5px;
-}
+    .race-info {
+      font-style: italic;
+      margin-bottom: 5px;
+    }
 
-/* Estilo para el video */
-.video-container {
-  text-align: center; /* Centrar el contenido */
-  width: 100%; /* Ancho del 100% del contenedor */
-  max-width: 100%; /* Ancho máximo del 100% */
-  height: 100vh; /* Altura del 100% del viewport */
-}
+    /* Estilo para el video */
+    .video-container {
+      text-align: center; /* Centrar el contenido */
+      width: 100%; /* Ancho del 100% del contenedor */
+      max-width: 100%; /* Ancho máximo del 100% */
+      height: 100vh; /* Altura del 100% del viewport */
+    }
 
-.video-container iframe {
-  width: 100%; /* Ancho del 100% del contenedor */
-  height: 100%; /* Altura del 100% del contenedor */
-}
+    .video-container iframe {
+      width: 100%; /* Ancho del 100% del contenedor */
+      height: 100%; /* Altura del 100% del contenedor */
+    }
 
-/* Media query para dispositivos móviles */
-@media (max-width: 768px) {
-  .container {
-    width: 90%; /* Ancho del 90% de la pantalla en dispositivos móviles */
-  }
+    /* Media query para dispositivos móviles */
+    @media (max-width: 768px) {
+      .container {
+        width: 90%; /* Ancho del 90% de la pantalla en dispositivos móviles */
+      }
 
-  .race-container {
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* Columnas adaptables en dispositivos móviles */
-  }
+      .race-container {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* Columnas adaptables en dispositivos móviles */
+      }
 
-  .circuit-info {
-    max-width: 250px; /* Tamaño máximo del contenedor en dispositivos móviles */
-  }
-}
+      .circuit-info {
+        max-width: 250px; /* Tamaño máximo del contenedor en dispositivos móviles */
+      }
+    }
 
-/* Estilo para la tabla */
-#info-container table {
-  width: 10cm; /* Ancho de la tabla */
-  margin: 0 auto; /* Centrar la tabla */
-  border: 1px solid #ddd; /* Borde de la tabla */
-  border-collapse: collapse; /* Colapso de bordes */
-}
+    /* Estilo para la tabla */
+    #info-container table {
+      width: 10cm; /* Ancho de la tabla */
+      margin: 0 auto; /* Centrar la tabla */
+      border: 1px solid #ddd; /* Borde de la tabla */
+      border-collapse: collapse; /* Colapso de bordes */
+    }
 
-/* Estilo para las celdas de la tabla */
-#info-container th,
-#info-container td {
-  border: 1px solid #ddd; /* Borde de las celdas */
-  padding: 6px; /* Espaciado interno de las celdas */
-  text-align: left; /* Alineación del texto en las celdas */
-}
-
-
+    /* Estilo para las celdas de la tabla */
+    #info-container th,
+    #info-container td {
+      border: 1px solid #ddd; /* Borde de las celdas */
+      padding: 6px; /* Espaciado interno de las celdas */
+      text-align: left; /* Alineación del texto en las celdas */
+    }
   </style>
 </head>
 <body>
@@ -195,9 +193,9 @@ h2 {
       <h1>F1</h1>
       <div id="race-name">Cargando nombre del Gran Premio...</div>
       <div class="circuit-info" id="circuit-info">
-            <h2>Cargando información del circuito...</h2>
-        </div>
-       <br> 
+        <h2>Cargando información del circuito...</h2>
+      </div>
+      <br> 
       <div id="info-container">
         <table>
           <thead>
@@ -218,6 +216,7 @@ h2 {
               <td id="position-55">Cargando...</td>
               <td id="date-55">Cargando...</td>
             </tr>
+         
           </tbody>
         </table>
       </div>
@@ -225,63 +224,64 @@ h2 {
       <div class="separator"></div>
 
       <div class="video-container">
-  <iframe width="100%" height="100%" src="https://live.sportsnews.id/p/dazn-f1.html" allow="encrypted-media" scrolling="no" frameborder="0" gesture="media" allowfullscreen="allowfullscreen"></iframe>
-</div>
+        <iframe width="100%" height="100%" src="https://live.sportsnews.id/p/dazn-f1.html" allow="encrypted-media" scrolling="no" frameborder="0" gesture="media" allowfullscreen="allowfullscreen"></iframe>
+      </div>
 
-<!-- Tablas de Clasificación -->
-<h2>Clasificación</h2>
-<div class="container">
-  <div class="table-wrapper">
-    <div class="table-container">
-      <table id="qualifying-table">
-        <thead>
-          <tr>
-            <th colspan="2" style="color: white;">Nombre del Gran Premio</th>
-            <!-- Cambio de color del texto a blanco -->
-          </tr>
-          <tr>
-            <th>Puesto</th>
-            <th>Piloto</th>
-          </tr>
-        </thead>
-        <tbody id="qualifying-results">
-          <!-- Aquí se llenará la tabla con los resultados de la clasificación -->
-        </tbody>
-      </table>
+      <!-- Tablas de Clasificación -->
+      <h2>Clasificación</h2>
+      <div class="container">
+        <div class="table-wrapper">
+          <div class="table-container" style="width: 48%;">
+            <table id="qualifying-table">
+              <thead>
+                <tr>
+                  <th colspan="2" style="color: white;">Nombre del Gran Premio</th>
+                  <!-- Cambio de color del texto a blanco -->
+                </tr>
+                <tr>
+                  <th>Puesto</th>
+                  <th>Piloto</th>
+                </tr>
+              </thead>
+              <tbody id="qualifying-results">
+                <!-- Aquí se llenará la tabla con los resultados de la clasificación -->
+              </tbody>
+            </table>
+          </div>
+          <div class="table-container" style="width: 48%;">
+            <table id="championship-table">
+              <thead>
+                <tr>
+                  <th colspan="3" style="color: white;">Clasificación del Campeonato</th>
+                  <!-- Cambio de color del texto a blanco -->
+                </tr>
+                <tr>
+                  <th>Puesto</th>
+                  <th>Piloto</th>
+                  <th>Puntos</th>
+                </tr>
+              </thead>
+              <tbody id="championship-results">
+                <!-- Aquí se llenará la tabla con los resultados del campeonato -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <!-- Fin de Tablas de Clasificación -->
+      <h2>Próximos circuitos</h2>
+      <div class="race-container" id="upcoming-races">
+        <!-- Upcoming races will be populated dynamically -->
+      </div>
+
+      <div class="creditos">
+        <span>Creado por Jimgsey</span>
+        <a href="https://github.com/jimgsey" target="_blank">
+          <img src="https://img.icons8.com/ios/50/000000/github.png" alt="Github">
+        </a>
+      </div>
     </div>
-    <div class="table-container">
-      <table id="championship-table">
-        <thead>
-          <tr>
-            <th colspan="3" style="color: white;">Clasificación del Campeonato</th>
-            <!-- Cambio de color del texto a blanco -->
-          </tr>
-          <tr>
-            <th>Puesto</th>
-            <th>Piloto</th>
-            <th>Puntos</th>
-          </tr>
-        </thead>
-        <tbody id="championship-results">
-          <!-- Aquí se llenará la tabla con los resultados del campeonato -->
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
-<!-- Fin de Tablas de Clasificación -->
-<h2>Próximos circuitos</h2>
-<div class="race-container" id="upcoming-races">
-  <!-- Upcoming races will be populated dynamically -->
-</div>
-
-<div class="creditos">
-  <span>Creado por Jimgsey</span>
-  <a href="https://github.com/jimgsey" target="_blank">
-    <img src="https://img.icons8.com/ios/50/000000/github.png" alt="Github">
-  </a>
-</div>
-
+  </main>
 
   <script>
     async function fetchDriverPosition(driverNumber, positionElementId, dateElementId) {
@@ -397,17 +397,17 @@ h2 {
       try {
         const response = await fetch('https://ergast.com/api/f1/current/driverStandings.json');
         const data = await response.json();
-        
+
         // Extraer información de la clasificación del campeonato
-        const championshipStandings = data.MRData.StandingsTable.StandingsLists[0].DriverStandings;
-        
+        const standings = data.MRData.StandingsTable.StandingsLists[0].DriverStandings;
+
         // Construir la tabla con los resultados del campeonato
         const tableBody = document.getElementById('championship-results');
         let html = '';
-        championshipStandings.forEach(standing => {
-          const driverName = `${standing.Driver.givenName} ${standing.Driver.familyName}`;
+        standings.forEach(standing => {
           const position = standing.position;
-          const points = standing.points; // Nuevo: Obtener puntos del piloto
+          const driverName = `${standing.Driver.givenName} ${standing.Driver.familyName}`;
+          const points = standing.points;
           const isFernandoOrCarlos = driverName.includes('Fernando Alonso') || driverName.includes('Carlos Sainz');
           html += `<tr${isFernandoOrCarlos ? ' class="highlight"' : ''}><td>${position}</td><td>${driverName}</td><td>${points}</td></tr>`;
         });
@@ -418,107 +418,73 @@ h2 {
       }
     }
 
-    // Función para actualizar las tablas cada 40 segundos
-    function updateTables() {
-      fetchLastF1Qualifying();
-      fetchChampionshipStandings();
+    async function fetchCircuitInfo() {
+      try {
+        const response = await fetch('https://ergast.com/api/f1/current/next.json');
+        const data = await response.json();
+        const circuitId = data.MRData.RaceTable.Races[0].Circuit.circuitId;
+        const circuitResponse = await fetch(`https://ergast.com/api/f1/circuits/${circuitId}.json`);
+        const circuitData = await circuitResponse.json();
+        const circuitName = circuitData.MRData.CircuitTable.Circuits[0].circuitName;
+        const circuitLocation = circuitData.MRData.CircuitTable.Circuits[0].Location.locality;
+        const circuitCountry = circuitData.MRData.CircuitTable.Circuits[0].Location.country;
+
+        const content = document.getElementById('circuit-info');
+        content.innerHTML = `
+          <h2>${circuitName}</h2>
+          <p>${circuitLocation}, ${circuitCountry}</p>
+          <img src="https://www.countryflags.io/${circuitCountry}/flat/64.png" alt="${circuitCountry}">
+        `;
+      } catch (error) {
+        console.error('Error fetching circuit info:', error);
+        document.getElementById('circuit-info').textContent = 'Hubo un error al obtener la información del circuito.';
+      }
     }
 
-    // Llamar a la función de actualización inicialmente y luego establecer la actualización periódica
-    updateTables(); // Llamar inicialmente
-    setInterval(updateTables, 40000); // Actualizar cada 40 segundos
+    async function fetchUpcomingRaces() {
+      try {
+        const response = await fetch('https://ergast.com/api/f1/current.json');
+        const data = await response.json();
+        const races = data.MRData.RaceTable.Races.slice(1, 4); // Next 3 races excluding the current one
 
-    // Fetch the positions for both drivers and the current race data when the page loads
-    window.onload = function() {
-      fetchDriverPosition(14, 'position-14', 'date-14');
-      fetchDriverPosition(55, 'position-55', 'date-55');
-      setInterval(function() {
-        fetchDriverPosition(14, 'position-14', 'date-14');
-        fetchDriverPosition(55, 'position-55', 'date-55');
-      }, 1000); // Reload positions and dates every second (1000 milliseconds)
-      fetchCurrentRaceData();
-    };
+        const raceContainer = document.getElementById('upcoming-races');
+        raceContainer.innerHTML = '';
 
-    // URL de la API de Ergast para obtener información del próximo gran premio
-        const nextRaceUrl = 'https://ergast.com/api/f1/current/next.json';
+        races.forEach(race => {
+          const raceName = race.raceName;
+          const circuitName = race.Circuit.circuitName;
+          const date = new Date(race.date);
 
-        // Elemento donde se mostrará la información del circuito
-        const circuitInfoElement = document.getElementById('circuit-info');
+          const raceCard = document.createElement('div');
+          raceCard.classList.add('race-card');
+          raceCard.innerHTML = `
+            <div class="race-name">${raceName}</div>
+            <div class="race-info">${circuitName}</div>
+            <div class="race-info">${date.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+          `;
+          raceContainer.appendChild(raceCard);
+        });
+      } catch (error) {
+        console.error('Error fetching upcoming races:', error);
+        const raceContainer = document.getElementById('upcoming-races');
+        raceContainer.textContent = 'Hubo un error al obtener la información de los próximos circuitos.';
+      }
+    }
 
-        // Realizar una solicitud a la API de Ergast para obtener el próximo gran premio
-        fetch(nextRaceUrl)
-            .then(response => response.json())
-            .then(data => {
-                const race = data.MRData.RaceTable.Races[0];
-                const circuitId = race.Circuit.circuitId;
+    async function fetchData() {
+      await Promise.all([
+        fetchCurrentRaceData(),
+        fetchDriverPosition(14, 'position-14', 'date-14'),
+        fetchDriverPosition(55, 'position-55', 'date-55'),
+        fetchLastF1Qualifying(),
+        fetchChampionshipStandings(),
+        fetchCircuitInfo(),
+        fetchUpcomingRaces()
+      ]);
+    }
 
-                // URL de la API de Ergast para obtener información del circuito
-                const circuitUrl = `https://ergast.com/api/f1/circuits/${circuitId}.json`;
-
-                // Realizar una solicitud a la API de Ergast para obtener información del circuito
-                return fetch(circuitUrl);
-            })
-            .then(response => response.json())
-            .then(data => {
-                const circuit = data.MRData.CircuitTable.Circuits[0];
-                const circuitName = circuit.circuitName;
-                const circuitLocation = `${circuit.Location.locality}, ${circuit.Location.country}`;
-                const circuitImage = circuit.url;
-
-                // Crear el contenido HTML con la información del circuito
-                const circuitHTML = `
-                    <h2>${circuitName}</h2>
-                    <p><strong>Ubicación:</strong> ${circuitLocation}</p>
-                    <img src="${circuitImage}" alt="${circuitName}">
-                `;
-
-                // Agregar el contenido HTML al elemento correspondiente
-                circuitInfoElement.innerHTML = circuitHTML;
-            })
-            .catch(error => {
-                console.error('Error al obtener la información del circuito actual:', error);
-                circuitInfoElement.innerHTML = '<h2>Hubo un error al cargar la información del circuito actual.</h2>';
-            });
-      // Function to fetch upcoming races from the Ergast API
-        async function fetchUpcomingRaces() {
-            try {
-                const response = await fetch('https://ergast.com/api/f1/current.json');
-                const data = await response.json();
-                const races = data.MRData.RaceTable.Races;
-
-                // Filter races that have dates after today
-                const today = new Date();
-                const upcomingRaces = races.filter(race => new Date(race.date) >= today);
-
-                // Call function to display upcoming races
-                displayUpcomingRaces(upcomingRaces);
-            } catch (error) {
-                console.error('Error fetching upcoming races:', error);
-            }
-        }
-
-        // Function to display upcoming races dynamically
-        function displayUpcomingRaces(races) {
-            const raceContainer = document.getElementById('upcoming-races');
-
-            races.forEach(race => {
-                const raceCard = document.createElement('div');
-                raceCard.classList.add('race-card');
-
-                raceCard.innerHTML = `
-                    <div class="race-name">${race.raceName}</div>
-                    <div class="race-info">Circuit: ${race.Circuit.circuitName}</div>
-                    <div class="race-info">Date: ${race.date}</div>
-                    <div class="race-info">Location: ${race.Circuit.Location.locality}, ${race.Circuit.Location.country}</div>
-                `;
-
-                raceContainer.appendChild(raceCard);
-            });
-        }
-
-        // Call the function to fetch and display upcoming races
-        fetchUpcomingRaces();
-
+    // Llamar a la función para cargar los datos al cargar la página
+    window.onload = fetchData;
   </script>
 </body>
 </html>
