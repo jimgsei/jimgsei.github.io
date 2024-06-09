@@ -104,8 +104,10 @@
 
 
     .race-container {
+    max-width: 100%; /* Ancho máximo igual al del dispositivo */
+    margin: 0 auto; /* Centrado horizontalmente */
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Columnas adaptables */
     grid-gap: 20px;
     padding: 20px;
 }
@@ -128,6 +130,7 @@
     font-style: italic;
     margin-bottom: 5px;
 }
+
 
 
   </style>
