@@ -12,9 +12,16 @@ body {
   padding: 0;
 }
 
+/* Estilos para el contenedor principal */
 .container {
+  text-align: center; /* Centrar contenido */
   width: 90%; /* Ancho del 90% de la pantalla */
   margin: 0 auto; /* Centrar el contenido */
+}
+
+/* Estilo para el título */
+h1 {
+  text-align: center; /* Centrar el texto */
 }
 
 /* Estilo para la tabla */
@@ -37,7 +44,7 @@ th {
 
 /* Estilo para la separación entre la tabla y el video */
 .separator {
-  margin-top: 20px;
+  margin-top: 5px;
 }
 
 /* Estilo para el nombre del Gran Premio */
@@ -132,16 +139,17 @@ h2 {
   margin-bottom: 5px;
 }
 
-/* Estilos para el video */
+/* Estilo para el video */
 .video-container {
-  text-align: center; /* Centra el contenido del contenedor */
-  width: 100%;
-  height: calc(100vh - 180px); /* Calcula el alto del video */
+  text-align: center; /* Centrar el contenido */
+  width: 100%; /* Ancho del 100% del contenedor */
+  max-width: 100%; /* Ancho máximo del 100% */
+  height: 100vh; /* Altura del 100% del viewport */
 }
 
 .video-container iframe {
-  max-width: 100%; /* Ajusta el tamaño máximo del video */
-  max-height: 100%; /* Ajusta el tamaño máximo del video */
+  width: 100%; /* Ancho del 100% del contenedor */
+  height: 100%; /* Altura del 100% del contenedor */
 }
 
 /* Media query para dispositivos móviles */
