@@ -79,6 +79,17 @@
     .highlight {
       font-weight: bold; /* Texto en negrita */
     }
+    .circuit-info {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .circuit-info img {
+            max-width: 100%;
+            display: block;
+            margin: 0 auto;
+     }
 
   </style>
 </head>
@@ -90,6 +101,10 @@
     <div class="container">
       <h1>F1</h1>
       <div id="race-name">Cargando nombre del Gran Premio...</div>
+      <div class="circuit-info" id="circuit-info">
+            <h2>Cargando información del circuito...</h2>
+        </div>
+
       <div id="info-container">
         <table>
           <thead>
@@ -324,7 +339,48 @@
       }, 1000); // Reload positions and dates every second (1000 milliseconds)
       fetchCurrentRaceData();
     };
+
+    // URL de la API de Ergast para obtener información del próximo gran premio
+        const nextRaceUrl = 'https://ergast.com/api/f1/current/next.json';
+
+        // Elemento donde se mostrará la información del circuito
+        const circuitInfoElement = document.getElementById('circuit-info');
+
+        // Realizar una solicitud a la API de Ergast para obtener el próximo gran premio
+        fetch(nextRaceUrl)
+            .then(response => response.json())
+            .then(data => {
+                const race = data.MRData.RaceTable.Races[0];
+                const circuitId = race.Circuit.circuitId;
+
+                // URL de la API de Ergast para obtener información del circuito
+                const circuitUrl = `https://ergast.com/api/f1/circuits/${circuitId}.json`;
+
+                // Realizar una solicitud a la API de Ergast para obtener información del circuito
+                return fetch(circuitUrl);
+            })
+            .then(response => response.json())
+            .then(data => {
+                const circuit = data.MRData.CircuitTable.Circuits[0];
+                const circuitName = circuit.circuitName;
+                const circuitLocation = `${circuit.Location.locality}, ${circuit.Location.country}`;
+                const circuitImage = circuit.url;
+
+                // Crear el contenido HTML con la información del circuito
+                const circuitHTML = `
+                    <h2>${circuitName}</h2>
+                    <p><strong>Ubicación:</strong> ${circuitLocation}</p>
+                    <img src="${circuitImage}" alt="${circuitName}">
+                `;
+
+                // Agregar el contenido HTML al elemento correspondiente
+                circuitInfoElement.innerHTML = circuitHTML;
+            })
+            .catch(error => {
+                console.error('Error al obtener la información del circuito actual:', error);
+                circuitInfoElement.innerHTML = '<h2>Hubo un error al cargar la información del circuito actual.</h2>';
+            });
+
   </script>
 </body>
 </html>
-
