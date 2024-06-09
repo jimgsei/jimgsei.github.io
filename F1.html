@@ -34,12 +34,6 @@
       margin-top: 20px; /* Margen superior */
     }
 
-    /* Estilo para el video */
-    .video-container {
-      width: 100%;
-      height: calc(100vh - 180px); /* Calcula el alto del video */
-    }
-
     /* Estilo para el nombre del Gran Premio */
     #race-name {
       margin: 20px 0;
@@ -133,6 +127,16 @@ h2 {
     margin-bottom: 5px;
 }
 
+.video-container {
+  text-align: center; /* Centra el contenido del contenedor */
+  width: 100%;
+      height: calc(100vh - 180px); /* Calcula el alto del video */
+}
+
+.video-container iframe {
+  display: inline-block; /* Permite que el iframe se centre */
+}
+
 
 
   </style>
@@ -176,62 +180,63 @@ h2 {
       <div class="separator"></div>
 
       <div class="video-container">
-        <iframe width="100%" height="100%" src="https://live.sportsnews.id/p/dazn-f1.html" allow="encrypted-media" scrolling="no" frameborder="0" gesture="media" allowfullscreen="allowfullscreen"></iframe>
-      </div>
-    </div>
-    
-    <!-- Tablas de Clasificación -->
-   <h2>Clasificación</h2>
-    <div class="container">
-      <div class="table-wrapper">
-        <div class="table-container">
-          <table id="qualifying-table">
-            <thead>
-              <tr>
-                <th colspan="2" style="color: white;">Nombre del Gran Premio</th> <!-- Cambio de color del texto a blanco -->
-              </tr>
-              <tr>
-                <th>Puesto</th>
-                <th>Piloto</th>
-              </tr>
-            </thead>
-            <tbody id="qualifying-results">
-              <!-- Aquí se llenará la tabla con los resultados de la clasificación -->
-            </tbody>
-          </table>
-        </div>
-        <div class="table-container">
-          <table id="championship-table">
-            <thead>
-              <tr>
-                <th colspan="3" style="color: white;">Clasificación del Campeonato</th> <!-- Cambio de color del texto a blanco -->
-              </tr>
-              <tr>
-                <th>Puesto</th>
-                <th>Piloto</th>
-                <th>Puntos</th>
-              </tr>
-            </thead>
-            <tbody id="championship-results">
-              <!-- Aquí se llenará la tabla con los resultados del campeonato -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-    <!-- Fin de Tablas de Clasificación -->
-  <h2>Próximos circuitos</h2>
- <div class="race-container" id="upcoming-races">
-        <!-- Upcoming races will be populated dynamically -->
-    </div>
+  <iframe width="100%" height="100%" src="https://live.sportsnews.id/p/dazn-f1.html" allow="encrypted-media" scrolling="no" frameborder="0" gesture="media" allowfullscreen="allowfullscreen"></iframe>
+</div>
 
-    <div class="creditos">
-      <span>Creado por Jimgsey</span>
-      <a href="https://github.com/jimgsey" target="_blank">
-        <img src="https://img.icons8.com/ios/50/000000/github.png" alt="Github">
-      </a>
+<!-- Tablas de Clasificación -->
+<h2>Clasificación</h2>
+<div class="container">
+  <div class="table-wrapper">
+    <div class="table-container">
+      <table id="qualifying-table">
+        <thead>
+          <tr>
+            <th colspan="2" style="color: white;">Nombre del Gran Premio</th>
+            <!-- Cambio de color del texto a blanco -->
+          </tr>
+          <tr>
+            <th>Puesto</th>
+            <th>Piloto</th>
+          </tr>
+        </thead>
+        <tbody id="qualifying-results">
+          <!-- Aquí se llenará la tabla con los resultados de la clasificación -->
+        </tbody>
+      </table>
     </div>
-  </main>
+    <div class="table-container">
+      <table id="championship-table">
+        <thead>
+          <tr>
+            <th colspan="3" style="color: white;">Clasificación del Campeonato</th>
+            <!-- Cambio de color del texto a blanco -->
+          </tr>
+          <tr>
+            <th>Puesto</th>
+            <th>Piloto</th>
+            <th>Puntos</th>
+          </tr>
+        </thead>
+        <tbody id="championship-results">
+          <!-- Aquí se llenará la tabla con los resultados del campeonato -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<!-- Fin de Tablas de Clasificación -->
+<h2>Próximos circuitos</h2>
+<div class="race-container" id="upcoming-races">
+  <!-- Upcoming races will be populated dynamically -->
+</div>
+
+<div class="creditos">
+  <span>Creado por Jimgsey</span>
+  <a href="https://github.com/jimgsey" target="_blank">
+    <img src="https://img.icons8.com/ios/50/000000/github.png" alt="Github">
+  </a>
+</div>
+
 
   <script>
     async function fetchDriverPosition(driverNumber, positionElementId, dateElementId) {
