@@ -6,136 +6,159 @@
   <title>F1 | Jimgsey</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    /* Estilo para el contenedor principal */
-    .container {
-      text-align: center; /* Centrar contenido */
-    }
-
-    /* Estilo para la tabla */
-    table {
-      border-collapse: collapse;
-      width: 10cm; /* Ancho de la tabla */
-      margin: 0 auto; /* Centrar la tabla en el contenedor */
-    }
-
-    th, td {
-      border: none; /* Sin bordes */
-      padding: 6px; /* Espaciado interno */
-      text-align: left; /* Alineación del texto */
-    }
-
-    /* Estilo para la cabecera de la tabla */
-    th {
-      font-weight: bold; /* Texto en negrita */
-    }
-
-    /* Estilo para la separación entre la tabla y el video */
-    .separator {
-      margin-top: 20px; /* Margen superior */
-    }
-
-    /* Estilo para el nombre del Gran Premio */
-    #race-name {
-      margin: 20px 0;
-      font-size: 24px;
-      color: white; /* Cambio de color a blanco */
-    }
-
-    /* Estilos para las tablas de clasificación */
-    .table-wrapper {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 20px;
-    }
-
-    .table-container {
-      width: 48%; /* Ancho ajustado para dejar espacio entre las tablas */
-    }
-
-    .table-container table {
-      width: 100%; /* Ancho de las tablas */
-      border-collapse: collapse; /* Colapso de bordes */
-      margin-bottom: 20px; /* Margen inferior */
-    }
-
-    .table-container th,
-    .table-container td {
-      padding: 8px; /* Espaciado interno */
-      border: 1px solid #ddd; /* Borde */
-    }
-
-    .table-container th {
-      background-color: red; /* Color de fondo rojo */
-      color: white; /* Cambio de color del texto a blanco */
-    }
-
-    /* Estilos adicionales para filas destacadas */
-    .highlight {
-      font-weight: bold; /* Texto en negrita */
-    }
-    .circuit-info {
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    padding: 10px; /* Reducido el relleno */
-    margin-top: 10px; /* Reducido el margen superior */
-    max-width: 300px; /* Tamaño máximo del contenedor */
+  /* Estilos base */
+body {
+  margin: 0;
+  padding: 0;
 }
 
+.container {
+  width: 90%; /* Ancho del 90% de la pantalla */
+  margin: 0 auto; /* Centrar el contenido */
+}
+
+/* Estilo para la tabla */
+table {
+  border-collapse: collapse;
+  width: 100%; /* Ancho del 100% del contenedor */
+  margin: 0 auto; /* Centrar la tabla */
+}
+
+th, td {
+  border: none;
+  padding: 6px;
+  text-align: left;
+}
+
+/* Estilo para la cabecera de la tabla */
+th {
+  font-weight: bold;
+}
+
+/* Estilo para la separación entre la tabla y el video */
+.separator {
+  margin-top: 20px;
+}
+
+/* Estilo para el nombre del Gran Premio */
+#race-name {
+  margin: 20px 0;
+  font-size: 24px;
+  color: white;
+  text-align: center; /* Centrar el texto */
+}
+
+/* Estilos para las tablas de clasificación */
+.table-wrapper {
+  display: flex;
+  flex-wrap: wrap; /* Permitir que los contenedores se envuelvan en dispositivos estrechos */
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.table-container {
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.table-container table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.table-container th,
+.table-container td {
+  padding: 8px;
+  border: 1px solid #ddd;
+}
+
+.table-container th {
+  background-color: red;
+  color: white;
+}
+
+/* Estilos adicionales para filas destacadas */
+.highlight {
+  font-weight: bold;
+}
+
+/* Estilos para la información del circuito */
 .circuit-info {
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    padding: 10px; /* Reducido el relleno */
-    margin: 10px auto; /* Centrado horizontalmente */
-    max-width: 300px; /* Tamaño máximo del contenedor */
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 10px;
+  margin: 10px auto; /* Centrado horizontalmente */
+  max-width: 300px;
 }
 
 .circuit-info img {
-    max-width: 100%; /* Ancho máximo del 100% para la imagen */
-    display: block;
-    margin: 0 auto; /* Centrado horizontalmente */
+  max-width: 100%;
+  display: block;
+  margin: 0 auto; /* Centrado horizontalmente */
 }
 
+/* Estilos para los títulos */
 h2 {
   text-align: center; /* Centrar el texto */
 }
 
-    .race-container {
-    max-width: 100%; /* Ancho máximo igual al del dispositivo */
-    margin: 0 auto; /* Centrado horizontalmente */
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Columnas adaptables */
-    grid-gap: 20px;
-    padding: 20px;
+/* Estilos para los contenedores de carreras */
+.race-container {
+  max-width: 100%; /* Ancho máximo igual al del dispositivo */
+  margin: 0 auto; /* Centrado horizontalmente */
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Columnas adaptables */
+  grid-gap: 20px;
+  padding: 20px;
 }
 
 .race-card {
-    border: 1px solid #ccc;
-    padding: 20px;
-    border-radius: 5px;
-    background-color: #f9f9f9;
-    color: black; /* Cambio del color del texto a negro */
+  border: 1px solid #ccc;
+  padding: 20px;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+  color: black;
 }
 
 .race-name {
-    font-weight: bold;
-    font-size: 18px;
-    margin-bottom: 10px;
+  font-weight: bold;
+  font-size: 18px;
+  margin-bottom: 10px;
 }
 
 .race-info {
-    font-style: italic;
-    margin-bottom: 5px;
+  font-style: italic;
+  margin-bottom: 5px;
 }
 
+/* Estilos para el video */
 .video-container {
   text-align: center; /* Centra el contenido del contenedor */
   width: 100%;
-      height: calc(100vh - 180px); /* Calcula el alto del video */
+  height: calc(100vh - 180px); /* Calcula el alto del video */
 }
 
 .video-container iframe {
-  display: inline-block; /* Permite que el iframe se centre */
+  max-width: 100%; /* Ajusta el tamaño máximo del video */
+  max-height: 100%; /* Ajusta el tamaño máximo del video */
 }
+
+/* Media query para dispositivos móviles */
+@media (max-width: 768px) {
+  .container {
+    width: 90%; /* Ancho del 90% de la pantalla en dispositivos móviles */
+  }
+
+  .race-container {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* Columnas adaptables en dispositivos móviles */
+  }
+
+  .circuit-info {
+    max-width: 250px; /* Tamaño máximo del contenedor en dispositivos móviles */
+  }
+}
+
 
 
 
