@@ -442,34 +442,38 @@
     }
 
     async function fetchUpcomingRaces() {
-      try {
-        const response = await fetch('https://ergast.com/api/f1/current.json');
-        const data = await response.json();
-        const races = data.MRData.RaceTable.Races.slice(1, 4); // Next 3 races excluding the current one
+  try {
+    const response = await fetch('https://ergast.com/api/f1/current.json');
+    const data = await response.json();
+    const races = data.MRData.RaceTable.Races;
 
-        const raceContainer = document.getElementById('upcoming-races');
-        raceContainer.innerHTML = '';
+    const today = new Date();
+    const upcomingRaces = races.filter(race => new Date(race.date) > today);
 
-        races.forEach(race => {
-          const raceName = race.raceName;
-          const circuitName = race.Circuit.circuitName;
-          const date = new Date(race.date);
+    const raceContainer = document.getElementById('upcoming-races');
+    raceContainer.innerHTML = '';
 
-          const raceCard = document.createElement('div');
-          raceCard.classList.add('race-card');
-          raceCard.innerHTML = `
-            <div class="race-name">${raceName}</div>
-            <div class="race-info">${circuitName}</div>
-            <div class="race-info">${date.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
-          `;
-          raceContainer.appendChild(raceCard);
-        });
-      } catch (error) {
-        console.error('Error fetching upcoming races:', error);
-        const raceContainer = document.getElementById('upcoming-races');
-        raceContainer.textContent = 'Hubo un error al obtener la información de los próximos circuitos.';
-      }
-    }
+    upcomingRaces.forEach(race => {
+      const raceName = race.raceName;
+      const circuitName = race.Circuit.circuitName;
+      const date = new Date(race.date);
+
+      const raceCard = document.createElement('div');
+      raceCard.classList.add('race-card');
+      raceCard.innerHTML = `
+        <div class="race-name">${raceName}</div>
+        <div class="race-info">${circuitName}</div>
+        <div class="race-info">${date.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+      `;
+      raceContainer.appendChild(raceCard);
+    });
+  } catch (error) {
+    console.error('Error fetching upcoming races:', error);
+    const raceContainer = document.getElementById('upcoming-races');
+    raceContainer.textContent = 'Hubo un error al obtener la información de los próximos circuitos.';
+  }
+}
+
 
     async function fetchData() {
       await Promise.all([
