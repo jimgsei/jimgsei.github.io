@@ -4,18 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>F1 | Jimgsey</title>
+  <link rel="stylesheet" href="style.css">
   <style>
   /* Estilos base */
 body {
-  margin: 0;
-  padding: 0;
+  background-color: black; /* Color de fondo negro */
+  color: white; /* Color de texto blanco */
 }
 
-/* Estilos para el contenedor principal */
 .container {
   text-align: center; /* Centrar contenido */
   width: 90%; /* Ancho del 90% de la pantalla */
   margin: 0 auto; /* Centrar el contenido */
+  background-color: black; /* Color de fondo negro */
+  color: white; /* Color de texto blanco */
 }
 
 /* Estilo para el título */
@@ -43,7 +45,7 @@ th {
 
 /* Estilo para la separación entre la tabla y el video */
 .separator {
-  margin-top: 5px;
+  margin-top: 20px;
 }
 
 /* Estilo para el nombre del Gran Premio */
@@ -166,7 +168,21 @@ h2 {
   }
 }
 
+/* Estilo para la tabla */
+#info-container table {
+  width: 10cm; /* Ancho de la tabla */
+  margin: 0 auto; /* Centrar la tabla */
+  border: 1px solid #ddd; /* Borde de la tabla */
+  border-collapse: collapse; /* Colapso de bordes */
+}
 
+/* Estilo para las celdas de la tabla */
+#info-container th,
+#info-container td {
+  border: 1px solid #ddd; /* Borde de las celdas */
+  padding: 6px; /* Espaciado interno de las celdas */
+  text-align: left; /* Alineación del texto en las celdas */
+}
 
 
   </style>
