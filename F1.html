@@ -80,41 +80,54 @@
       font-weight: bold; /* Texto en negrita */
     }
     .circuit-info {
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            padding: 20px;
-            margin-top: 20px;
-        }
-        .circuit-info img {
-            max-width: 60%;
-            display: block;
-            margin: 0 auto;
-     }
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px; /* Reducido el relleno */
+    margin-top: 10px; /* Reducido el margen superior */
+    max-width: 300px; /* Tamaño máximo del contenedor */
+}
+
+.circuit-info {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px; /* Reducido el relleno */
+    margin: 10px auto; /* Centrado horizontalmente */
+    max-width: 300px; /* Tamaño máximo del contenedor */
+}
+
+.circuit-info img {
+    max-width: 100%; /* Ancho máximo del 100% para la imagen */
+    display: block;
+    margin: 0 auto; /* Centrado horizontalmente */
+}
+
+
 
     .race-container {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            grid-gap: 20px;
-            padding: 20px;
-        }
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-gap: 20px;
+    padding: 20px;
+}
 
-        .race-card {
-            border: 1px solid #ccc;
-            padding: 20px;
-            border-radius: 5px;
-            background-color: #f9f9f9;
-        }
+.race-card {
+    border: 1px solid #ccc;
+    padding: 20px;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+    color: black; /* Cambio del color del texto a negro */
+}
 
-        .race-name {
-            font-weight: bold;
-            font-size: 18px;
-            margin-bottom: 10px;
-        }
+.race-name {
+    font-weight: bold;
+    font-size: 18px;
+    margin-bottom: 10px;
+}
 
-        .race-info {
-            font-style: italic;
-            margin-bottom: 5px;
-        }
+.race-info {
+    font-style: italic;
+    margin-bottom: 5px;
+}
 
 
   </style>
