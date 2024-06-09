@@ -46,6 +46,38 @@
       font-size: 24px;
       color: #333;
     }
+
+    /* Estilos para las tablas de clasificación */
+    .table-wrapper {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+    }
+
+    .table-container {
+      width: 48%; /* Ajustar según sea necesario */
+    }
+
+    .table-container table {
+      width: 100%; /* Ancho de las tablas */
+      border-collapse: collapse; /* Colapso de bordes */
+      margin-bottom: 20px; /* Margen inferior */
+    }
+
+    .table-container th,
+    .table-container td {
+      padding: 8px; /* Espaciado interno */
+      border: 1px solid #ddd; /* Borde */
+    }
+
+    .table-container th {
+      background-color: #f2f2f2; /* Color de fondo para la cabecera */
+    }
+
+    /* Estilos adicionales para filas destacadas */
+    .highlight {
+      font-weight: bold; /* Texto en negrita */
+    }
   </style>
 </head>
 <body>
@@ -86,6 +118,46 @@
         <iframe width="100%" height="100%" src="https://live.sportsnews.id/p/dazn-f1.html" allow="encrypted-media" scrolling="no" frameborder="0" gesture="media" allowfullscreen="allowfullscreen"></iframe>
       </div>
     </div>
+
+    <!-- Tablas de Clasificación -->
+    <div class="container">
+      <div class="table-wrapper">
+        <div class="table-container">
+          <table id="qualifying-table">
+            <thead>
+              <tr>
+                <th colspan="2">Nombre del Gran Premio</th>
+              </tr>
+              <tr>
+                <th>Puesto</th>
+                <th>Piloto</th>
+              </tr>
+            </thead>
+            <tbody id="qualifying-results">
+              <!-- Aquí se llenará la tabla con los resultados de la clasificación -->
+            </tbody>
+          </table>
+        </div>
+        <div class="table-container">
+          <table id="championship-table">
+            <thead>
+              <tr>
+                <th colspan="3">Clasificación del Campeonato</th>
+              </tr>
+              <tr>
+                <th>Puesto</th>
+                <th>Piloto</th>
+                <th>Puntos</th>
+              </tr>
+            </thead>
+            <tbody id="championship-results">
+              <!-- Aquí se llenará la tabla con los resultados del campeonato -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <!-- Fin de Tablas de Clasificación -->
 
     <div class="creditos">
       <span>Creado por Jimgsey</span>
@@ -133,7 +205,7 @@
 
         // If date is an array, take the last element
         if (Array.isArray(date)) {
-          date = date[date.length - 1];
+          date = date[date           .length - 1];
         }
 
         // Convert date to Madrid time if date exists
@@ -176,6 +248,69 @@
       const content = document.getElementById('race-name');
       content.innerHTML = `<h2>${raceName}</h2>`;
     }
+
+    async function fetchLastF1Qualifying() {
+      try {
+        const response = await fetch('https://ergast.com/api/f1/current/last/qualifying.json');
+        const data = await response.json();
+        
+        // Extraer información de la última clasificación
+        const raceName = data.MRData.RaceTable.Races[0].raceName;
+        const qualifyingResults = data.MRData.RaceTable.Races[0].QualifyingResults;
+        
+        // Mostrar el nombre del Gran Premio en la tabla de clasificación
+        document.getElementById('qualifying-table').rows[0].cells[0].textContent = raceName;
+
+        // Construir la tabla con los resultados de la clasificación
+        const tableBody = document.getElementById('qualifying-results');
+        let html = '';
+        qualifyingResults.forEach(result => {
+          const driverName = `${result.Driver.givenName} ${result.Driver.familyName}`;
+          const position = result.position;
+          const isFernandoOrCarlos = driverName.includes('Fernando Alonso') || driverName.includes('Carlos Sainz');
+          html += `<tr${isFernandoOrCarlos ? ' class="highlight"' : ''}><td>${position}</td><td>${driverName}</td></tr>`;
+        });
+        tableBody.innerHTML = html;
+      } catch (error) {
+        console.error('Error fetching last F1 qualifying:', error);
+        document.getElementById('qualifying-results').textContent = 'Hubo un error al obtener la información de la última clasificación de F1.';
+      }
+    }
+
+    async function fetchChampionshipStandings() {
+      try {
+        const response = await fetch('https://ergast.com/api/f1/current/driverStandings.json');
+        const data = await response.json();
+        
+        // Extraer información de la clasificación del campeonato
+        const championshipStandings = data.MRData.StandingsTable.StandingsLists[0].DriverStandings;
+        
+        // Construir la tabla con los resultados del campeonato
+        const tableBody = document.getElementById('championship-results');
+        let html = '';
+        championshipStandings.forEach(standing => {
+          const driverName = `${standing.Driver.givenName} ${standing.Driver.familyName}`;
+          const position = standing.position;
+          const points = standing.points; // Nuevo: Obtener puntos del piloto
+          const isFernandoOrCarlos = driverName.includes('Fernando Alonso') || driverName.includes('Carlos Sainz');
+          html += `<tr${isFernandoOrCarlos ? ' class="highlight"' : ''}><td>${position}</td><td>${driverName}</td><td>${points}</td></tr>`;
+        });
+        tableBody.innerHTML = html;
+      } catch (error) {
+        console.error('Error fetching championship standings:', error);
+        document.getElementById('championship-results').textContent = 'Hubo un error al obtener la clasificación del campeonato de F1.';
+      }
+    }
+
+    // Función para actualizar las tablas cada 40 segundos
+    function updateTables() {
+      fetchLastF1Qualifying();
+      fetchChampionshipStandings();
+    }
+
+    // Llamar a la función de actualización inicialmente y luego establecer la actualización periódica
+    updateTables(); // Llamar inicialmente
+    setInterval(updateTables, 40000); // Actualizar cada 40 segundos
 
     // Fetch the positions for both drivers and the current race data when the page loads
     window.onload = function() {
