@@ -64,14 +64,15 @@
     }
 
     .table-container {
-      width: 100%;
+      width: 40%;
       margin-bottom: 20px;
     }
 
     .table-container table {
-      width: 100%;
+      width: 90%;
       border-collapse: collapse;
       margin-bottom: 20px;
+      border-collapse: collapse; /* Colapsar bordes */
     }
 
     .table-container th,
@@ -160,8 +161,10 @@
       }
       
       .table-container {
-        width: 100%; /* Ancho del 100% en dispositivos móviles */
-      }
+        width: 80%; /* Utiliza el 80% del ancho disponible en dispositivos móviles */
+        margin-left: auto; /* Centra el contenedor en dispositivos móviles */
+        margin-right: auto; /* Centra el contenedor en dispositivos móviles */
+     }
 
       .race-container {
         grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* Columnas adaptables en dispositivos móviles */
@@ -232,48 +235,48 @@
         <iframe width="100%" height="100%" src="https://live.sportsnews.id/p/dazn-f1.html" allow="encrypted-media" scrolling="no" frameborder="0" gesture="media" allowfullscreen="allowfullscreen"></iframe>
       </div>
 
-      <!-- Tablas de Clasificación -->
-      <h2>Clasificación</h2>
-      <div class="container">
-        <div class="table-wrapper">
-          <div class="table-container" style="width: 48%;">
-            <table id="qualifying-table">
-              <thead>
-                <tr>
-                  <th colspan="2" style="color: white;">Nombre del Gran Premio</th>
-                  <!-- Cambio de color del texto a blanco -->
-                </tr>
-                <tr>
-                  <th>Puesto</th>
-                  <th>Piloto</th>
-                </tr>
-              </thead>
-              <tbody id="qualifying-results">
-                <!-- Aquí se llenará la tabla con los resultados de la clasificación -->
-              </tbody>
-            </table>
-          </div>
-          <div class="table-container" style="width: 48%;">
-            <table id="championship-table">
-              <thead>
-                <tr>
-                  <th colspan="3" style="color: white;">Clasificación del Campeonato</th>
-                  <!-- Cambio de color del texto a blanco -->
-                </tr>
-                <tr>
-                  <th>Puesto</th>
-                  <th>Piloto</th>
-                  <th>Puntos</th>
-                </tr>
-              </thead>
-              <tbody id="championship-results">
-                <!-- Aquí se llenará la tabla con los resultados del campeonato -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-      <!-- Fin de Tablas de Clasificación -->
+      <!-- Tabla de Clasificación -->
+<div class="container">
+  <div class="table-wrapper">
+    <div class="table-container">
+      <table id="qualifying-table">
+        <thead>
+          <tr>
+            <th colspan="2" style="color: white;">Nombre del Gran Premio</th>
+            <!-- Cambio de color del texto a blanco -->
+          </tr>
+          <tr>
+            <th>Puesto</th>
+            <th>Piloto</th>
+          </tr>
+        </thead>
+        <tbody id="qualifying-results">
+          <!-- Aquí se llenará la tabla con los resultados de la clasificación -->
+        </tbody>
+      </table>
+    </div>
+    <div class="table-container">
+      <table id="championship-table">
+        <thead>
+          <tr>
+            <th colspan="3" style="color: white;">Clasificación del Campeonato</th>
+            <!-- Cambio de color del texto a blanco -->
+          </tr>
+          <tr>
+            <th>Puesto</th>
+            <th>Piloto</th>
+            <th>Puntos</th>
+          </tr>
+        </thead>
+        <tbody id="championship-results">
+          <!-- Aquí se llenará la tabla con los resultados del campeonato -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<!-- Fin de Tabla de Clasificación -->
+
       <h2>Próximos circuitos</h2>
       <div class="race-container" id="upcoming-races">
         <!-- Upcoming races will be populated dynamically -->
