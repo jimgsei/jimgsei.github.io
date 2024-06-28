@@ -17,6 +17,7 @@
       margin: 0 auto; /* Centrar el contenido */
       background-color: black; /* Color de fondo negro */
       color: white; /* Color de texto blanco */
+      margin-top: 100px; /* Espacio superior para separar contenedores */
     }
 
     /* Estilo para el título */
@@ -154,6 +155,47 @@
       height: 100%; /* Altura del 100% del contenedor */
     }
 
+    .content {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-top: 20px;
+      gap: 10px; /* Espacio entre los iframes */
+    }
+
+    .iframe-container {
+      width: 49%; /* Ancho del 49% del contenedor para hacer espacio para ambos iframes */
+      height: 400px; /* Altura de los iframes */
+      margin-top: 10px; /* Espacio superior para separar contenedores */
+    }
+
+    .iframe-container iframe {
+      width: 100%; /* Ancho del 100% del contenedor */
+      height: 100%; /* Altura del 100% del contenedor */
+    }
+
+    .iframe-title {
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 18px;
+      color: white;
+    }
+
+    .dashboard-container {
+      width: 100%; /* Ancho del 100% del contenedor */
+      height: 600px; /* Altura del iframe del dashboard */
+      margin-top: 50px; /* Espacio superior */
+    }
+
+    .spacer {
+      margin-top: 40px; /* Espacio superior para separar contenedores */
+    }
+    .dashboard-container iframe {
+      width: 100%; /* Ancho del 100% del contenedor */
+      height: 100%; /* Altura del 100% del contenedor */
+      border: none; /* Eliminar borde del iframe */
+      margin-top: 40px; /* Espacio superior para separar contenedores */
+    }
     /* Media query para dispositivos móviles */
     @media (max-width: 768px) {
       .container {
@@ -240,10 +282,34 @@
         <iframe width="100%" height="100%" src="https://live.sportsnews.id/p/dazn-f1.html" allow="encrypted-media" scrolling="no" frameborder="0" gesture="media" allowfullscreen="allowfullscreen"></iframe>
       </div>
 
+      <!-- Radio y mapa -->
+
+ <div class="container">
+    <div class="content">
+      <div class="iframe-container">
+        <div class="iframe-title">Radios de Equipo</div>
+        <iframe src="https://f1-dash.com/window/team-radios" frameborder="0" allowfullscreen></iframe>
+      </div>
+      <div class="iframe-container">
+        <div class="iframe-title">Mapa de Pista</div>
+        <iframe src="https://f1-dash.com/window/track-map" frameborder="0" allowfullscreen></iframe>
+      </div>
+    </div>
+  </div>
+
+      <!-- Dashboard -->
+
+   <div class="dashboard-container">
+      <div class="iframe-title">Dashboard personalizable</div>
+      <iframe src="https://f1-dash.com/dashboard" frameborder="0" allowfullscreen></iframe>
+    </div>
+
       <!-- Tabla de Clasificación -->
-<h2>Clasificación</h2>
 
 <div class="container">
+<!-- Div para añadir espacio -->
+    <div class="spacer"></div>
+<h2>Clasificación</h2>
   <div class="table-wrapper">
     <div class="table-container">
       <table id="qualifying-table">
