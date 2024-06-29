@@ -356,8 +356,8 @@
     <!-- Contenido del iframe -->
     <h2>Horarios</h2>
    <div id="movistarContainer">
-    <iframe src="https://www.movistarplus.es/guiamovil/MVF1" sandbox="allow-same-origin allow-scripts allow-popups allow-forms"></iframe>
-<iframe src="https://www.formulatv.com/programacion/dazn-f1/"></iframe>
+    <iframe id="movistarIframe" src="https://www.movistarplus.es/guiamovil/MVF1"></iframe>
+    <iframe src="https://www.formulatv.com/programacion/dazn-f1/"></iframe>
 </div>
 
       <h2>Próximos circuitos</h2>
@@ -581,5 +581,18 @@
     // Llamar a la función para cargar los datos al cargar la página
     window.onload = fetchData;
   </script>
+<script>
+    // Función para configurar las cookies del iframe
+    function configurarCookiesIframe() {
+        var iframe = document.getElementById('movistarIframe');
+        if (iframe) {
+            // Configura las cookies del iframe
+            iframe.setAttribute('sandbox', 'allow-same-origin allow-scripts allow-popups allow-forms');
+        }
+    }
+
+    // Llama a la función al cargar la página
+    configurarCookiesIframe();
+</script>
 </body>
 </html>
