@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Información del Último Circuito de F1</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(45deg, #000000, #333333);
+            color: #ffffff;
+        }
+        .container {
+            background-color: #1a1a1a;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            max-width: 600px;
+            width: 100%;
+        }
+        h1 {
+            text-align: center;
+            color: #ffffff;
+            font-weight: bold;
+        }
+        .data-box {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #444444;
+            border-radius: 8px;
+            background-color: #2a2a2a;
+        }
+        .data-box p {
+            margin: 5px 0;
+            font-weight: bold;
+        }
+        a {
+            color: #ffffff;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Información del Último Circuito de F1</h1>
+        <div class="data-box" id="dataBox">
+            <!-- Los datos se insertarán aquí -->
+        </div>
+    </div>
+
+    <script>
+        async function fetchCircuitData() {
+            const response = await fetch('http://ergast.com/api/f1/current/last/circuits.json');
+            const data = await response.json();
+            return data.MRData.CircuitTable.Circuits[0]; // Asumiendo que la respuesta es un array y tomamos el primer elemento
+        }
+
+        async function fetchRaceData() {
+            const response = await fetch('http://ergast.com/api/f1/current/last.json');
+            const data = await response.json();
+            return data.MRData.RaceTable.Races[0]; // Asumiendo que la respuesta es un array y tomamos el primer elemento
+        }
+
+        function updateDataBox(circuitData, raceData) {
+            const dataBox = document.getElementById('dataBox');
+            dataBox.innerHTML = `
+                <p><strong>Nombre del Circuito:</strong> ${circuitData.circuitName}</p>
+                <p><strong>Localidad:</strong> ${circuitData.Location.locality}</p>
+                <p><strong>País:</strong> ${circuitData.Location.country}</p>
+                <p><strong>Latitud:</strong> ${circuitData.Location.lat}</p>
+                <p><strong>Longitud:</strong> ${circuitData.Location.long}</p>
+                <p><strong>URL:</strong> <a href="${circuitData.url}" target="_blank">${circuitData.url}</a></p>
+                <p><strong>Año:</strong> ${raceData.season}</p>
+                <p><strong>Número de Carreras:</strong> ${raceData.round}</p>
+            `;
+        }
+
+        async function loadData() {
+            const circuitData = await fetchCircuitData();
+            const raceData = await fetchRaceData();
+            updateDataBox(circuitData, raceData);
+        }
+
+        // Cargar los datos al cargar la página
+        window.onload = loadData;
+    </script>
+</body>
+</html>
