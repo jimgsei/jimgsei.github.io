@@ -490,8 +490,9 @@
 <div class="modal-wrapper">
         <div id="myModal" class="modal-content">
             <span class="close" onclick="closeModal()">&times;</span>
-            <table id="content">
+           <table id="content1">
                 <thead>
+<h2>Sábado</h2>
                     <tr>
                         <th>Hora</th>
                         <th>Programa</th>
@@ -501,6 +502,19 @@
                     <tr><td colspan="2">Cargando contenido...</td></tr>
                 </tbody>
             </table>
+            <table id="content2">
+                <thead>
+<h2>Domingo</h2>
+                    <tr>
+                        <th>Hora</th>
+                        <th>Programa</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="2">Cargando contenido...</td></tr>
+                </tbody>
+            </table>
+
         </div>
    </div>
 
@@ -752,7 +766,7 @@
             updateDataBox(circuitData, raceData);
         }
         
-                async function fetchWebContent() {
+        async function fetchWebContent() {
             try {
                 const response = await fetch('https://www.dazn.com/es-ES/news/motor/programacion-dazn-f1-guia-tv-que-ver-hoy-sobre-formula-1/37hc2ghi3m591m1it5fi4kvvb');
                 if (!response.ok) throw new Error('Error en la respuesta de la red.');
@@ -761,19 +775,19 @@
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(text, 'text/html');
                 
-                // Extraer el contenido de la tabla con el XPath proporcionado
-                const extract = doc.evaluate(
-                    '//*[@id="__next"]/div/article/div[2]/div[3]/div[1]/div/div/table',
+                // Extraer la primera tabla
+                const extractTable1 = doc.evaluate(
+                    '/html/body/div[1]/div/article/div[2]/div[3]/div[2]/div/div/table',
                     doc,
                     null,
                     XPathResult.FIRST_ORDERED_NODE_TYPE,
                     null
                 ).singleNodeValue;
 
-                const contentTable = document.getElementById('content').getElementsByTagName('tbody')[0];
-                if (extract) {
-                    const tableRows = extract.querySelectorAll('tr');
-                    contentTable.innerHTML = ''; // Clear previous content
+                const contentTable1 = document.getElementById('content1').getElementsByTagName('tbody')[0];
+                if (extractTable1) {
+                    const tableRows = extractTable1.querySelectorAll('tr');
+                    contentTable1.innerHTML = ''; // Clear previous content
                     tableRows.forEach(row => {
                         const cells = row.querySelectorAll('td');
                         if (cells.length > 1) {
@@ -784,17 +798,48 @@
                             tdProgram.textContent = cells[1].textContent || 'No programa disponible';
                             tr.appendChild(tdHour);
                             tr.appendChild(tdProgram);
-                            contentTable.appendChild(tr);
+                            contentTable1.appendChild(tr);
                         }
                     });
-                    openModal();
                 } else {
-                    contentTable.innerHTML = '<tr><td colspan="2" class="error">No se pudo encontrar el contenido.</td></tr>';
-                    openModal();
+                    contentTable1.innerHTML = '<tr><td colspan="2" class="error">No se pudo encontrar la primera tabla.</td></tr>';
                 }
+                
+                // Extraer la segunda tabla
+                const extractTable2 = doc.evaluate(
+                    '/html/body/div[1]/div/article/div[2]/div[3]/div[3]/div/div/table',
+                    doc,
+                    null,
+                    XPathResult.FIRST_ORDERED_NODE_TYPE,
+                    null
+                ).singleNodeValue;
+
+                const contentTable2 = document.getElementById('content2').getElementsByTagName('tbody')[0];
+                if (extractTable2) {
+                    const tableRows = extractTable2.querySelectorAll('tr');
+                    contentTable2.innerHTML = ''; // Clear previous content
+                    tableRows.forEach(row => {
+                        const cells = row.querySelectorAll('td');
+                        if (cells.length > 1) {
+                            const tr = document.createElement('tr');
+                            const tdHour = document.createElement('td');
+                            const tdProgram = document.createElement('td');
+                            tdHour.textContent = cells[0].textContent || 'No hora disponible';
+                            tdProgram.textContent = cells[1].textContent || 'No programa disponible';
+                            tr.appendChild(tdHour);
+                            tr.appendChild(tdProgram);
+                            contentTable2.appendChild(tr);
+                        }
+                    });
+                } else {
+                    contentTable2.innerHTML = '<tr><td colspan="2" class="error">No se pudo encontrar la segunda tabla.</td></tr>';
+                }
+                
+                openModal();
             } catch (error) {
                 console.error('Error al extraer el contenido:', error);
-                document.getElementById('content').innerHTML = '<tr><td colspan="2" class="error">Error al cargar el contenido.</td></tr>';
+                document.getElementById('content1').innerHTML = '<tr><td colspan="2" class="error">Error al cargar la primera tabla.</td></tr>';
+                document.getElementById('content2').innerHTML = '<tr><td colspan="2" class="error">Error al cargar la segunda tabla.</td></tr>';
                 openModal();
             }
         }
@@ -806,6 +851,8 @@
         function closeModal() {
             document.getElementById('myModal').classList.remove('show');
         }
+
+
 
 
 
