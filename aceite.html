@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tipos de Aceite - Infaoliva</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .aceite {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        .aceite h2 {
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Tipos de Aceite - Infaoliva</h1>
+    <div id="aceites">
+        <p>Cargando datos...</p>
+    </div>
+
+    <script>
+        const proxyUrl = "https://cors-anywhere.herokuapp.com/";
+        const targetUrl = "https://www.infaoliva.com/";
+
+        async function fetchAceites() {
+            try {
+                const response = await fetch(proxyUrl + targetUrl);
+                if (!response.ok) {
+                    throw new Error(`Error en la solicitud: ${response.status}`);
+                }
+                const html = await response.text();
+
+                // Mostrar el HTML obtenido en la consola para depuración
+                console.log(html);
+
+                // Crear un DOMParser para analizar el HTML
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+
+                const aceitesDiv = document.getElementById("aceites");
+                aceitesDiv.innerHTML = ""; // Limpiar contenido previo
+
+                // Seleccionar la tabla usando XPath
+                const xpath = '/html/body/section[2]/div/div[2]/div[1]/div/table';
+                const result = document.evaluate(xpath, doc, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+
+                if (!result.singleNodeValue) {
+                    aceitesDiv.innerHTML = "<p>No se encontró la tabla de aceites. Revisa el XPath.</p>";
+                    return;
+                }
+
+                const table = result.singleNodeValue;
+                const rows = table.querySelectorAll('tr');
+
+                if (rows.length === 0) {
+                    aceitesDiv.innerHTML = "<p>No se encontraron datos en la tabla.</p>";
+                    return;
+                }
+
+                // Procesar las filas de la tabla (asumiendo que cada fila contiene datos de un aceite)
+                rows.forEach((row, index) => {
+                    if (index === 0) return; // Saltar la primera fila si es el encabezado
+
+                    const cells = row.querySelectorAll('td');
+                    if (cells.length < 3) return; // Asegúrate de tener suficientes columnas
+
+                    const nombre = cells[0].textContent.trim() || 'Nombre no disponible';
+                    const precio = cells[1].textContent.trim() || 'Precio no disponible';
+                    const descripcion = cells[2].textContent.trim() || 'Descripción no disponible';
+
+                    const aceiteDiv = document.createElement("div");
+                    aceiteDiv.className = "aceite";
+                    aceiteDiv.innerHTML = `
+                        <h2>${nombre}</h2>
+                        <p>Precio: ${precio}</p>
+                        <p>Descripción: ${descripcion}</p>
+                    `;
+                    aceitesDiv.appendChild(aceiteDiv);
+                });
+            } catch (error) {
+                console.error("Error al obtener los aceites:", error);
+                document.getElementById("aceites").innerText = "Error al cargar los datos.";
+            }
+        }
+
+        // Llamar a la función para obtener los datos cada 10 segundos
+        setInterval(fetchAceites, 10000);
+
+        // Llamar la primera vez para cargar los datos inmediatamente
+        fetchAceites();
+    </script>
+</body>
+</html>
