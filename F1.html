@@ -17,7 +17,7 @@
       margin: 0 auto; /* Centrar el contenido */
       background-color: black; /* Color de fondo negro */
       color: white; /* Color de texto blanco */
-      margin-top: 100px; /* Espacio superior para separar contenedores */
+      margin-top: 10px; /* Espacio superior para separar contenedores */
     }
 
     /* Estilo para el título */
@@ -363,14 +363,38 @@
             }
         }
 
+        .boton {
+            background-color: #8B0000; /* Rojo oscuro */
+            color: white;
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 10px; /* Bordes redondeados */
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3); /* Sombra */
+            cursor: pointer;
+        }
+        .boton:hover {
+            background-color: #A52A2A; /* Rojo más claro al pasar el ratón */
+        }
+        .botones-container {
+            display: flex;
+            justify-content: center; /* Centrar los botones horizontalmente */
+            margin-top: 20px;
+        }
+        .seccion {
+            margin-top: 50px;
+        }
+
 
   </style>
 <script src="https://cdn.jsdelivr.net/npm/luxon@2.3.0/build/global/luxon.min.js"></script>
 </head>
 <body>
-  <header>
-    
-  </header>
+ <div class="botones-container">
+    <button class="boton" onclick="document.getElementById('clasificacion').scrollIntoView();">Clasificación</button>
+    <button class="boton" onclick="document.getElementById('calendario').scrollIntoView();">Calendario</button>
+    <button class="boton" onclick="document.getElementById('programacion').scrollIntoView();">Programación Dazn F1</button>
+</div> 
   <main>
    
     <div class="container">
@@ -427,7 +451,7 @@
 
 
       <!-- Tabla de Clasificación -->
-
+<div id="clasificacion" class="seccion">
 <div class="container">
 <!-- Div para añadir espacio -->
     <div class="spacer"></div>
@@ -470,12 +494,13 @@
     </div>
   </div>
 </div>
+</div>
 <!-- Fin de Tabla de Clasificación -->
 
 
 
-    <!-- Contenido del iframe -->
-
+ 
+<div id="programacion" class="seccion">
 <div class="containerN">
         <h2>Horario Dazn F1</h2>
         <img src="https://www.adslzone.net/app/uploads-adslzone.net/2021/03/dazn-f1.jpg" alt="Logo DAZN F1" class="logo-small">
@@ -485,12 +510,13 @@
 
         <iframe src="https://programaciontv.org/tv-hoy/programacion-dazn-f1/"></iframe>
     </div>
+</div>
 
-
+<div id="calendario" class="seccion">
       <h2>Próximos circuitos</h2>
        <div id="circuits">
       </div>
-
+</div>
       <div class="creditos">
         <span>Creado por Jimgsey</span>
         <a href="https://github.com/jimgsey" target="_blank">
