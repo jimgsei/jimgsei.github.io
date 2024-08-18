@@ -783,7 +783,7 @@
         }
 
 
-async function fetchCurrentRace() {
+       async function fetchCurrentRace() {
         try {
             const response = await fetch('https://ergast.com/api/f1/current.json');
             const data = await response.json();
@@ -803,10 +803,10 @@ async function fetchCurrentRace() {
 
                 currentCircuitDiv.innerHTML = `
                     <h2 class="circuit-name">${currentRace.raceName}</h2>
-                    <p class="circuit-info"><strong>Número de Carrera:</strong> ${currentRace.round}</p>
                     <p class="circuit-info"><strong>Fecha:</strong> ${raceDateTimeMadrid.toLocaleString(luxon.DateTime.DATE_FULL)}</p>
                     <p class="circuit-info"><strong>Hora:</strong> ${raceDateTimeMadrid.toLocaleString(luxon.DateTime.TIME_SIMPLE)}</p>
                     <p class="circuit-info"><strong>Ubicación:</strong> ${currentRace.Circuit.Location.locality}, ${currentRace.Circuit.Location.country}</p>
+                    <p class="circuit-info"><strong>Carrera Númer:</strong> ${currentRace.round}</p>
                     <p class="circuit-info"><a href="https://es.wikipedia.org/wiki/${currentRace.Circuit.circuitName.replace(/ /g, '_')}" target="_blank">Más información en Wikipedia</a></p>
                 `;
             } else {
@@ -817,10 +817,10 @@ async function fetchCurrentRace() {
 
                     currentCircuitDiv.innerHTML = `
                         <h2 class="circuit-name">Próxima Carrera: ${nextRace.raceName}</h2>
-                        <p class="circuit-info"><strong>Número de Carrera:</strong> ${nextRace.round}</p>
                         <p class="circuit-info"><strong>Fecha:</strong> ${raceDateTimeMadrid.toLocaleString(luxon.DateTime.DATE_FULL)}</p>
                         <p class="circuit-info"><strong>Hora:</strong> ${raceDateTimeMadrid.toLocaleString(luxon.DateTime.TIME_SIMPLE)}</p>
                         <p class="circuit-info"><strong>Ubicación:</strong> ${nextRace.Circuit.Location.locality}, ${nextRace.Circuit.Location.country}</p>
+                        <p class="circuit-info"><strong>Carrera Número:</strong> ${nextRace.round}</p>
                         <p class="circuit-info"><a href="https://es.wikipedia.org/wiki/${nextRace.Circuit.circuitName.replace(/ /g, '_')}" target="_blank">Más información</a></p>
                     `;
                 } else {
