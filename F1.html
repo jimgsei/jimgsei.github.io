@@ -143,16 +143,16 @@
 
     /* Estilo para el video */
     .video-container {
-      text-align: center; /* Centrar el contenido */
-      width: 100%; /* Ancho del 100% del contenedor */
-      max-width: 100%; /* Ancho máximo del 100% */
-      height: 100vh; /* Altura del 100% del viewport */
-      margin-bottom: -120px; /* Eliminar margen inferior */
+      display: flex;
+      justify-content: center; /* Centramos horizontalmente el iframe */
+      margin-bottom: 20px;
     }
 
     .video-container iframe {
-      width: 100%; /* Ancho del 100% del contenedor */
-      height: 100%; /* Altura del 100% del contenedor */
+      width: 100%;
+      max-width: 900px; /* Máximo ancho para pantallas grandes */
+      height: 400px; /* Altura fija */
+      border: none;
     }
 
     .content {
