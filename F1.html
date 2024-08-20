@@ -758,19 +758,13 @@
         fetchDriverPosition(14, 'position-14', 'date-14'),
         fetchDriverPosition(55, 'position-55', 'date-55'),
         fetchLastF1Qualifying(),
-        fetchChampionshipStandings()
+        fetchChampionshipStandings(),
+        fetchCircuitInfo()
       ]);
     }
 
 
-
-       
-        async function loadData() {
-            const circuitData = await fetchCircuitData();
-            const raceData = await fetchRaceData();
-            updateDataBox(circuitData, raceData);
-        }
-        
+     
 
         async function fetchRemainingRaces() {
             try {
@@ -862,7 +856,6 @@
 
     document.addEventListener('DOMContentLoaded', function() {
             fetchData();
-            loadData(); // Encabezado datos del circuito
             fetchCurrentRace();
             fetchRemainingRaces();
 
