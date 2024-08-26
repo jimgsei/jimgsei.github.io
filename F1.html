@@ -203,7 +203,7 @@
     .dashboard-container {
       width: 100%; /* Ancho del 100% del contenedor */
       height: 600px; /* Altura del iframe del dashboard */
-      margin-top: 50px; /* Espacio superior */
+      margin-top: 75px; /* Espacio superior */
     }
 
     .spacer {
@@ -441,6 +441,11 @@
         .container2 {
             width: 80%;
             max-width: 800px;
+                  text-align: center; /* Centrar contenido */
+      width: 60%; /* Ancho del 90% de la pantalla */
+      margin: 0 auto; /* Centrar el contenido */
+      margin-top: 100px; /* Espacio superior para separar contenedores */
+
         }
         .button-container {
             display: flex;
@@ -528,14 +533,13 @@
 
       <div class="separator"></div>
 
-<div class="container">
+    <div class="container2">
         <div class="button-container">
             <button class="video-button" onclick="switchVideo('https://en.gdplayertv.to/live-tv/dazn-f1/?embed=1')">Opción 1</button>
             <button class="video-button" onclick="switchVideo('https://live.sportsnews.id/p/dazn-f1.html')">Opción 2</button>
         </div>
         <div class="video-container">
-            <iframe id="videoFrame" width="100%" height="100%" src="https://en.gdplayertv.to/live-tv/dazn-f1/?embed=1" allow="encrypted-media" scrolling="no" frameborder="0" gesture="autoplay" allowfullscreen="allowfullscreen"></iframe>
-        </div>
+            <iframe id="videoFrame" width="100%" height="100%" src="https://en.gdplayertv.to/live-tv/dazn-f1/?embed=1" allow="encrypted-media; picture-in-picture" scrolling="no" frameborder="0" gesture="autoplay" allowfullscreen="allowfullscreen"></iframe>        </div>
     </div>
 
       <div class="separator"></div>
