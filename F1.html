@@ -261,9 +261,10 @@
             border-radius: 8px;
             border: 3px solid #8B0000; /* Borde rojo oscuro */
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-            max-width: 350px;
+            max-width: 550px;
             width: 100%;
             margin: 0 auto;
+            background-color: transparent; /* Fondo transparente */
         }
         h1 {
             text-align: center;
@@ -319,6 +320,54 @@
         }
 
 
+        /* Contenedor horizontal con flex-wrap */
+        .horizontal-container {
+            display: flex;
+            flex-direction: row; /* Horizontal por defecto */
+            justify-content: space-between; /* Opcional: para espaciar los elementos */
+            flex-wrap: wrap; /* Permite que los elementos se ajusten en pantallas pequeñas */
+        }
+
+        #current-circuit {
+            flex: 2; /* Más ancho */
+            margin-right: 10px; /* Espacio entre los divs */
+        }
+
+        .data-boxt {
+            flex: 1; /* Más pequeño */
+            height: 200px; /* Ajusta la altura según tus necesidades */
+            padding: 5px; /* Reduce el padding para disminuir la altura */
+            position: relative; /* Posicionamiento relativo */
+            top: 30px; /* Ajusta la posición superior para subirlo */
+            background-color: transparent; /* Fondo transparente */
+            border: 0px solid #444444; /* Mantén el borde si lo deseas */
+        }
+
+        /* Media query para pantallas pequeñas */
+        @media (max-width: 768px) {
+            .containert {
+                max-width: 300px; /* Reduce el ancho máximo en pantallas pequeñas */
+                padding: 10px; /* Reduce el padding en pantallas pequeñas */
+                border-width: 2px; /* Reduce el ancho del borde en pantallas pequeñas */
+            }
+
+            .horizontal-container {
+                flex-direction: column; /* Cambia a vertical en pantallas pequeñas */
+            }
+
+            #current-circuit {
+                margin-right: 0; /* Elimina el margen derecho en pantallas pequeñas */
+                margin-bottom: 10px; /* Añade margen inferior para separar los divs */
+            }
+
+            .data-boxt {
+                width: 95%; /* Ajusta el ancho para pantallas pequeñas */
+                height: auto; /* Ajusta la altura para pantallas pequeñas */
+                top: 0; /* Elimina la posición superior en pantallas pequeñas */
+                margin-top: 10px; /* Añade margen superior para separar los divs */
+                background-color: transparent; /* Fondo transparente en pantallas pequeñas */
+            }
+        }
 
         
          .containerN {
@@ -508,14 +557,16 @@
 
   <main>
         <h1>Fórmula 1</h1>
-      <div class="containert">
-      <div id="current-circuit"></div>
+<div class="containert">
+    <div class="horizontal-container">
+        <div id="current-circuit"></div>
         <div class="data-boxt">
             <div id="weatherData">
                 <div class="info-line"><span>Cargando...</span></div>
             </div>
         </div>
-     </div>
+    </div>
+</div>
       <br>
       <div id="info-container">
         <table>
