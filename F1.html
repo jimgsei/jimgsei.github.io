@@ -239,21 +239,30 @@
       }
     }
 
-    /* Estilo para la tabla */
-    #info-container table {
-      width: 10cm; /* Ancho de la tabla */
-      margin: 0 auto; /* Centrar la tabla */
-      border: 1px solid #ddd; /* Borde de la tabla */
-      border-collapse: collapse; /* Colapso de bordes */
-    }
+        /* Estilo para la tabla */
+        #info-container table {
+            width: 10cm; /* Ancho de la tabla */
+            margin: 0 auto; /* Centrar la tabla */
+            border: 2px solid #ffffff; /* Borde blanco de la tabla */
+            border-collapse: collapse; /* Colapso de bordes */
+            border-radius: 10px; /* Bordes redondeados */
+            overflow: hidden; /* Para que los bordes redondeados se apliquen correctamente */
+        }
 
-    /* Estilo para las celdas de la tabla */
-    #info-container th,
-    #info-container td {
-      border: 1px solid #ddd; /* Borde de las celdas */
-      padding: 6px; /* Espaciado interno de las celdas */
-      text-align: left; /* Alineación del texto en las celdas */
-    }
+        /* Estilo para las celdas de la tabla */
+        #info-container th,
+        #info-container td {
+            border: 1px solid #ddd; /* Borde de las celdas */
+            padding: 6px; /* Espaciado interno de las celdas */
+            text-align: left; /* Alineación del texto en las celdas */
+            background-color: transparent; /* Fondo transparente */
+        }
+
+        /* Estilo para el encabezado de la tabla */
+        #info-container th {
+            background-color: #800000; /* Color granate */
+            color: #ffffff; /* Color del texto en blanco */
+        }
 
     .containert {
             background-color: #1a1a1a;
@@ -271,12 +280,43 @@
             color: #ffffff;
             font-weight: bold;
         }
+        .current-circuit {
+            margin-top: 0px;
+            padding: 10px;
+            border: 0px solid #444444;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 14px; /* Tamaño de fuente reducido */
+            background-color: transparent; /* Fondo transparente */
+        }
+        .current-circuit p {
+            margin: 5px 0;
+            font-weight: bold;
+            color: #ffffff;
+        }
+        .data-cell {
+            background-color: transparent;
+            border: 1px solid #444444;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 5px 0;
+        }
+        .race-name {
+            font-size: 1.5em; /* Tamaño más grande */
+            margin: 10px 0;
+        }
+        a {
+            color: #ffffff;
+            text-decoration: underline;
+        }
+
         .data-boxt {
             margin-top: 20px;
             padding: 10px;
             border: 1px solid #444444;
             border-radius: 8px;
             background-color: #2a2a2a;
+            flex: 2; /* Más pequeño */
         }
         .data-boxt p {
             margin: 5px 0;
@@ -328,17 +368,18 @@
             flex-wrap: wrap; /* Permite que los elementos se ajusten en pantallas pequeñas */
         }
 
-        #current-circuit {
-            flex: 2; /* Más ancho */
+        .current-circuit {
+            flex: 3; /* Más ancho */
+            width: 280px;
             margin-right: 10px; /* Espacio entre los divs */
         }
 
         .data-boxt {
-            flex: 1; /* Más pequeño */
+            flex: 2; /* Más pequeño */
             height: 200px; /* Ajusta la altura según tus necesidades */
             padding: 5px; /* Reduce el padding para disminuir la altura */
             position: relative; /* Posicionamiento relativo */
-            top: 30px; /* Ajusta la posición superior para subirlo */
+            top: 40px; /* Ajusta la posición superior para subirlo */
             background-color: transparent; /* Fondo transparente */
             border: 0px solid #444444; /* Mantén el borde si lo deseas */
         }
@@ -355,7 +396,7 @@
                 flex-direction: column; /* Cambia a vertical en pantallas pequeñas */
             }
 
-            #current-circuit {
+            .current-circuit {
                 margin-right: 0; /* Elimina el margen derecho en pantallas pequeñas */
                 margin-bottom: 10px; /* Añade margen inferior para separar los divs */
             }
@@ -560,7 +601,9 @@
         <h1>Fórmula 1</h1>
 <div class="containert">
     <div class="horizontal-container">
-        <div id="current-circuit"></div>
+    <div id="dataContainer">
+            <!-- Data will be inserted here -->
+        </div>
         <div class="data-boxt">
             <div id="weatherData">
                 <div class="info-line"><span>Cargando...</span></div>
@@ -708,6 +751,92 @@
         }
 
 
+async function fetchF1Data() {
+    try {
+        const proxyUrl = 'https://api.allorigins.win/get?url=';
+        const targetUrl = encodeURIComponent('https://api.jolpi.ca/ergast/f1/current.json');
+        const response = await fetch(proxyUrl + targetUrl);
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        const jsonData = JSON.parse(data.contents);
+
+        // Obtener la fecha de hoy
+        const today = new Date().toISOString().split('T')[0];
+
+        // Filtrar carreras por la fecha de hoy o la próxima carrera
+        const races = jsonData.MRData.RaceTable.Races;
+        let nextRace = null;
+        for (let race of races) {
+            if (race.date === today) {
+                nextRace = race;
+                break;
+            } else if (new Date(race.date) > new Date(today)) {
+                nextRace = race;
+                break;
+            }
+        }
+
+        // Insertar datos en el contenedor
+        const dataContainer = document.getElementById('dataContainer');
+        if (nextRace) {
+            const dataBox = document.createElement('div');
+            dataBox.className = 'current-circuit';
+
+            // Convertir la hora a la zona horaria de Madrid
+            const raceTime = new Date(`${nextRace.date}T${nextRace.time}`);
+            const madridTime = raceTime.toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
+
+            // Convertir la fecha al formato español
+            const raceDate = new Date(nextRace.date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+
+            dataBox.innerHTML = `
+                <p class="race-name">${nextRace.raceName}</p>
+                <div class="data-cell">${nextRace.Circuit.circuitName}</div>
+                <div class="data-cell">${nextRace.date === today ? `${raceDate}` : 'Próxima Carrera'}</div>
+                <div class="data-cell">Hora: ${madridTime}</div>
+                <div class="data-cell">Ubicación: ${nextRace.Circuit.Location.locality}, ${nextRace.Circuit.Location.country}</div>
+                <div class="data-cell">Carrera Nº: ${nextRace.round}</div>
+                <div class="data-cell"><a href="${nextRace.url}" target="_blank">Más información en Wikipedia</a></div>
+            `;
+
+            // Eliminar prácticas si la fecha es anterior a hoy
+            if (new Date(nextRace.FirstPractice.date) >= new Date(today)) {
+                const firstPracticeTime = new Date(`${nextRace.FirstPractice.date}T${nextRace.FirstPractice.time}`);
+                const madridFirstPracticeTime = firstPracticeTime.toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
+                dataBox.innerHTML += `<div class="data-cell">First Practice: ${new Date(nextRace.FirstPractice.date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })} at ${madridFirstPracticeTime}</div>`;
+            }
+            if (new Date(nextRace.SecondPractice.date) >= new Date(today)) {
+                const secondPracticeTime = new Date(`${nextRace.SecondPractice.date}T${nextRace.SecondPractice.time}`);
+                const madridSecondPracticeTime = secondPracticeTime.toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
+                dataBox.innerHTML += `<div class="data-cell">Second Practice: ${new Date(nextRace.SecondPractice.date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })} at ${madridSecondPracticeTime}</div>`;
+            }
+            if (new Date(nextRace.ThirdPractice.date) >= new Date(today)) {
+                const thirdPracticeTime = new Date(`${nextRace.ThirdPractice.date}T${nextRace.ThirdPractice.time}`);
+                const madridThirdPracticeTime = thirdPracticeTime.toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
+                dataBox.innerHTML += `<div class="data-cell">Third Practice: ${new Date(nextRace.ThirdPractice.date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })} at ${madridThirdPracticeTime}</div>`;
+            }
+            if (new Date(nextRace.Qualifying.date) >= new Date(today)) {
+                const qualifyingTime = new Date(`${nextRace.Qualifying.date}T${nextRace.Qualifying.time}`);
+                const madridQualifyingTime = qualifyingTime.toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
+                dataBox.innerHTML += `<div class="data-cell">Qualifying: ${new Date(nextRace.Qualifying.date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })} at ${madridQualifyingTime}</div>`;
+            }
+
+            dataContainer.appendChild(dataBox);
+        } else {
+            dataContainer.textContent = 'No hay carreras próximas.';
+        }
+    } catch (error) {
+        console.error('Error fetching F1 data:', error);
+        document.getElementById('dataContainer').textContent = 'Error fetching F1 data: ' + error.message;
+    }
+}
+
+
+
+
+
     async function fetchDriverPosition(driverNumber, positionElementId, dateElementId) {
       try {
         const response = await fetch(`https://api.openf1.org/v1/position?meeting_key=latest&driver_number=${driverNumber}&session_key=latest`);
@@ -770,25 +899,7 @@
       }
     }
 
-    async function fetchCurrentRaceData() {
-      try {
-        const response = await fetch('https://ergast.com/api/f1/current/next.json');
-        const data = await response.json();
-        const race = data.MRData.RaceTable.Races[0];
-
-        // Mostrar el nombre del próximo Gran Premio
-        displayRaceName(race.raceName);
-      } catch (error) {
-        document.getElementById('race-name').textContent = 'Hubo un error al obtener los datos del Gran Premio actual de F1.';
-        console.error('Error fetching the data:', error);
-      }
-    }
-
-    function displayRaceName(raceName) {
-      const content = document.getElementById('race-name');
-      content.innerHTML = `<h2>${raceName}</h2>`;
-    }
-
+    
     async function fetchLastF1Qualifying() {
       try {
         const response = await fetch('https://ergast.com/api/f1/current/last/qualifying.json');
@@ -842,38 +953,12 @@
       }
     }
 
-    async function fetchCircuitInfo() {
-      try {
-        const response = await fetch('https://ergast.com/api/f1/current/next.json');
-        const data = await response.json();
-        const circuitId = data.MRData.RaceTable.Races[0].Circuit.circuitId;
-        const circuitResponse = await fetch(`https://ergast.com/api/f1/circuits/${circuitId}.json`);
-        const circuitData = await circuitResponse.json();
-        const circuitName = circuitData.MRData.CircuitTable.Circuits[0].circuitName;
-        const circuitLocation = circuitData.MRData.CircuitTable.Circuits[0].Location.locality;
-        const circuitCountry = circuitData.MRData.CircuitTable.Circuits[0].Location.country;
-
-        const content = document.getElementById('circuit-info');
-        content.innerHTML = `
-          <h2>${circuitName}</h2>
-          <p>${circuitLocation}, ${circuitCountry}</p>
-          <img src="https://www.countryflags.io/${circuitCountry}/flat/64.png" alt="${circuitCountry}">
-        `;
-      } catch (error) {
-        console.error('Error fetching circuit info:', error);
-        document.getElementById('circuit-info').textContent = 'Hubo un error al obtener la información del circuito.';
-      }
-    }
-
-    
-
+   
 
     async function fetchData() {
       await Promise.all([
-        fetchCurrentRaceData(),
         fetchLastF1Qualifying(),
         fetchChampionshipStandings(),
-        fetchCircuitInfo()
       ]);
     }
 
@@ -916,7 +1001,7 @@
 
        async function fetchCurrentRace() {
         try {
-            const response = await fetch('https://ergast.com/api/f1/current.json');
+            const response = await fetch('https://api.jolpi.ca/ergast/f1/current.json');
             const data = await response.json();
             const races = data.MRData.RaceTable.Races;
             const today = new Date();
@@ -955,12 +1040,12 @@
                         <p class="circuit-info"><a href="https://es.wikipedia.org/wiki/${nextRace.Circuit.circuitName.replace(/ /g, '_')}" target="_blank">Más información</a></p>
                     `;
                 } else {
-                    currentCircuitDiv.innerHTML = '<p>No se pudieron obtener datos de la API de Ergast. Inténtalo más tarde.</p>';
+                    currentCircuitDiv.innerHTML = '<p>No se pudieron obtener datos de la API de Ergast. Inténtalo más tardel.</p>';
                 }
             }
         } catch (error) {
             const errorMessage = document.createElement('p');
-            errorMessage.textContent = 'No se pudieron obtener datos de la API de Ergast. Inténtalo más tarde.';
+            errorMessage.textContent = '';
             document.body.appendChild(errorMessage);
         }
     }
@@ -1027,6 +1112,7 @@
             fetchCurrentRace();
             fetchRemainingRaces();
             fetchWeatherData();
+            fetchF1Data();
 
         });
 
