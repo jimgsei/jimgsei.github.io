@@ -870,8 +870,6 @@
     async function fetchData() {
       await Promise.all([
         fetchCurrentRaceData(),
-        fetchDriverPosition(14, 'position-14', 'date-14'),
-        fetchDriverPosition(55, 'position-55', 'date-55'),
         fetchLastF1Qualifying(),
         fetchChampionshipStandings(),
         fetchCircuitInfo()
@@ -1030,7 +1028,23 @@
             fetchWeatherData();
 
         });
+
+// Función para actualizar fetchDriverPosition cada 3 segundos
+function startAutoUpdate() {
+  setInterval(async () => {
+    await Promise.all([
+      fetchDriverPosition(14, 'position-14', 'date-14'),
+      fetchDriverPosition(55, 'position-55', 'date-55'),
+      fetchWeatherData()
+    ]);
+  }, 3000); // 3000 milisegundos = 3 segundos
+}
+
+// Inicia la actualización automática
+startAutoUpdate();
+
   </script>
+
 <script>
     // Función para configurar las cookies del iframe
     function configurarCookiesIframe() {
