@@ -972,7 +972,7 @@
                     throw new Error('Error en la solicitud: ' + response.statusText);
                 }
                 const data = await response.json();
-                const penultimoElemento = data[data.length - 2];
+                const penultimoElemento = data[data.length - 1];
                 const weatherDataDiv = document.getElementById('weatherData');
                 weatherDataDiv.innerHTML = ''; // Limpiar contenido previo
 
