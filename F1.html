@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 
 <html lang="es">
 <head>
@@ -574,6 +574,57 @@
             height: 400px;
         }
 
+
+       .upcoming-circuits-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 20px;
+        }
+
+
+
+        .upcoming-circuit-box {
+            border: 2px solid maroon;
+            background-color: transparent;
+            margin: 10px;
+            padding: 10px;
+            width: calc(20% - 40px); /* 5 boxes per row */
+            box-sizing: border-box;
+            text-align: center;
+            color: white;
+            border-radius: 10px;
+        }
+        .upcoming-data-cell {
+            margin: 5px 0;
+            border: 1px solid white;
+            border-radius: 5px;
+            padding: 5px;
+        }
+        .upcoming-race-name {
+            font-weight: bold;
+        }
+        @media (max-width: 1200px) {
+            .upcoming-circuit-box {
+                width: calc(25% - 40px); /* 4 boxes per row */
+            }
+        }
+        @media (max-width: 992px) {
+            .upcoming-circuit-box {
+                width: calc(33.33% - 40px); /* 3 boxes per row */
+            }
+        }
+        @media (max-width: 768px) {
+            .upcoming-circuit-box {
+                width: calc(50% - 40px); /* 2 boxes per row */
+            }
+        }
+        @media (max-width: 576px) {
+            .upcoming-circuit-box {
+                width: calc(100% - 40px); /* 1 box per row */
+            }
+        }
+
   </style>
 <script src="https://cdn.jsdelivr.net/npm/luxon@2.3.0/build/global/luxon.min.js"></script>
 <script>
@@ -731,9 +782,13 @@
 
 <div id="calendario" class="seccion">
       <h2>Próximos circuitos</h2>
-       <div id="circuits">
-      </div>
+      <div class="upcoming-circuits-container" id="upcomingDataContainer"></div>
 </div>
+
+
+
+
+
       <div class="creditos">
         <span>Creado por Jimgsey</span>
         <a href="https://github.com/jimgsey" target="_blank">
@@ -970,40 +1025,6 @@ async function fetchF1Data() {
 
      
 
-        async function fetchRemainingRaces() {
-            try {
-                const response = await fetch('https://ergast.com/api/f1/current.json');
-                const data = await response.json();
-                const races = data.MRData.RaceTable.Races;
-                const today = new Date();
-
-                const remainingRaces = races.filter(race => new Date(race.date) > today);
-
-                const circuitsDiv = document.getElementById('circuits');
-                circuitsDiv.innerHTML = '';
-
-                for (const race of remainingRaces) {
-                    const raceDateTime = luxon.DateTime.fromISO(race.date + 'T' + race.time, { zone: 'utc' });
-                    const raceDateTimeMadrid = raceDateTime.setZone('Europe/Madrid');
-
-                    const circuitCard = document.createElement('div');
-                    circuitCard.className = 'circuit-card';
-                    circuitCard.innerHTML = `
-                        <h2 class="circuit-name">${race.raceName}</h2>
-                        <p class="circuit-info"><strong>Fecha:</strong> ${raceDateTimeMadrid.toLocaleString(luxon.DateTime.DATE_FULL)}</p>
-                        <p class="circuit-info"><strong>Hora:</strong> ${raceDateTimeMadrid.toLocaleString(luxon.DateTime.TIME_SIMPLE)}</p>
-                        <p class="circuit-info"><strong>Ubicación:</strong> ${race.Circuit.Location.locality}, ${race.Circuit.Location.country}</p>
-                    `;
-                    circuitsDiv.appendChild(circuitCard);
-                }
-            } catch (error) {
-                const errorMessage = document.createElement('p');
-                errorMessage.textContent = 'No se pudieron obtener datos de la API de Ergast. Inténtalo más tarde.';
-                document.body.appendChild(errorMessage);
-            }
-        }
-
-
        async function fetchCurrentRace() {
         try {
             const response = await fetch('https://api.jolpi.ca/ergast/f1/current.json');
@@ -1112,12 +1133,64 @@ async function fetchF1Data() {
 
 
 
+
+        async function fetchUpcomingF1Data() {
+            try {
+                const proxyUrl = 'https://api.allorigins.win/get?url=';
+                const targetUrl = encodeURIComponent('https://api.jolpi.ca/ergast/f1/current.json');
+                const response = await fetch(proxyUrl + targetUrl);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+                const jsonData = JSON.parse(data.contents);
+
+                // Obtener la fecha de hoy
+                const today = new Date().toISOString().split('T')[0];
+
+                // Filtrar carreras futuras
+                const races = jsonData.MRData.RaceTable.Races.filter(race => new Date(race.date) >= new Date(today));
+
+                // Insertar datos en el contenedor
+                const dataContainer = document.getElementById('upcomingDataContainer');
+                dataContainer.innerHTML = ''; // Limpiar contenedor
+
+                races.forEach(race => {
+                    const dataBox = document.createElement('div');
+                    dataBox.className = 'upcoming-circuit-box';
+
+                    // Convertir la hora a la zona horaria de Madrid
+                    const raceTime = new Date(`${race.date}T${race.time}`);
+                    const madridTime = raceTime.toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
+
+                    // Convertir la fecha al formato DD/MM/AAAA
+                    const raceDate = new Date(race.date).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+                    dataBox.innerHTML = `
+                        <p class="upcoming-race-name">${race.raceName}</p>
+                        <div class="upcoming-data-cell">Fecha: ${raceDate}</div>
+                        <div class="upcoming-data-cell">Hora: ${madridTime}</div>
+                        <div class="upcoming-data-cell">Ubicación: ${race.Circuit.Location.locality}, ${race.Circuit.Location.country}</div>
+                    `;
+
+                    dataContainer.appendChild(dataBox);
+                });
+            } catch (error) {
+                console.error('Error fetching F1 data:', error);
+                document.getElementById('upcomingDataContainer').textContent = 'Error fetching F1 data: ' + error.message;
+            }
+        }
+
+
+
+
     document.addEventListener('DOMContentLoaded', function() {
             fetchData();
             fetchCurrentRace();
-            fetchRemainingRaces();
-            fetchWeatherData();
-            fetchF1Data();
+            fetchWeatherData(); // Tiempo
+            fetchF1Data(); // Datos circuito
+            fetchUpcomingF1Data(); // Próximos circuitos
+
 
         });
 
