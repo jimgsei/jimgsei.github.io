@@ -960,58 +960,66 @@ async function fetchF1Data() {
     }
 
     
-    async function fetchLastF1Qualifying() {
-      try {
-        const response = await fetch('https://ergast.com/api/f1/current/last/qualifying.json');
-        const data = await response.json();
-        
-        // Extraer información de la última clasificación
-        const raceName = data.MRData.RaceTable.Races[0].raceName;
-        const qualifyingResults = data.MRData.RaceTable.Races[0].QualifyingResults;
-        
-        // Mostrar el nombre del Gran Premio en la tabla de clasificación
-        document.getElementById('qualifying-table').rows[0].cells[0].textContent = raceName;
+        async function fetchLastF1Qualifying() {
+            try {
+                const proxyUrl = 'https://api.allorigins.win/get?url=';
+                const targetUrl = encodeURIComponent('https://api.jolpi.ca/ergast/f1/current/last/qualifying.json');
+                const response = await fetch(proxyUrl + targetUrl);
+                const data = await response.json();
+                const jsonData = JSON.parse(data.contents);
 
-        // Construir la tabla con los resultados de la clasificación
-        const tableBody = document.getElementById('qualifying-results');
-        let html = '';
-        qualifyingResults.forEach(result => {
-          const driverName = `${result.Driver.givenName} ${result.Driver.familyName}`;
-          const position = result.position;
-          const isFernandoOrCarlos = driverName.includes('Fernando Alonso') || driverName.includes('Carlos Sainz');
-          html += `<tr${isFernandoOrCarlos ? ' class="highlight"' : ''}><td>${position}</td><td>${driverName}</td></tr>`;
-        });
-        tableBody.innerHTML = html;
-      } catch (error) {
-        console.error('Error fetching last F1 qualifying:', error);
-        document.getElementById('qualifying-results').textContent = 'Hubo un error al obtener la información de la última clasificación de F1.';
-      }
-    }
+                // Extraer información de la última clasificación
+                const raceName = jsonData.MRData.RaceTable.Races[0].raceName;
+                const qualifyingResults = jsonData.MRData.RaceTable.Races[0].QualifyingResults;
 
-    async function fetchChampionshipStandings() {
-      try {
-        const response = await fetch('https://ergast.com/api/f1/current/driverStandings.json');
-        const data = await response.json();
+                // Mostrar el nombre del Gran Premio en la tabla de clasificación
+                document.getElementById('qualifying-table').rows[0].cells[0].textContent = raceName;
 
-        // Extraer información de la clasificación del campeonato
-        const standings = data.MRData.StandingsTable.StandingsLists[0].DriverStandings;
+                // Construir la tabla con los resultados de la clasificación
+                const tableBody = document.getElementById('qualifying-results');
+                let html = '';
+                qualifyingResults.forEach(result => {
+                    const driverName = `${result.Driver.givenName} ${result.Driver.familyName}`;
+                    const position = result.position;
+                    const isFernandoOrCarlos = driverName.includes('Fernando Alonso') || driverName.includes('Carlos Sainz');
+                    html += `<tr${isFernandoOrCarlos ? ' class="highlight"' : ''}><td>${position}</td><td>${driverName}</td></tr>`;
+                });
+                tableBody.innerHTML = html;
+            } catch (error) {
+                console.error('Error fetching last F1 qualifying:', error);
+                document.getElementById('qualifying-results').textContent = 'Hubo un error al obtener la información de la última clasificación de F1.';
+            }
+        }
 
-        // Construir la tabla con los resultados del campeonato
-        const tableBody = document.getElementById('championship-results');
-        let html = '';
-        standings.forEach(standing => {
-          const position = standing.position;
-          const driverName = `${standing.Driver.givenName} ${standing.Driver.familyName}`;
-          const points = standing.points;
-          const isFernandoOrCarlos = driverName.includes('Fernando Alonso') || driverName.includes('Carlos Sainz');
-          html += `<tr${isFernandoOrCarlos ? ' class="highlight"' : ''}><td>${position}</td><td>${driverName}</td><td>${points}</td></tr>`;
-        });
-        tableBody.innerHTML = html;
-      } catch (error) {
-        console.error('Error fetching championship standings:', error);
-        document.getElementById('championship-results').textContent = 'Hubo un error al obtener la clasificación del campeonato de F1.';
-      }
-    }
+
+
+           async function fetchChampionshipStandings() {
+            try {
+                const proxyUrl = 'https://api.allorigins.win/get?url=';
+                const targetUrl = encodeURIComponent('https://api.jolpi.ca/ergast/f1/2024/driverstandings.json');
+                const response = await fetch(proxyUrl + targetUrl);
+                const data = await response.json();
+                const jsonData = JSON.parse(data.contents);
+
+                // Extraer información de la clasificación del campeonato
+                const standings = jsonData.MRData.StandingsTable.StandingsLists[0].DriverStandings;
+
+                // Construir la tabla con los resultados del campeonato
+                const tableBody = document.getElementById('championship-results');
+                let html = '';
+                standings.forEach(standing => {
+                    const position = standing.position;
+                    const driverName = `${standing.Driver.givenName} ${standing.Driver.familyName}`;
+                    const points = standing.points;
+                    const isFernandoOrCarlos = driverName.includes('Fernando Alonso') || driverName.includes('Carlos Sainz');
+                    html += `<tr${isFernandoOrCarlos ? ' class="highlight"' : ''}><td>${position}</td><td>${driverName}</td><td>${points}</td></tr>`;
+                });
+                tableBody.innerHTML = html;
+            } catch (error) {
+                console.error('Error fetching championship standings:', error);
+                document.getElementById('championship-results').textContent = 'Hubo un error al obtener la clasificación del campeonato de F1.';
+            }
+        }
 
    
 
