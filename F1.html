@@ -379,7 +379,7 @@
             height: 200px; /* Ajusta la altura según tus necesidades */
             padding: 5px; /* Reduce el padding para disminuir la altura */
             position: relative; /* Posicionamiento relativo */
-            top: 40px; /* Ajusta la posición superior para subirlo */
+            top: 70px; /* Ajusta la posición superior para subirlo */
             background-color: transparent; /* Fondo transparente */
             border: 0px solid #444444; /* Mantén el borde si lo deseas */
         }
@@ -398,14 +398,14 @@
 
             .current-circuit {
                 margin-right: 0; /* Elimina el margen derecho en pantallas pequeñas */
-                margin-bottom: 10px; /* Añade margen inferior para separar los divs */
+                margin-bottom: 2px; /* Añade margen inferior para separar los divs */
             }
 
             .data-boxt {
                 width: 95%; /* Ajusta el ancho para pantallas pequeñas */
                 height: auto; /* Ajusta la altura para pantallas pequeñas */
                 top: 0; /* Elimina la posición superior en pantallas pequeñas */
-                margin-top: 10px; /* Añade margen superior para separar los divs */
+                margin-top: 0px; /* Añade margen superior para separar los divs */
                 background-color: transparent; /* Fondo transparente en pantallas pequeñas */
             }
         }
@@ -791,37 +791,45 @@ async function fetchF1Data() {
             // Convertir la fecha al formato español
             const raceDate = new Date(nextRace.date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
 
+            // Convertir la fecha y hora de la Qualifying al formato español
+            const qualifyingDate = new Date(nextRace.Qualifying.date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+            const qualifyingTime = new Date(`${nextRace.Qualifying.date}T${nextRace.Qualifying.time}`);
+            const madridQualifyingTime = qualifyingTime.toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
+
             dataBox.innerHTML = `
                 <p class="race-name">${nextRace.raceName}</p>
                 <div class="data-cell">${nextRace.Circuit.circuitName}</div>
-                <div class="data-cell">${nextRace.date === today ? `${raceDate}` : 'Próxima Carrera'}</div>
-                <div class="data-cell">Hora: ${madridTime}</div>
+                <div class="data-cell">${nextRace.date === today ? `${raceDate}` : `${qualifyingDate}`}</div>
+                <div class="data-cell">Hora: ${nextRace.date === today ? `${madridTime}` : `${madridQualifyingTime}`}</div>
                 <div class="data-cell">Ubicación: ${nextRace.Circuit.Location.locality}, ${nextRace.Circuit.Location.country}</div>
                 <div class="data-cell">Carrera Nº: ${nextRace.round}</div>
                 <div class="data-cell"><a href="${nextRace.url}" target="_blank">Más información en Wikipedia</a></div>
             `;
 
-            // Eliminar prácticas si la fecha es anterior a hoy
+            // Crear una celda con todas las prácticas
+            let sessionsCell = `<div class="data-cell" style="border: 1px solid maroon;">`;
+
             if (new Date(nextRace.FirstPractice.date) >= new Date(today)) {
                 const firstPracticeTime = new Date(`${nextRace.FirstPractice.date}T${nextRace.FirstPractice.time}`);
                 const madridFirstPracticeTime = firstPracticeTime.toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
-                dataBox.innerHTML += `<div class="data-cell">First Practice: ${new Date(nextRace.FirstPractice.date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })} at ${madridFirstPracticeTime}</div>`;
+                const firstPracticeDay = firstPracticeTime.toLocaleDateString('es-ES', { weekday: 'long' });
+                sessionsCell += `Libres 1: ${firstPracticeDay.charAt(0).toUpperCase() + firstPracticeDay.slice(1)}, ${firstPracticeTime.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })} a las ${madridFirstPracticeTime}<br>`;
             }
             if (new Date(nextRace.SecondPractice.date) >= new Date(today)) {
                 const secondPracticeTime = new Date(`${nextRace.SecondPractice.date}T${nextRace.SecondPractice.time}`);
                 const madridSecondPracticeTime = secondPracticeTime.toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
-                dataBox.innerHTML += `<div class="data-cell">Second Practice: ${new Date(nextRace.SecondPractice.date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })} at ${madridSecondPracticeTime}</div>`;
+                const secondPracticeDay = secondPracticeTime.toLocaleDateString('es-ES', { weekday: 'long' });
+                sessionsCell += `Libres 2: ${secondPracticeDay.charAt(0).toUpperCase() + secondPracticeDay.slice(1)}, ${secondPracticeTime.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })} a las ${madridSecondPracticeTime}<br>`;
             }
             if (new Date(nextRace.ThirdPractice.date) >= new Date(today)) {
                 const thirdPracticeTime = new Date(`${nextRace.ThirdPractice.date}T${nextRace.ThirdPractice.time}`);
                 const madridThirdPracticeTime = thirdPracticeTime.toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
-                dataBox.innerHTML += `<div class="data-cell">Third Practice: ${new Date(nextRace.ThirdPractice.date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })} at ${madridThirdPracticeTime}</div>`;
+                const thirdPracticeDay = thirdPracticeTime.toLocaleDateString('es-ES', { weekday: 'long' });
+                sessionsCell += `Libres 3: ${thirdPracticeDay.charAt(0).toUpperCase() + thirdPracticeDay.slice(1)}, ${thirdPracticeTime.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })} a las ${madridThirdPracticeTime}<br>`;
             }
-            if (new Date(nextRace.Qualifying.date) >= new Date(today)) {
-                const qualifyingTime = new Date(`${nextRace.Qualifying.date}T${nextRace.Qualifying.time}`);
-                const madridQualifyingTime = qualifyingTime.toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
-                dataBox.innerHTML += `<div class="data-cell">Qualifying: ${new Date(nextRace.Qualifying.date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })} at ${madridQualifyingTime}</div>`;
-            }
+
+            sessionsCell += `</div>`;
+            dataBox.innerHTML += sessionsCell;
 
             dataContainer.appendChild(dataBox);
         } else {
@@ -832,9 +840,6 @@ async function fetchF1Data() {
         document.getElementById('dataContainer').textContent = 'Error fetching F1 data: ' + error.message;
     }
 }
-
-
-
 
 
     async function fetchDriverPosition(driverNumber, positionElementId, dateElementId) {
