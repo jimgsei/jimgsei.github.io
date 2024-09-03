@@ -6,14 +6,14 @@
     <title>Reproductor HLS con hls.js</title>
 </head>
 <body>
-    <h1>Reproductor HLS</h1>
+    <h1>Reproductor HL</h1>
     <video id="videoPlayer" controls width="640" height="360"></video>
 
     <!-- Incluye hls.js desde un CDN -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <script>
         var video = document.getElementById('videoPlayer');
-        var videoSrc = 'http://mku0414.oknirvana.club:8880/live/29ca10173n08/asdf23r2/2553.m3u8';
+        var videoSrc = 'https://mku0414.oknirvana.club:8880/live/29ca10173n08/asdf23r2/2553.m3u8';
 
         if (Hls.isSupported()) {
             var hls = new Hls();
