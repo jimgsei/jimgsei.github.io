@@ -16,85 +16,73 @@
       color: white; /* Color de texto blanco */
     }
 
-    .container {
-      text-align: center; /* Centrar contenido */
-      width: 60%; /* Ancho del 90% de la pantalla */
-      margin: 0 auto; /* Centrar el contenido */
-      color: white; /* Color de texto blanco */
-      margin-top: 100px; /* Espacio superior para separar contenedores */
-    }
+         .container {
+            text-align: center; /* Centrar contenido */
+            width: 60%; /* Ancho del 60% de la pantalla */
+            margin: 0 auto; /* Centrar el contenido */
+            color: white; /* Color de texto blanco */
+            margin-top: 100px; /* Espacio superior para separar contenedores */
+        }
+        h1 {
+            text-align: center; /* Centrar el texto */
+        }
+        table {
+            border-collapse: separate; /* Cambiar a 'separate' para permitir bordes redondeados */
+            width: 100%; /* Ancho del 100% del contenedor */
+            margin: 0 auto; /* Centrar la tabla */
+            border-radius: 10px; /* Bordes redondeados */
+            overflow: hidden; /* Asegurar que los bordes redondeados se apliquen correctamente */
+        }
+        th, td {
+            border: none;
+            padding: 6px;
+            text-align: left;
+        }
+        th {
+            font-weight: bold;
+            background-color: maroon; /* Cabecera granate */
+            color: white;
+            text-align: center; /* Centrar el texto en la cabecera */
+            border-radius: 10px 10px 0 0; /* Bordes redondeados en la cabecera */
+        }
+        .separator {
+            margin-top: 20px;
+        }
+        #race-name {
+            margin: 20px 0;
+            font-size: 24px;
+            color: white;
+            text-align: center; /* Centrar el texto */
+        }
+        .table-wrapper {
+            display: flex;
+            flex-wrap: wrap; /* Permitir que los contenedores se envuelvan en dispositivos estrechos */
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .table-container {
+            width: 40%;
+            margin-bottom: 20px;
+        }
+        .table-container table {
+            width: 90%;
+            border-collapse: separate; /* Cambiar a 'separate' para permitir bordes redondeados */
+            margin-bottom: 20px;
+        }
+        .table-container th,
+        .table-container td {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px; /* Bordes redondeados */
+        }
+        .table-container th {
+            background-color: maroon; /* Cabecera granate */
+            color: white;
+        }
+        .highlight {
+            font-weight: bold;
+        }
 
-    /* Estilo para el título */
-    h1 {
-      text-align: center; /* Centrar el texto */
-    }
-
-    /* Estilo para la tabla */
-    table {
-      border-collapse: collapse;
-      width: 100%; /* Ancho del 100% del contenedor */
-      margin: 0 auto; /* Centrar la tabla */
-    }
-
-    th, td {
-      border: none;
-      padding: 6px;
-      text-align: left;
-    }
-
-    /* Estilo para la cabecera de la tabla */
-    th {
-      font-weight: bold;
-    }
-
-    /* Estilo para la separación entre la tabla y el video */
-    .separator {
-      margin-top: 20px;
-    }
-
-    /* Estilo para el nombre del Gran Premio */
-    #race-name {
-      margin: 20px 0;
-      font-size: 24px;
-      color: white;
-      text-align: center; /* Centrar el texto */
-    }
-
-    /* Estilos para las tablas de clasificación */
-    .table-wrapper {
-      display: flex;
-      flex-wrap: wrap; /* Permitir que los contenedores se envuelvan en dispositivos estrechos */
-      justify-content: space-between;
-      margin-top: 20px;
-    }
-
-    .table-container {
-      width: 40%;
-      margin-bottom: 20px;
-    }
-
-    .table-container table {
-      width: 90%;
-      border-collapse: collapse;
-      margin-bottom: 20px;
-      border-collapse: collapse; /* Colapsar bordes */
-    }
-
-    .table-container th,
-    .table-container td {
-      padding: 8px;
-      border: 1px solid #ddd;
-    }
-
-    .table-container th {
-      background-color: red;
-      color: white;
-    }
-
-    /* Estilos adicionales para filas destacadas */
-    .highlight {
-      font-weight: bold;
-    }
 
     /* Estilos para la información del circuito */
     .circuit-info {
@@ -215,7 +203,8 @@
       border: none; /* Eliminar borde del iframe */
       margin-top: 40px; /* Espacio superior para separar contenedores */
     }
-    /* Media query para dispositivos móviles */
+    
+   /* Media query para dispositivos móviles */
     @media (max-width: 768px) {
       .container {
         width: 90%; /* Ancho del 90% de la pantalla en dispositivos móviles */
