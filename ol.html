@@ -3,22 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reproductor M3U8 con Video.js</title>
-    <link href="https://vjs.zencdn.net/7.11.4/video-js.css" rel="stylesheet" />
+    <title>Reproductor M3U8 con Clappr</title>
+    <script src="https://cdn.jsdelivr.net/npm/clappr@latest/dist/clappr.min.js"></script>
 </head>
 <body>
-    <h1>Reproductor M3U8 con Video.js</h1>
-    <video id="videoPlayer" class="video-js vjs-default-skin" controls preload="auto" width="640" height="360"></video>
+    <h1>Reproductor M3U8 con Clappr</h1>
+    <div id="player"></div>
 
-    <script src="https://vjs.zencdn.net/7.11.4/video.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/videojs-http-streaming@latest/dist/videojs-http-streaming.min.js"></script>
     <script>
-        var player = videojs('videoPlayer');
-        player.src({
-            src: 'http://mku0414.oknirvana.club:8880/live/29ca10173n08/asdf23r2/2553.m3u8',
-            type: 'application/x-mpegURL'
+        var player = new Clappr.Player({
+            source: 'http://mku0414.oknirvana.club:8880/live/29ca10173n08/asdf23r2/2553.m3u8',
+            parentId: '#player',
+            width: '640',
+            height: '360',
+            autoPlay: false
         });
-        player.play();
     </script>
 </body>
 </html>
