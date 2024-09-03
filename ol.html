@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reproductor de Video</title>
+    <title>Reproductor HLS con hls.js</title>
 </head>
 <body>
-    <h1>Reproductor de Video</h1>
-    <video id="videoPlayer" width="640" height="360" controls></video>
+    <h1>Reproductor HLS</h1>
+    <video id="videoPlayer" controls width="640" height="360"></video>
 
+    <!-- Incluye hls.js desde un CDN -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <script>
         var video = document.getElementById('videoPlayer');
@@ -18,17 +19,19 @@
             var hls = new Hls();
             hls.loadSource(videoSrc);
             hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, function () {
+            hls.on(Hls.Events.MANIFEST_PARSED, function() {
                 video.play();
             });
         } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            // Para Safari o navegadores que soportan HLS nativamente
             video.src = videoSrc;
-            video.addEventListener('loadedmetadata', function () {
+            video.addEventListener('canplay', function() {
                 video.play();
             });
         } else {
-            alert("Tu navegador no soporta la reproducción de este video.");
+            alert('HLS no es soportado por este navegador.');
         }
     </script>
 </body>
 </html>
+
