@@ -3,35 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reproductor HLS con hls.js</title>
+    <title>Video HLS con Fetch</title>
 </head>
 <body>
-    <h1>Reproductor HL</h1>
-    <video id="videoPlayer" controls width="640" height="360"></video>
-
-    <!-- Incluye hls.js desde un CDN -->
+    <h1>Reproductor de Video HLS con Fetch</h1>
+    <video id="video" controls width="640" height="360"></video>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <script>
-        var video = document.getElementById('videoPlayer');
-        var videoSrc = 'https://mku0414.oknirvana.club:8880/live/29ca10173n08/asdf23r2/2553.m3u8';
-
         if (Hls.isSupported()) {
+            var video = document.getElementById('video');
             var hls = new Hls();
-            hls.loadSource(videoSrc);
-            hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                video.play();
-            });
+            
+            fetch('http://mku0414.oknirvana.club:8880/live/29ca10173n08/asdf23r2/2553.m3u8')
+                .then(response => response.text())
+                .then(m3u8 => {
+                    // Crear un blob URL para el contenido m3u8
+                    var blob = new Blob([m3u8], { type: 'application/vnd.apple.mpegurl' });
+                    var url = URL.createObjectURL(blob);
+                    
+                    hls.loadSource(url);
+                    hls.attachMedia(video);
+                    hls.on(Hls.Events.MANIFEST_PARSED, function () {
+                        video.play();
+                    });
+                })
+                .catch(error => console.error('Error al cargar el stream:', error));
         } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            // Para Safari o navegadores que soportan HLS nativamente
-            video.src = videoSrc;
-            video.addEventListener('canplay', function() {
+            video.src = 'http://mku0414.oknirvana.club:8880/live/29ca10173n08/asdf23r2/2553.m3u8';
+            video.addEventListener('loadedmetadata', function () {
                 video.play();
             });
-        } else {
-            alert('HLS no es soportado por este navegador.');
         }
     </script>
 </body>
 </html>
-
