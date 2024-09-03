@@ -3,28 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reproductor M3U8</title>
+    <title>Reproductor M3U8 con Video.js</title>
+    <link href="https://vjs.zencdn.net/7.11.4/video-js.css" rel="stylesheet" />
 </head>
 <body>
-    <h1>Reproductor M3U8</h1>
-    <video id="videoPlayer" width="640" height="360" controls></video>
+    <h1>Reproductor M3U8 con Video.js</h1>
+    <video id="videoPlayer" class="video-js vjs-default-skin" controls preload="auto" width="640" height="360"></video>
 
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="https://vjs.zencdn.net/7.11.4/video.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/videojs-http-streaming@latest/dist/videojs-http-streaming.min.js"></script>
     <script>
-        if (Hls.isSupported()) {
-            var video = document.getElementById('videoPlayer');
-            var hls = new Hls();
-            hls.loadSource('http://mku0414.oknirvana.club:8880/live/29ca10173n08/asdf23r2/2553.m3u8');
-            hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                video.play();
-            });
-        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            video.src = 'http://mku0414.oknirvana.club:8880/live/29ca10173n08/asdf23r2/2553.m3u8';
-            video.addEventListener('canplay', function() {
-                video.play();
-            });
-        }
+        var player = videojs('videoPlayer');
+        player.src({
+            src: 'http://mku0414.oknirvana.club:8880/live/29ca10173n08/asdf23r2/2553.m3u8',
+            type: 'application/x-mpegURL'
+        });
+        player.play();
     </script>
 </body>
 </html>
