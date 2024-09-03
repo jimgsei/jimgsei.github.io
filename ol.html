@@ -3,24 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reproductor M3U8 con Video.js</title>
-    <link href="https://vjs.zencdn.net/7.11.4/video-js.css" rel="stylesheet" />
+    <title>Reproductor M3U8 con Plyr</title>
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.6.8/plyr.css" />
 </head>
 <body>
-    <h1>Reproductor M3U8 con Video.js</h1>
-    <video id="videoPlayer" class="video-js vjs-default-skin" controls preload="auto" width="640" height="360"></video>
-    <button id="playButton">Reproducir</button>
+    <h1>Reproductor M3U8 con Plyr</h1>
+    <video id="player" playsinline controls></video>
 
-    <script src="https://vjs.zencdn.net/7.11.4/video.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/videojs-http-streaming@latest/dist/videojs-http-streaming.min.js"></script>
+    <script src="https://cdn.plyr.io/3.6.8/plyr.polyfilled.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <script>
-        var player = videojs('videoPlayer');
-        document.getElementById('playButton').addEventListener('click', function() {
-            player.src({
-                src: 'http://mku0414.oknirvana.club:8880/live/29ca10173n08/asdf23r2/2553.m3u8',
-                type: 'application/x-mpegURL'
-            });
-            player.play();
+        document.addEventListener('DOMContentLoaded', function() {
+            const video = document.getElementById('player');
+            if (Hls.isSupported()) {
+                const hls = new Hls();
+                hls.loadSource('http://mku0414.oknirvana.club:8880/live/29ca10173n08/asdf23r2/2553.m3u8');
+                hls.attachMedia(video);
+                hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                    video.play();
+                });
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = 'http://mku0414.oknirvana.club:8880/live/29ca10173n08/asdf23r2/2553.m3u8';
+                video.addEventListener('canplay', function() {
+                    video.play();
+                });
+            }
+            const player = new Plyr(video);
         });
     </script>
 </body>
