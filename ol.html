@@ -3,37 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video HLS con Fetch</title>
+    <title>Reproductor de Video HLS con Dash.js y Hls.js</title>
+    <style>
+        video {
+            width: 100%;
+            height: auto;
+        }
+    </style>
 </head>
 <body>
-    <h1>Reproductor de Video HLS con Fetch</h1>
-    <video id="video" controls width="640" height="360"></video>
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <h1>Reproductor de Video HLS con Dash.js y Hls.js</h1>
+    <video id="video" controls></video>
+
+    <!-- Incluye Hls.js desde CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest/dist/hls.min.js"></script>
+    <!-- Incluye Dash.js desde CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/dashjs@latest/dist/dash.all.min.js"></script>
     <script>
-        if (Hls.isSupported()) {
-            var video = document.getElementById('video');
-            var hls = new Hls();
-            
-            fetch('http://mku0414.oknirvana.club:8880/live/29ca10173n08/asdf23r2/2553.m3u8')
-                .then(response => response.text())
-                .then(m3u8 => {
-                    // Crear un blob URL para el contenido m3u8
-                    var blob = new Blob([m3u8], { type: 'application/vnd.apple.mpegurl' });
-                    var url = URL.createObjectURL(blob);
-                    
-                    hls.loadSource(url);
-                    hls.attachMedia(video);
-                    hls.on(Hls.Events.MANIFEST_PARSED, function () {
-                        video.play();
-                    });
-                })
-                .catch(error => console.error('Error al cargar el stream:', error));
-        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            video.src = 'http://mku0414.oknirvana.club:8880/live/29ca10173n08/asdf23r2/2553.m3u8';
-            video.addEventListener('loadedmetadata', function () {
-                video.play();
-            });
-        }
+        document.addEventListener('DOMContentLoaded', function () {
+            const video = document.getElementById('video');
+            const hlsUrl = 'http://mku0414.oknirvana.club:8880/live/29ca10173n08/asdf23r2/2553.m3u8';
+
+            // Verifica si Hls.js está disponible y lo usa para HLS
+            if (Hls.isSupported()) {
+                const hls = new Hls();
+                hls.loadSource(hlsUrl);
+                hls.attachMedia(video);
+                hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                    video.play();
+                });
+                hls.on(Hls.Events.ERROR, (event, data) => {
+                    console.error('Error con Hls.js:', data);
+                });
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                // Para navegadores que soportan HLS de manera nativa
+                video.src = hlsUrl;
+                video.addEventListener('loadedmetadata', () => {
+                    video.play();
+                });
+            } else {
+                console.error('HLS no soportado');
+            }
+        });
     </script>
 </body>
 </html>
