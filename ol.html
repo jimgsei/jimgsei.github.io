@@ -3,33 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reproductor M3U8 con Plyr</title>
-    <link rel="stylesheet" href="https://cdn.plyr.io/3.6.8/plyr.css" />
+    <title>Reproductor de Video</title>
 </head>
 <body>
-    <h1>Reproductor M3U8 con Plyr</h1>
-    <video id="player" playsinline controls></video>
+    <h1>Reproductor de Video</h1>
+    <video id="videoPlayer" width="640" height="360" controls></video>
 
-    <script src="https://cdn.plyr.io/3.6.8/plyr.polyfilled.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const video = document.getElementById('player');
-            if (Hls.isSupported()) {
-                const hls = new Hls();
-                hls.loadSource('http://mku0414.oknirvana.club:8880/live/29ca10173n08/asdf23r2/2553.m3u8');
-                hls.attachMedia(video);
-                hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                    video.play();
-                });
-            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                video.src = 'http://mku0414.oknirvana.club:8880/live/29ca10173n08/asdf23r2/2553.m3u8';
-                video.addEventListener('canplay', function() {
-                    video.play();
-                });
-            }
-            const player = new Plyr(video);
-        });
+        var video = document.getElementById('videoPlayer');
+        var videoSrc = 'http://mku0414.oknirvana.club:8880/live/29ca10173n08/asdf23r2/2553.m3u8';
+
+        if (Hls.isSupported()) {
+            var hls = new Hls();
+            hls.loadSource(videoSrc);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, function () {
+                video.play();
+            });
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            video.src = videoSrc;
+            video.addEventListener('loadedmetadata', function () {
+                video.play();
+            });
+        } else {
+            alert("Tu navegador no soporta la reproducción de este video.");
+        }
     </script>
 </body>
 </html>
