@@ -656,6 +656,91 @@
             text-decoration: none; /* Quitar subrayado */
             color: inherit; /* Mantener el color del texto */
         }
+		
+		// Juego F1 Start
+        .containerGame {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: transparent;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+        }
+        .title {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        .description {
+            margin-bottom: 20px;
+        }
+        .game-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #fff;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            width: 90%;
+            max-width: 600px;
+        }
+        .lights {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 5px;
+            border: 2px solid #fff;
+            border-radius: 10px;
+            padding: 5px;
+            background-color: #000;
+        }
+        .light {
+            width: 40px;
+            height: 40px;
+            margin: 5px;
+            border-radius: 50%;
+            background-color: red;
+            opacity: 0.3;
+            border: 2px solid #fff;
+        }
+        .light.on {
+            opacity: 1;
+        }
+        .message {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .best-time {
+            background-color: #000;
+            border: 2px solid #fff;
+            padding: 10px;
+            border-radius: 10px;
+            width: 200px; /* Ancho especificado */
+            height: 20px; /* Alto especificado */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        @media (min-width: 600px) {
+            .containerGame {
+                justify-content: center;
+                align-items: center;
+            }
+            .light {
+                width: 50px;
+                height: 50px;
+            }
+        }
 
 		
 
@@ -817,6 +902,49 @@
 </div>
 
 
+
+ <!-- Juego -->
+     <div class="containerGame">
+        <h1>Juego F1</h1>
+        <div class="description">Pulsar dentro del cuadro o presionar una tecla</div>
+        <div class="game-area" id="gameArea">
+            <div class="lights">
+                <div class="column">
+                    <div class="light" id="light1-1"></div>
+                    <div class="light" id="light1-2"></div>
+                    <div class="light" id="light1-3"></div>
+                    <div class="light" id="light1-4"></div>
+                </div>
+                <div class="column">
+                    <div class="light" id="light2-1"></div>
+                    <div class="light" id="light2-2"></div>
+                    <div class="light" id="light2-3"></div>
+                    <div class="light" id="light2-4"></div>
+                </div>
+                <div class="column">
+                    <div class="light" id="light3-1"></div>
+                    <div class="light" id="light3-2"></div>
+                    <div class="light" id="light3-3"></div>
+                    <div class="light" id="light3-4"></div>
+                </div>
+                <div class="column">
+                    <div class="light" id="light4-1"></div>
+                    <div class="light" id="light4-2"></div>
+                    <div class="light" id="light4-3"></div>
+                    <div class="light" id="light4-4"></div>
+                </div>
+                <div class="column">
+                    <div class="light" id="light5-1"></div>
+                    <div class="light" id="light5-2"></div>
+                    <div class="light" id="light5-3"></div>
+                    <div class="light" id="light5-4"></div>
+                </div>
+            </div>
+            <div class="message" id="message">Haz clic en el área de juego para iniciar el juego.</div>
+        </div>
+        <div class="message best-time" id="bestTime" style="display: none;">Mejor tiempo: -- segundos</div>
+    </div>
+	
       <!-- Status -->
     <h2>API Status</h2>
     <div id="tableContainer"></div>
@@ -1370,6 +1498,129 @@ startAutoUpdate();
       "retina_detect": true
     });
   </script>
+  
+    <script>
+        const columns = [
+            [document.getElementById('light1-1'), document.getElementById('light1-2'), document.getElementById('light1-3'), document.getElementById('light1-4')],
+            [document.getElementById('light2-1'), document.getElementById('light2-2'), document.getElementById('light2-3'), document.getElementById('light2-4')],
+            [document.getElementById('light3-1'), document.getElementById('light3-2'), document.getElementById('light3-3'), document.getElementById('light3-4')],
+            [document.getElementById('light4-1'), document.getElementById('light4-2'), document.getElementById('light4-3'), document.getElementById('light4-4')],
+            [document.getElementById('light5-1'), document.getElementById('light5-2'), document.getElementById('light5-3'), document.getElementById('light5-4')]
+        ];
+        const gameArea = document.getElementById('gameArea');
+        const message = document.getElementById('message');
+        const bestTimeDisplay = document.getElementById('bestTime');
+        let startTime, endTime, bestTime = Infinity;
+        let gameStarted = false;
+        let lightTimeouts = [];
+
+        gameArea.addEventListener('click', startGame);
+        document.addEventListener('keydown', startGame);
+
+        function startGame() {
+            if (gameStarted) {
+                message.textContent = 'Demasiado rápido. Inténtalo de nuevo.';
+                gameArea.style.borderColor = 'red';
+                stopLights();
+                return;
+            }
+            message.textContent = 'Espera a que las luces se apaguen...';
+            gameArea.style.borderColor = '#fff';
+            gameArea.removeEventListener('click', startGame);
+            document.removeEventListener('keydown', startGame);
+            let delay = Math.random() * 4000 + 1000; // 1-5 segundos
+
+            columns.forEach((column, index) => {
+                lightTimeouts.push(setTimeout(() => {
+                    column[2].classList.add('on');
+                    column[3].classList.add('on');
+                }, index * 1000));
+            });
+
+            lightTimeouts.push(setTimeout(() => {
+                columns.forEach(column => {
+                    column[2].classList.remove('on');
+                    column[3].classList.remove('on');
+                });
+                startTime = new Date().getTime();
+                gameStarted = true;
+                gameArea.addEventListener('click', recordReactionTime);
+                document.addEventListener('keydown', recordReactionTime);
+            }, delay + 4000)); // 4 segundos para encender todas las luces
+
+            gameArea.addEventListener('click', tooEarly);
+            document.addEventListener('keydown', tooEarly);
+        }
+
+        function tooEarly() {
+            if (!gameStarted) {
+                message.textContent = 'Demasiado rápido. Inténtalo de nuevo.';
+                gameArea.style.borderColor = 'red';
+                stopLights();
+                gameArea.addEventListener('click', restartGame);
+                document.addEventListener('keydown', restartGame);
+                gameArea.removeEventListener('click', tooEarly);
+                document.removeEventListener('keydown', tooEarly);
+            }
+        }
+
+        function recordReactionTime(event) {
+            endTime = new Date().getTime();
+            let reactionTime = (endTime - startTime) / 1000;
+            if (reactionTime < 0) {
+                message.textContent = 'Demasiado rápido. Inténtalo de nuevo.';
+                gameArea.style.borderColor = 'red';
+                stopLights();
+                gameArea.addEventListener('click', restartGame);
+                document.addEventListener('keydown', restartGame);
+            } else {
+                message.textContent = `Tu tiempo de reacción es: ${reactionTime} segundos.`;
+                if (reactionTime < bestTime) {
+                    bestTime = reactionTime;
+                    bestTimeDisplay.textContent = `Mejor tiempo: ${bestTime} segundos`;
+                    bestTimeDisplay.style.display = 'block';
+                    gameArea.style.borderColor = 'green';
+                } else {
+                    gameArea.style.borderColor = 'red';
+                }
+                resetGame();
+            }
+        }
+
+        function stopLights() {
+            lightTimeouts.forEach(timeout => clearTimeout(timeout));
+            lightTimeouts = [];
+        }
+
+        function resetGame() {
+            gameStarted = false;
+            stopLights();
+            columns.forEach(column => {
+                column[2].classList.remove('on');
+                column[3].classList.remove('on');
+            });
+            gameArea.addEventListener('click', startGame);
+            document.addEventListener('keydown', startGame);
+            gameArea.removeEventListener('click', tooEarly);
+            document.removeEventListener('keydown', tooEarly);
+            gameArea.removeEventListener('click', recordReactionTime);
+            document.removeEventListener('keydown', recordReactionTime);
+            setTimeout(() => {
+                gameArea.style.borderColor = '#fff';
+            }, 500);
+        }
+
+        function restartGame() {
+            columns.forEach(column => {
+                column[2].classList.remove('on');
+                column[3].classList.remove('on');
+            });
+            gameArea.removeEventListener('click', restartGame);
+            document.removeEventListener('keydown', restartGame);
+            startGame();
+        }
+    </script>
+
 
 </body>
 </html>
