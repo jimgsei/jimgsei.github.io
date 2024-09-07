@@ -14,6 +14,13 @@
     body {
       background-color: black; /* Color de fondo negro */
       color: white; /* Color de texto blanco */
+	  display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      margin: 0;
     }
 
          .container {
@@ -675,6 +682,7 @@
         }
         .description {
             margin-bottom: 20px;
+			text-align: center; /* Centrar el texto */
         }
         .game-area {
             display: flex;
@@ -687,6 +695,7 @@
             margin-bottom: 20px;
             width: 90%;
             max-width: 600px;
+			margin: 0 auto; /* Centrar el contenedor */
         }
         .lights {
             display: flex;
@@ -723,13 +732,14 @@
         .best-time {
             background-color: #000;
             border: 2px solid #fff;
-            padding: 10px;
+            padding: 15px;
             border-radius: 10px;
-            width: 200px; /* Ancho especificado */
+            width: 250px; /* Ancho especificado */
             height: 20px; /* Alto especificado */
             display: flex;
             align-items: center;
             justify-content: center;
+			margin: 20px auto 0; /* Separar del contenedor de game-area y centrar */
         }
         @media (min-width: 600px) {
             .containerGame {
@@ -906,7 +916,7 @@
  <!-- Juego -->
      <div class="containerGame">
         <h1>Juego F1</h1>
-        <div class="description">Pulsar dentro del cuadro o presionar una tecla</div>
+        <div class="description">Pulsar dentro del área</div>
         <div class="game-area" id="gameArea">
             <div class="lights">
                 <div class="column">
@@ -940,7 +950,7 @@
                     <div class="light" id="light5-4"></div>
                 </div>
             </div>
-            <div class="message" id="message">Haz clic en el área de juego para iniciar el juego.</div>
+            <div class="message" id="message">Pulsa en el área de juego para iniciar o reiniciar.</div>
         </div>
         <div class="message best-time" id="bestTime" style="display: none;">Mejor tiempo: -- segundos</div>
     </div>
@@ -1519,7 +1529,7 @@ startAutoUpdate();
 
         function startGame() {
             if (gameStarted) {
-                message.textContent = 'Demasiado rápido. Inténtalo de nuevo.';
+                message.textContent = 'Se paciente. Inténtalo de nuevo.';
                 gameArea.style.borderColor = 'red';
                 stopLights();
                 return;
