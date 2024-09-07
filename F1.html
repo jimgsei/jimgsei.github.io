@@ -747,8 +747,8 @@
                 align-items: center;
             }
             .light {
-                width: 50px;
-                height: 50px;
+                width: 25px;
+                height: 25px;
             }
         }
 
@@ -770,6 +770,7 @@
     <button class="boton" onclick="document.getElementById('clasificacion').scrollIntoView();">Clasificación</button>
     <button class="boton" onclick="document.getElementById('calendario').scrollIntoView();">Calendario</button>
     <button class="boton" onclick="document.getElementById('programacion').scrollIntoView();">Programación Dazn F1</button>
+    <button class="boton" onclick="document.getElementById('juego').scrollIntoView();">Juego</button>
 </div> 
 
 <!-- Botón flotante -->
@@ -914,6 +915,7 @@
 
 
  <!-- Juego -->
+ <div id="juego" class="seccion">
      <div class="containerGame">
         <h1>Juego F1</h1>
         <div class="description">Pulsar dentro del área</div>
@@ -954,6 +956,7 @@
         </div>
         <div class="message best-time" id="bestTime" style="display: none;">Mejor tiempo: -- segundos</div>
     </div>
+</div>
 	
       <!-- Status -->
     <h2>API Status</h2>
@@ -1063,7 +1066,7 @@ async function fetchF1Data() {
             dataContainer.textContent = 'No hay carreras próximas.';
         }
     } catch (error) {
-        console.error('Error fetching F1 data:', error);
+        console.error('Error OpenF1:', error);
         document.getElementById('dataContainer').textContent = 'Error fetching F1 data: ' + error.message;
     }
 }
@@ -1297,7 +1300,7 @@ async function fetchF1Data() {
                 });
             } catch (error) {
                 console.error('Error fetching F1 data:', error);
-                document.getElementById('upcomingDataContainer').textContent = 'Error fetching F1 data: ' + error.message;
+                document.getElementById('upcomingDataContainer').textContent = 'Error OpenF1: ' + error.message;
             }
         }
 
