@@ -792,7 +792,7 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-
+// Función datos carrera actual
 async function fetchF1Data() {
     try {
         const proxyUrl = 'https://api.allorigins.win/get?url=';
@@ -883,7 +883,7 @@ async function fetchF1Data() {
     }
 }
 
-
+    // Función datos piloto
     async function fetchDriverPosition(driverNumber, positionElementId, dateElementId) {
       try {
         const response = await fetch(`https://api.openf1.org/v1/position?meeting_key=latest&driver_number=${driverNumber}&session_key=latest`);
@@ -946,7 +946,7 @@ async function fetchF1Data() {
       }
     }
 
-    
+        // Función datos clasificación carrera
         async function fetchLastF1Qualifying() {
             try {
                 const proxyUrl = 'https://api.allorigins.win/get?url=';
@@ -979,7 +979,7 @@ async function fetchF1Data() {
         }
 
 
-
+           // Función datos campeonato
            async function fetchChampionshipStandings() {
             try {
                 const proxyUrl = 'https://api.allorigins.win/get?url=';
@@ -1010,67 +1010,7 @@ async function fetchF1Data() {
 
    
 
-    async function fetchData() {
-      await Promise.all([
-        fetchLastF1Qualifying(),
-        fetchChampionshipStandings(),
-      ]);
-    }
-
-
-     
-
-       async function fetchCurrentRace() {
-        try {
-            const response = await fetch('https://api.jolpi.ca/ergast/f1/current.json');
-            const data = await response.json();
-            const races = data.MRData.RaceTable.Races;
-            const today = new Date();
-
-            const currentRace = races.find(race => {
-                const raceDate = new Date(race.date);
-                return raceDate.toDateString() === today.toDateString();
-            });
-
-            const currentCircuitDiv = document.getElementById('current-circuit');
-
-            if (currentRace) {
-                const raceDateTime = luxon.DateTime.fromISO(currentRace.date + 'T' + currentRace.time, { zone: 'utc' });
-                const raceDateTimeMadrid = raceDateTime.setZone('Europe/Madrid');
-
-                currentCircuitDiv.innerHTML = `
-                    <h2 class="circuit-name">${currentRace.raceName}</h2>
-                    <p class="circuit-info"><strong>Fecha:</strong> ${raceDateTimeMadrid.toLocaleString(luxon.DateTime.DATE_FULL)}</p>
-                    <p class="circuit-info"><strong>Hora:</strong> ${raceDateTimeMadrid.toLocaleString(luxon.DateTime.TIME_SIMPLE)}</p>
-                    <p class="circuit-info"><strong>Ubicación:</strong> ${currentRace.Circuit.Location.locality}, ${currentRace.Circuit.Location.country}</p>
-                    <p class="circuit-info"><strong>Carrera Númer:</strong> ${currentRace.round}</p>
-                    <p class="circuit-info"><a href="https://es.wikipedia.org/wiki/${currentRace.Circuit.circuitName.replace(/ /g, '_')}" target="_blank">Más información en Wikipedia</a></p>
-                `;
-            } else {
-                const nextRace = races.find(race => new Date(race.date) > today);
-                if (nextRace) {
-                    const raceDateTime = luxon.DateTime.fromISO(nextRace.date + 'T' + nextRace.time, { zone: 'utc' });
-                    const raceDateTimeMadrid = raceDateTime.setZone('Europe/Madrid');
-
-                    currentCircuitDiv.innerHTML = `
-                        <h2 class="circuit-name">Próxima Carrera: ${nextRace.raceName}</h2>
-                        <p class="circuit-info"><strong>Fecha:</strong> ${raceDateTimeMadrid.toLocaleString(luxon.DateTime.DATE_FULL)}</p>
-                        <p class="circuit-info"><strong>Hora:</strong> ${raceDateTimeMadrid.toLocaleString(luxon.DateTime.TIME_SIMPLE)}</p>
-                        <p class="circuit-info"><strong>Ubicación:</strong> ${nextRace.Circuit.Location.locality}, ${nextRace.Circuit.Location.country}</p>
-                        <p class="circuit-info"><strong>Carrera Número:</strong> ${nextRace.round}</p>
-                        <p class="circuit-info"><a href="https://es.wikipedia.org/wiki/${nextRace.Circuit.circuitName.replace(/ /g, '_')}" target="_blank">Más información</a></p>
-                    `;
-                } else {
-                    currentCircuitDiv.innerHTML = '<p>No se pudieron obtener datos de la API de Ergast. Inténtalo más tardel.</p>';
-                }
-            }
-        } catch (error) {
-            const errorMessage = document.createElement('p');
-            errorMessage.textContent = '';
-            document.body.appendChild(errorMessage);
-        }
-    }
-
+        // Función datos tiempo
         async function fetchWeatherData() {
             try {
                 const response = await fetch('https://api.openf1.org/v1/weather?meeting_key=latest');
@@ -1128,7 +1068,7 @@ async function fetchF1Data() {
 
 
 
-
+        // Función datos proximas carreras
         async function fetchUpcomingF1Data() {
             try {
                 const proxyUrl = 'https://api.allorigins.win/get?url=';
@@ -1177,28 +1117,27 @@ async function fetchF1Data() {
         }
 
 
-
-
     document.addEventListener('DOMContentLoaded', function() {
-            fetchData();
-            fetchCurrentRace();
-            fetchWeatherData(); // Tiempo
             fetchF1Data(); // Datos circuito
+			fetchWeatherData(); // Tiempo
+			fetchLastF1Qualifying(); // Clasificación carrera
+            fetchChampionshipStandings(); // Campeonato
             fetchUpcomingF1Data(); // Próximos circuitos
 
 
         });
+    
+	// Función para actualizar fetchDriverPosition cada 3 segundos
+    function startAutoUpdate() {
+      setInterval(async () => {
+        await Promise.all([
+        fetchDriverPosition(14, 'position-14', 'date-14'),  
+        fetchDriverPosition(55, 'position-55', 'date-55'), 
+        fetchWeatherData() 
+       ]);
+     }, 3000); // 3000 milisegundos = 3 segundos
+   }
 
-// Función para actualizar fetchDriverPosition cada 3 segundos
-function startAutoUpdate() {
-  setInterval(async () => {
-    await Promise.all([
-      fetchDriverPosition(14, 'position-14', 'date-14'),
-      fetchDriverPosition(55, 'position-55', 'date-55'),
-      fetchWeatherData()
-    ]);
-  }, 3000); // 3000 milisegundos = 3 segundos
-}
 
 // Inicia la actualización automática
 startAutoUpdate();
