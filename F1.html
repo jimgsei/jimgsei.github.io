@@ -611,6 +611,49 @@
                 width: calc(100% - 40px); /* 1 box per row */
             }
         }
+		
+		// Status API
+        .statusContainer {
+            width: auto;
+            margin: auto;
+            padding-bottom: 20px; /* Espacio adicional debajo de la tabla */
+        }
+        .customTable {
+            background-color: transparent;
+            border-collapse: separate; /* Cambiado a separate para que las esquinas redondeadas sean visibles */
+            border-spacing: 0;
+            text-align: left;
+            border-radius: 10px;
+            overflow: hidden;
+            width: auto;
+        }
+        th, td {
+            padding: 5px;
+            text-align: center;
+            white-space: nowrap;
+            width: 100px;
+            border: 1px solid white; /* Borde blanco */
+            border-radius: 10px; /* Bordes redondeados */
+        }
+        th {
+            background-color: maroon;
+            color: white;
+        }
+        .status {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .tick {
+            color: green;
+            margin-left: 10px;
+        }
+        .cross {
+            color: red;
+            margin-left: 10px;
+        }
+
+		
 
   </style>
 <script src="https://cdn.jsdelivr.net/npm/luxon@2.3.0/build/global/luxon.min.js"></script>
@@ -750,11 +793,8 @@
   </div>
 </div>
 </div>
-<!-- Fin de Tabla de Clasificación -->
 
-
-
- 
+ <!-- Programación -->
 <div id="programacion" class="seccion">
 <div class="containerN">
         <h2>Horario Dazn F1</h2>
@@ -773,10 +813,13 @@
 </div>
 
 
-
-
-
+      <!-- Status -->
+    <h2>API Status</h2>
+    <div id="tableContainer"></div>
+	
+	<!-- Github -->
       <div class="creditos">
+	     <h2></h2>
         <span>Creado por Jimgsey</span>
         <a href="https://github.com/jimgsey" target="_blank">
        <img src="https://img.icons8.com/ios/50/FFFFFF/github.png" alt="Github" style="width: 25px; height: auto;">
@@ -1116,7 +1159,6 @@ async function fetchF1Data() {
             }
         }
 
-
     document.addEventListener('DOMContentLoaded', function() {
             fetchF1Data(); // Datos circuito
 			fetchWeatherData(); // Tiempo
@@ -1133,7 +1175,7 @@ async function fetchF1Data() {
         await Promise.all([
         fetchDriverPosition(14, 'position-14', 'date-14'),  
         fetchDriverPosition(55, 'position-55', 'date-55'), 
-        fetchWeatherData() 
+        fetchWeatherData(),
        ]);
      }, 3000); // 3000 milisegundos = 3 segundos
    }
@@ -1143,6 +1185,53 @@ async function fetchF1Data() {
 startAutoUpdate();
 
   </script>
+<script>
+        async function checkApiStatus(apiUrl, elementId, expectedResponse) {
+            const proxyUrl = 'https://api.allorigins.win/get?url=';
+            try {
+                const response = await fetch(proxyUrl + encodeURIComponent(apiUrl));
+                const data = await response.json();
+                const apiData = data.contents;
+                const statusDiv = document.getElementById(elementId);
+                if (apiData.includes(expectedResponse)) {
+                    statusDiv.innerHTML = `<span class="tick">✔️</span>`;
+                } else {
+                    statusDiv.innerHTML = `<span class="cross">❌</span>`;
+                }
+            } catch (error) {
+                console.error('Error al verificar el estado de la API:', error);
+            }
+        }
+
+        function createTable() {
+            const tableContainer = document.getElementById('tableContainer');
+            const tableHTML = `
+                <table class="customTable">
+                    <thead>
+                        <tr>
+                            <th>Url API</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><a href="https://api.jolpi.ca/ergast/" target="_blank">Ergast</a></td>
+                            <td id="apiStatus1" class="status"></td>
+                        </tr>
+                        <tr>
+                            <td><a href="https://openf1.org/" target="_blank">OpenF1/</a></td>
+                            <td id="apiStatus2" class="status"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            `;
+            tableContainer.innerHTML = tableHTML;
+        }
+
+        createTable();
+        checkApiStatus('https://api.jolpi.ca/', 'apiStatus1', 'OK');
+        checkApiStatus('https://api.openf1.org/', 'apiStatus2', 'Welcome to OpenF1!');
+    </script>
 
 <script>
     // Función para configurar las cookies del iframe
