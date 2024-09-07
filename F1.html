@@ -496,6 +496,18 @@
         .seccion {
             margin-top: 50px;
         }
+        /* Estilos específicos para móviles */
+        @media (max-width: 600px) {
+            .botones-container {
+                flex-direction: row; /* Cambiar la dirección a fila */
+                flex-wrap: wrap; /* Permitir que los botones se envuelvan */
+                justify-content: space-around; /* Espacio alrededor de los botones */
+            }
+            .boton {
+                width: 45%; /* Ajustar el ancho de los botones */
+                margin: 5px; /* Ajustar el margen */
+            }
+        }
 
         /* Estilo del botón */
         .boton-flotante {
@@ -665,7 +677,7 @@
         }
 		
 		// Juego F1 Start
-        .containerGame {
+         .containerGame {
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -677,12 +689,12 @@
             margin: 0;
         }
         .title {
-            font-size: 2em;
+            font-size: 1.5em; /* Reducir tamaño de fuente */
             margin-bottom: 10px;
         }
         .description {
-            margin-bottom: 20px;
-			text-align: center; /* Centrar el texto */
+            margin-bottom: 15px; /* Reducir margen inferior */
+            text-align: center; /* Centrar el texto */
         }
         .game-area {
             display: flex;
@@ -691,16 +703,16 @@
             justify-content: center;
             border: 2px solid #fff;
             border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 20px;
+            padding: 15px; /* Reducir padding */
+            margin-bottom: 15px; /* Reducir margen inferior */
             width: 90%;
-            max-width: 600px;
-			margin: 0 auto; /* Centrar el contenedor */
+            max-width: 400px; /* Reducir ancho máximo */
+            margin: 0 auto; /* Centrar el contenedor */
         }
         .lights {
             display: flex;
             justify-content: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px; /* Reducir margen inferior */
             flex-wrap: wrap;
         }
         .column {
@@ -714,8 +726,8 @@
             background-color: #000;
         }
         .light {
-            width: 40px;
-            height: 40px;
+            width: 30px; /* Reducir tamaño */
+            height: 30px; /* Reducir tamaño */
             margin: 5px;
             border-radius: 50%;
             background-color: red;
@@ -726,29 +738,29 @@
             opacity: 1;
         }
         .message {
-            margin-top: 20px;
+            margin-top: 15px; /* Reducir margen superior */
             text-align: center;
         }
         .best-time {
             background-color: #000;
             border: 2px solid #fff;
-            padding: 15px;
+            padding: 10px; /* Reducir padding */
             border-radius: 10px;
-            width: 250px; /* Ancho especificado */
-            height: 20px; /* Alto especificado */
+            width: 200px; /* Reducir ancho */
+            height: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-			margin: 20px auto 0; /* Separar del contenedor de game-area y centrar */
+            margin: 15px auto 0; /* Reducir margen superior y centrar */
         }
-        @media (min-width: 600px) {
+        @media (max-width: 600px) {
             .containerGame {
                 justify-content: center;
                 align-items: center;
             }
             .light {
-                width: 25px;
-                height: 25px;
+                width: 20px; /* Reducir tamaño */
+                height: 20px; /* Reducir tamaño */
             }
         }
 
@@ -1532,7 +1544,7 @@ startAutoUpdate();
 
         function startGame() {
             if (gameStarted) {
-                message.textContent = 'Se paciente. Inténtalo de nuevo.';
+                message.textContent = 'Se paciente e inténtalo de nuevo.';
                 gameArea.style.borderColor = 'red';
                 stopLights();
                 return;
@@ -1567,7 +1579,7 @@ startAutoUpdate();
 
         function tooEarly() {
             if (!gameStarted) {
-                message.textContent = 'Demasiado rápido. Inténtalo de nuevo.';
+                message.textContent = 'Se paciente e inténtalo de nuevo.';
                 gameArea.style.borderColor = 'red';
                 stopLights();
                 gameArea.addEventListener('click', restartGame);
@@ -1581,7 +1593,7 @@ startAutoUpdate();
             endTime = new Date().getTime();
             let reactionTime = (endTime - startTime) / 1000;
             if (reactionTime < 0) {
-                message.textContent = 'Demasiado rápido. Inténtalo de nuevo.';
+                message.textContent = 'Se paciente e inténtalo de nuevo.';
                 gameArea.style.borderColor = 'red';
                 stopLights();
                 gameArea.addEventListener('click', restartGame);
