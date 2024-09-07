@@ -652,6 +652,10 @@
             color: red;
             margin-left: 10px;
         }
+		a {
+            text-decoration: none; /* Quitar subrayado */
+            color: inherit; /* Mantener el color del texto */
+        }
 
 		
 
@@ -1185,7 +1189,9 @@ async function fetchF1Data() {
 startAutoUpdate();
 
   </script>
-<script>
+    
+  <script>
+        // Script Status API 
         async function checkApiStatus(apiUrl, elementId, expectedResponse) {
             const proxyUrl = 'https://api.allorigins.win/get?url=';
             try {
@@ -1219,7 +1225,7 @@ startAutoUpdate();
                             <td id="apiStatus1" class="status"></td>
                         </tr>
                         <tr>
-                            <td><a href="https://openf1.org/" target="_blank">OpenF1/</a></td>
+                            <td><a href="https://openf1.org/" target="_blank">OpenF1</a></td>
                             <td id="apiStatus2" class="status"></td>
                         </tr>
                     </tbody>
@@ -1228,9 +1234,14 @@ startAutoUpdate();
             tableContainer.innerHTML = tableHTML;
         }
 
+        function updateStatuses() {
+            checkApiStatus('https://api.jolpi.ca/', 'apiStatus1', 'OK');
+            checkApiStatus('https://api.openf1.org/', 'apiStatus2', 'Welcome to OpenF1!');
+        }
+
         createTable();
-        checkApiStatus('https://api.jolpi.ca/', 'apiStatus1', 'OK');
-        checkApiStatus('https://api.openf1.org/', 'apiStatus2', 'Welcome to OpenF1!');
+        updateStatuses();
+        setInterval(updateStatuses, 10000); // Actualiza cada 5 segundos
     </script>
 
 <script>
