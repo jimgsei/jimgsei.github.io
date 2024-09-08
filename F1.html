@@ -762,6 +762,9 @@
                 width: 20px; /* Reducir tamaño */
                 height: 20px; /* Reducir tamaño */
             }
+			.best-time {
+                width: 250px; /* Aumentar ancho en móviles */
+            }
         }
 
 		
@@ -964,7 +967,7 @@
                     <div class="light" id="light5-4"></div>
                 </div>
             </div>
-            <div class="message" id="message">Pulsa en el área de juego para iniciar o reiniciar.</div>
+            <div class="message" id="message">Pulsa en el área de juego para iniciar o reiniciar</div>
         </div>
         <div class="message best-time" id="bestTime" style="display: none;">Mejor tiempo: -- segundos</div>
     </div>
@@ -1544,7 +1547,7 @@ startAutoUpdate();
 
         function startGame() {
             if (gameStarted) {
-                message.textContent = 'Se paciente e inténtalo de nuevo.';
+                message.textContent = 'Se paciente e inténtalo de nuevo';
                 gameArea.style.borderColor = 'red';
                 stopLights();
                 return;
@@ -1579,7 +1582,7 @@ startAutoUpdate();
 
         function tooEarly() {
             if (!gameStarted) {
-                message.textContent = 'Se paciente e inténtalo de nuevo.';
+                message.textContent = 'Se paciente e inténtalo de nuevo';
                 gameArea.style.borderColor = 'red';
                 stopLights();
                 gameArea.addEventListener('click', restartGame);
@@ -1593,13 +1596,13 @@ startAutoUpdate();
             endTime = new Date().getTime();
             let reactionTime = (endTime - startTime) / 1000;
             if (reactionTime < 0) {
-                message.textContent = 'Se paciente e inténtalo de nuevo.';
+                message.textContent = 'Se paciente e inténtalo de nuevo';
                 gameArea.style.borderColor = 'red';
                 stopLights();
                 gameArea.addEventListener('click', restartGame);
                 document.addEventListener('keydown', restartGame);
             } else {
-                message.textContent = `Tu tiempo de reacción es: ${reactionTime} segundos.`;
+                message.textContent = `Tu tiempo de reacción es: ${reactionTime} segundos`;
                 if (reactionTime < bestTime) {
                     bestTime = reactionTime;
                     bestTimeDisplay.textContent = `Mejor tiempo: ${bestTime} segundos`;
