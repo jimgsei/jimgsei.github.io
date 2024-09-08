@@ -975,7 +975,7 @@
 </div>
 	
       <!-- Status -->
-    <h2>API Status</h2>
+    <h2>APIs</h2>
     <div id="tableContainer"></div>
 	
 	<!-- Github -->
@@ -1372,8 +1372,8 @@ startAutoUpdate();
                 <table class="customTable">
                     <thead>
                         <tr>
-                            <th>Url API</th>
-                            <th>Status</th>
+                            <th>API</th>
+                            <th>Estado</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1603,7 +1603,7 @@ startAutoUpdate();
                 gameArea.addEventListener('click', restartGame);
                 document.addEventListener('keydown', restartGame);
             } else {
-                message.textContent = `Tu tiempo de reacción es: ${reactionTime} segundos`;
+                message.textContent = `El tiempo de reacción ha sido: ${reactionTime} segundos`;
                 if (reactionTime < bestTime) {
                     bestTime = reactionTime;
                     bestTimeDisplay.textContent = `Mejor tiempo: ${bestTime} segundos`;
