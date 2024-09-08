@@ -1064,31 +1064,38 @@
         // Cargar datos de posición y fecha para los pilotos almacenados
         Object.keys(customDriverData).forEach(key => {
             const driverNumber = customDriverData[key].driverNumber;
-            document.getElementById(`custom-driver-select-${key}`).value = driverNumber;
-            customSelectDriver(key);
+            const driverSelect = document.getElementById(`custom-driver-select-${key}`);
+            if (driverSelect) {
+                driverSelect.value = driverNumber;
+                customSelectDriver(key);
+            }
         });
     }
 
     async function customSelectDriver(selectNumber) {
         const driverSelect = document.getElementById(`custom-driver-select-${selectNumber}`);
+        if (!driverSelect) return; // Verificar si el elemento existe
+
         const selectedOption = driverSelect.options[driverSelect.selectedIndex];
         const driverImage = document.getElementById(`custom-driver-image-${selectNumber}`);
         const positionInfo = document.getElementById(`custom-position-info-${selectNumber}`);
         const dateInfo = document.getElementById(`custom-date-info-${selectNumber}`);
 
         // Limpiar información anterior
-        driverImage.style.display = 'none';
-        positionInfo.textContent = '';
-        dateInfo.textContent = '';
+        if (driverImage) driverImage.style.display = 'none';
+        if (positionInfo) positionInfo.textContent = '';
+        if (dateInfo) dateInfo.textContent = '';
 
         // Limpiar intervalos anteriores
         if (customIntervals[selectNumber]) {
             clearInterval(customIntervals[selectNumber]);
         }
 
-        if (selectedOption.value) {
-            driverImage.src = selectedOption.dataset.headshotUrl;
-            driverImage.style.display = 'block';
+        if (selectedOption && selectedOption.value) {
+            if (driverImage) {
+                driverImage.src = selectedOption.dataset.headshotUrl;
+                driverImage.style.display = 'block';
+            }
             customSelectedDrivers.add(selectedOption.value);
             customUpdateDriverPosition(selectNumber, selectedOption.value);
             customIntervals[selectNumber] = setInterval(() => customUpdateDriverPosition(selectNumber, selectedOption.value), 3000);
@@ -1111,8 +1118,8 @@
         const latestPosition = positions[positions.length - 1];
         const positionInfo = document.getElementById(`custom-position-info-${selectNumber}`);
         const dateInfo = document.getElementById(`custom-date-info-${selectNumber}`);
-        positionInfo.textContent = `Posición: ${latestPosition.position}`;
-        dateInfo.textContent = new Date(latestPosition.date).toLocaleString();
+        if (positionInfo) positionInfo.textContent = `Posición: ${latestPosition.position}`;
+        if (dateInfo) dateInfo.textContent = new Date(latestPosition.date).toLocaleString();
     }
 
     function customAddDriver() {
@@ -1161,7 +1168,7 @@
             customDriverData = newCustomDriverData;
             customDriverCount = newCustomDriverCount;
             localStorage.setItem('customDriverData', JSON.stringify(customDriverData));
-            console.log(`Datos reorganizados y almacenados:`, JSON.parse(localStorage.getItem('customDriverData')));
+            customFetchDrivers(); // Volver a cargar los datos de los pilotos
         }
     }
 
