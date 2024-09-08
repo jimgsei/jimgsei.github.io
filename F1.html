@@ -730,11 +730,12 @@
             height: 30px; /* Reducir tamaño */
             margin: 5px;
             border-radius: 50%;
-            background-color: red;
+            background-color: black; /* Mantener en negro */
             opacity: 0.3;
             border: 2px solid #fff;
         }
         .light.on {
+		    background-color: red; /* Cambiar a rojo cuando esté encendida */
             opacity: 1;
         }
         .message {
@@ -752,7 +753,7 @@
             align-items: center;
             justify-content: center;
             margin: 15px auto 0; /* Reducir margen superior y centrar */
-        }
+        }		
         @media (max-width: 600px) {
             .containerGame {
                 justify-content: center;
