@@ -745,21 +745,20 @@
             }
         }
 		
-		// Pilotos camibo
-        .custom-container {
-            background-color: black;
+		/* Custom pilots */
+		.custom-container {
+            background-color: transparent; /* Fondo transparente */
             color: white;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
             margin: 0;
             text-align: center;
         }
         .custom-pilot-container {
             background-color: transparent;
-            padding: 20px;
-            border-radius: 10px;
+            padding: 1px;
+            border-radius: 1px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -768,31 +767,32 @@
             max-width: 100%;
         }
         .custom-driver-cell {
-            margin: 10px;
+            margin: 5px;
             display: inline-block;
+			justify-content: center; /* Centrar horizontalmente */
+			align-items: center; /* Centrar verticalmente */
             text-align: center;
             background-color: transparent;
             border: 2px solid white;
             border-radius: 10px;
             position: relative;
-            transform: scale(0.85);
+            transform: scale(0.75);
             transform-origin: top center;
+			font-size: 1.2em; /* Aumentar tamaño del texto */
         }
         .custom-driver-cell img {
-            display: none;
+            display: table-cell; /* Cambiar a display table-cell */
+            vertical-align: middle; /* Centrar verticalmente */
+            margin: 0 auto; /* Centrar horizontalmente */
             width: 150px;
             height: auto;
-			transform: scale(0.75);
-            transform-origin: top center;
-			margin-bottom: 0; /* Eliminar margen inferior */
         }
         .custom-select, .custom-button {
-            margin: 0; /* Eliminar margen superior */
+            margin: 5px;
             padding: 10px;
             border: none;
             border-radius: 5px;
-            transform: scale(0.95);
-            transform-origin: top center;
+			font-size: 0.9em; /* Aumentar tamaño del texto */
         }
         .custom-select {
             background-color: #800000;
@@ -810,11 +810,9 @@
             display: inline-block;
             text-align: center;
             line-height: 40px;
-            font-size: 24px;
+            font-size: 26px;
             border-radius: 5px;
             cursor: pointer;
-            transform: scale(0.95);
-            transform-origin: top center;
         }
         .custom-delete-button {
             position: absolute;
@@ -828,26 +826,19 @@
             font-size: 14px;
             border-radius: 50%;
             cursor: pointer;
-            transform: scale(0.95);
-            transform-origin: top center;
         }
         .custom-info {
             margin-top: 10px;
-            transform: scale(0.95);
-            transform-origin: top center;
         }
         .custom-info.custom-date {
             margin-bottom: 10px;
-            transform: scale(0.95);
-            transform-origin: top center;
         }
         .custom-driver-selectors {
             display: flex;
             flex-wrap: wrap;
-            justify-content: center;
+            justify-content: center; /* Centrar horizontalmente */
+            align-items: center; /* Centrar verticalmente */
         }
-
-		
 
   </style>
 <script src="https://cdn.jsdelivr.net/npm/luxon@2.3.0/build/global/luxon.min.js"></script>
@@ -887,7 +878,6 @@
         </div>
     </div>
 </div>
-      <br>
 	  
 	<!-- Seleccionador pilotos -->
 	<div class="custom-container">
@@ -908,7 +898,7 @@
     </div>
 	</div>
 
-      <div class="separator"></div>
+   
 
     <div class="container">
            <div class="button-container">      
