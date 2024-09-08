@@ -760,7 +760,6 @@
             background-color: transparent;
             padding: 20px;
             border-radius: 10px;
-            border: 2px solid white;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -776,18 +775,24 @@
             border: 2px solid white;
             border-radius: 10px;
             position: relative;
+            transform: scale(0.85);
+            transform-origin: top center;
         }
         .custom-driver-cell img {
             display: none;
             width: 150px;
             height: auto;
-            margin-bottom: 10px;
+			transform: scale(0.75);
+            transform-origin: top center;
+			margin-bottom: 0; /* Eliminar margen inferior */
         }
         .custom-select, .custom-button {
-            margin: 10px;
+            margin: 0; /* Eliminar margen superior */
             padding: 10px;
             border: none;
             border-radius: 5px;
+            transform: scale(0.95);
+            transform-origin: top center;
         }
         .custom-select {
             background-color: #800000;
@@ -808,6 +813,8 @@
             font-size: 24px;
             border-radius: 5px;
             cursor: pointer;
+            transform: scale(0.95);
+            transform-origin: top center;
         }
         .custom-delete-button {
             position: absolute;
@@ -821,12 +828,18 @@
             font-size: 14px;
             border-radius: 50%;
             cursor: pointer;
+            transform: scale(0.95);
+            transform-origin: top center;
         }
         .custom-info {
             margin-top: 10px;
+            transform: scale(0.95);
+            transform-origin: top center;
         }
         .custom-info.custom-date {
             margin-bottom: 10px;
+            transform: scale(0.95);
+            transform-origin: top center;
         }
         .custom-driver-selectors {
             display: flex;
