@@ -1035,6 +1035,7 @@
     </div>
   </main>
   
+  
 
 <script>
     let customDriverCount = 0; // Inicializar sin pilotos por defecto
@@ -1298,7 +1299,8 @@ async function fetchF1Data() {
         document.getElementById('dataContainer').textContent = 'Error fetching F1 data: ' + error.message;
     }
 }
-   
+
+    
 
         // Función datos clasificación carrera
         async function fetchLastF1Qualifying() {
@@ -1419,6 +1421,7 @@ async function fetchF1Data() {
                 document.getElementById('weatherData').innerHTML = `<div class="info-line"><span>Error al obtener los datos: ${error.message}</span></div>`;
             }
         }
+
 
 
         // Función datos proximas carreras
@@ -1675,127 +1678,139 @@ startAutoUpdate();
     });
   </script>
   
-    <script>
-        const columns = [
-            [document.getElementById('light1-1'), document.getElementById('light1-2'), document.getElementById('light1-3'), document.getElementById('light1-4')],
-            [document.getElementById('light2-1'), document.getElementById('light2-2'), document.getElementById('light2-3'), document.getElementById('light2-4')],
-            [document.getElementById('light3-1'), document.getElementById('light3-2'), document.getElementById('light3-3'), document.getElementById('light3-4')],
-            [document.getElementById('light4-1'), document.getElementById('light4-2'), document.getElementById('light4-3'), document.getElementById('light4-4')],
-            [document.getElementById('light5-1'), document.getElementById('light5-2'), document.getElementById('light5-3'), document.getElementById('light5-4')]
-        ];
-        const gameArea = document.getElementById('gameArea');
-        const message = document.getElementById('message');
-        const bestTimeDisplay = document.getElementById('bestTime');
-        let startTime, endTime, bestTime = Infinity;
-        let gameStarted = false;
-        let lightTimeouts = [];
+<script>
+    const columns = [
+        [document.getElementById('light1-1'), document.getElementById('light1-2'), document.getElementById('light1-3'), document.getElementById('light1-4')],
+        [document.getElementById('light2-1'), document.getElementById('light2-2'), document.getElementById('light2-3'), document.getElementById('light2-4')],
+        [document.getElementById('light3-1'), document.getElementById('light3-2'), document.getElementById('light3-3'), document.getElementById('light3-4')],
+        [document.getElementById('light4-1'), document.getElementById('light4-2'), document.getElementById('light4-3'), document.getElementById('light4-4')],
+        [document.getElementById('light5-1'), document.getElementById('light5-2'), document.getElementById('light5-3'), document.getElementById('light5-4')]
+    ];
+    const gameArea = document.getElementById('gameArea');
+    const message = document.getElementById('message');
+    const bestTimeDisplay = document.getElementById('bestTime');
+    let startTime, endTime, bestTime = Infinity;
+    let gameStarted = false;
+    let lightTimeouts = [];
 
-        gameArea.addEventListener('click', startGame);
-        document.addEventListener('keydown', startGame);
-
-        function startGame() {
-            if (gameStarted) {
-                message.textContent = 'Se paciente e inténtalo de nuevo';
-                gameArea.style.borderColor = 'red';
-                stopLights();
-                return;
-            }
-            message.textContent = 'Espera a que las luces se apaguen...';
-            gameArea.style.borderColor = '#fff';
-            gameArea.removeEventListener('click', startGame);
-            document.removeEventListener('keydown', startGame);
-            let delay = Math.random() * 4000 + 1000; // 1-5 segundos
-
-            columns.forEach((column, index) => {
-                lightTimeouts.push(setTimeout(() => {
-                    column[2].classList.add('on');
-                    column[3].classList.add('on');
-                }, index * 1000));
-            });
-
-            lightTimeouts.push(setTimeout(() => {
-                columns.forEach(column => {
-                    column[2].classList.remove('on');
-                    column[3].classList.remove('on');
-                });
-                startTime = new Date().getTime();
-                gameStarted = true;
-                gameArea.addEventListener('click', recordReactionTime);
-                document.addEventListener('keydown', recordReactionTime);
-            }, delay + 4000)); // 4 segundos para encender todas las luces
-
-            gameArea.addEventListener('click', tooEarly);
-            document.addEventListener('keydown', tooEarly);
+    // Leer el mejor tiempo de localStorage al cargar la página
+    document.addEventListener('DOMContentLoaded', () => {
+        const storedBestTime = localStorage.getItem('bestTime');
+        if (storedBestTime !== null) {
+            bestTime = parseFloat(storedBestTime);
+            bestTimeDisplay.textContent = `Mejor tiempo: ${bestTime} segundos`;
+            bestTimeDisplay.style.display = 'block';
         }
+    });
 
-        function tooEarly() {
-            if (!gameStarted) {
-                message.textContent = 'Se paciente e inténtalo de nuevo';
-                gameArea.style.borderColor = 'red';
-                stopLights();
-                gameArea.addEventListener('click', restartGame);
-                document.addEventListener('keydown', restartGame);
-                gameArea.removeEventListener('click', tooEarly);
-                document.removeEventListener('keydown', tooEarly);
-            }
-        }
+    gameArea.addEventListener('click', startGame);
+    document.addEventListener('keydown', startGame);
 
-        function recordReactionTime(event) {
-            endTime = new Date().getTime();
-            let reactionTime = (endTime - startTime) / 1000;
-            if (reactionTime < 0) {
-                message.textContent = 'Se paciente e inténtalo de nuevo';
-                gameArea.style.borderColor = 'red';
-                stopLights();
-                gameArea.addEventListener('click', restartGame);
-                document.addEventListener('keydown', restartGame);
-            } else {
-                message.textContent = `El tiempo de reacción ha sido: ${reactionTime} segundos`;
-                if (reactionTime < bestTime) {
-                    bestTime = reactionTime;
-                    bestTimeDisplay.textContent = `Mejor tiempo: ${bestTime} segundos`;
-                    bestTimeDisplay.style.display = 'block';
-                    gameArea.style.borderColor = 'green';
-                } else {
-                    gameArea.style.borderColor = 'red';
-                }
-                resetGame();
-            }
-        }
-
-        function stopLights() {
-            lightTimeouts.forEach(timeout => clearTimeout(timeout));
-            lightTimeouts = [];
-        }
-
-        function resetGame() {
-            gameStarted = false;
+    function startGame() {
+        if (gameStarted) {
+            message.textContent = 'Se paciente e inténtalo de nuevo';
+            gameArea.style.borderColor = 'red';
             stopLights();
+            return;
+        }
+        message.textContent = 'Espera a que las luces se apaguen...';
+        gameArea.style.borderColor = '#fff';
+        gameArea.removeEventListener('click', startGame);
+        document.removeEventListener('keydown', startGame);
+        let delay = Math.random() * 4000 + 1000; // 1-5 segundos
+
+        columns.forEach((column, index) => {
+            lightTimeouts.push(setTimeout(() => {
+                column[2].classList.add('on');
+                column[3].classList.add('on');
+            }, index * 1000));
+        });
+
+        lightTimeouts.push(setTimeout(() => {
             columns.forEach(column => {
                 column[2].classList.remove('on');
                 column[3].classList.remove('on');
             });
-            gameArea.addEventListener('click', startGame);
-            document.addEventListener('keydown', startGame);
+            startTime = new Date().getTime();
+            gameStarted = true;
+            gameArea.addEventListener('click', recordReactionTime);
+            document.addEventListener('keydown', recordReactionTime);
+        }, delay + 4000)); // 4 segundos para encender todas las luces
+
+        gameArea.addEventListener('click', tooEarly);
+        document.addEventListener('keydown', tooEarly);
+    }
+
+    function tooEarly() {
+        if (!gameStarted) {
+            message.textContent = 'Se paciente e inténtalo de nuevo';
+            gameArea.style.borderColor = 'red';
+            stopLights();
+            gameArea.addEventListener('click', restartGame);
+            document.addEventListener('keydown', restartGame);
             gameArea.removeEventListener('click', tooEarly);
             document.removeEventListener('keydown', tooEarly);
-            gameArea.removeEventListener('click', recordReactionTime);
-            document.removeEventListener('keydown', recordReactionTime);
-            setTimeout(() => {
-                gameArea.style.borderColor = '#fff';
-            }, 500);
         }
+    }
 
-        function restartGame() {
-            columns.forEach(column => {
-                column[2].classList.remove('on');
-                column[3].classList.remove('on');
-            });
-            gameArea.removeEventListener('click', restartGame);
-            document.removeEventListener('keydown', restartGame);
-            startGame();
+    function recordReactionTime(event) {
+        endTime = new Date().getTime();
+        let reactionTime = (endTime - startTime) / 1000;
+        if (reactionTime < 0) {
+            message.textContent = 'Se paciente e inténtalo de nuevo';
+            gameArea.style.borderColor = 'red';
+            stopLights();
+            gameArea.addEventListener('click', restartGame);
+            document.addEventListener('keydown', restartGame);
+        } else {
+            message.textContent = `El tiempo de reacción ha sido: ${reactionTime} segundos`;
+            if (reactionTime < bestTime) {
+                bestTime = reactionTime;
+                bestTimeDisplay.textContent = `Mejor tiempo: ${bestTime} segundos`;
+                bestTimeDisplay.style.display = 'block';
+                gameArea.style.borderColor = 'green';
+                // Guardar el mejor tiempo en localStorage
+                localStorage.setItem('bestTime', bestTime);
+            } else {
+                gameArea.style.borderColor = 'red';
+            }
+            resetGame();
         }
-    </script>
+    }
+
+    function stopLights() {
+        lightTimeouts.forEach(timeout => clearTimeout(timeout));
+        lightTimeouts = [];
+    }
+
+    function resetGame() {
+        gameStarted = false;
+        stopLights();
+        columns.forEach(column => {
+            column[2].classList.remove('on');
+            column[3].classList.remove('on');
+        });
+        gameArea.addEventListener('click', startGame);
+        document.addEventListener('keydown', startGame);
+        gameArea.removeEventListener('click', tooEarly);
+        document.removeEventListener('keydown', tooEarly);
+        gameArea.removeEventListener('click', recordReactionTime);
+        document.removeEventListener('keydown', recordReactionTime);
+        setTimeout(() => {
+            gameArea.style.borderColor = '#fff';
+        }, 500);
+    }
+
+    function restartGame() {
+        columns.forEach(column => {
+            column[2].classList.remove('on');
+            column[3].classList.remove('on');
+        });
+        gameArea.removeEventListener('click', restartGame);
+        document.removeEventListener('keydown', restartGame);
+        startGame();
+    }
+</script>
 
 
 </body>
