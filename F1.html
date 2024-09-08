@@ -235,27 +235,7 @@
       }
     }
 
-        /* Estilo para la tabla */
-        #info-container table {
-            width: 10cm; /* Ancho de la tabla */
-            margin: 0 auto; /* Centrar la tabla */
-        }
-        /* Estilo para las celdas de la tabla */
-        #info-container th,
-        #info-container td {
-            border: 0.1px solid #ffffff; /* Borde blanco de las celdas */
-            padding: 6px; /* Espaciado interno de las celdas */
-            text-align: left; /* Alineación del texto en las celdas */
-            background-color: transparent; /* Fondo transparente */
-        }
-        /* Estilo para el encabezado de la tabla */
-        #info-container th {
-            background-color: #800000; /* Color granate */
-            color: #ffffff; /* Color del texto en blanco */
-        }
-        .highlight {
-            font-weight: bold;
-        }
+       
 
 
     .containert {
@@ -764,6 +744,95 @@
                 height: 20px; /* Reducir tamaño */
             }
         }
+		
+		// Pilotos camibo
+        .custom-container {
+            background-color: black;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        .custom-pilot-container {
+            background-color: transparent;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: auto;
+            max-width: 100%;
+        }
+        .custom-driver-cell {
+            margin: 10px;
+            display: inline-block;
+            text-align: center;
+            background-color: transparent;
+            border: 2px solid white;
+            border-radius: 10px;
+            position: relative;
+        }
+        .custom-driver-cell img {
+            display: none;
+            width: 150px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+        .custom-select, .custom-button {
+            margin: 10px;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+        }
+        .custom-select {
+            background-color: #800000;
+            color: white;
+        }
+        .custom-button {
+            background-color: #800000;
+            color: white;
+            cursor: pointer;
+        }
+        .custom-add-driver-button {
+            background-color: #800000;
+            width: 40px;
+            height: 40px;
+            display: inline-block;
+            text-align: center;
+            line-height: 40px;
+            font-size: 24px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .custom-delete-button {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: #800000;
+            width: 20px;
+            height: 20px;
+            text-align: center;
+            line-height: 20px;
+            font-size: 14px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .custom-info {
+            margin-top: 10px;
+        }
+        .custom-info.custom-date {
+            margin-bottom: 10px;
+        }
+        .custom-driver-selectors {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
 
 		
 
@@ -806,38 +875,25 @@
     </div>
 </div>
       <br>
-      <div id="info-container">
-        <table>
-          <thead>
-            <tr>
-              <th>Piloto</th>
-              <th>Puesto</th>
-              <th>Fecha</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr id="driver-14">
-              <td>
-                <img src="https://media.formula1.com/d_driver_fallback_image.png/content/dam/fom-website/drivers/F/FERALO01_Fernando_Alonso/feralo01.png.transform/1col/image.png" alt="Fernando Alonso" width="60" style="vertical-align: middle; margin-right: 8px;">
-                F.Alonso
-              </td>
-              <td id="position-14">Cargando...</td>
-              <td id="date-14">Cargando...</td>
-            </tr>
-            <tr id="driver-55">
-              <td>
-                <img src="https://media.formula1.com/d_driver_fallback_image.png/content/dam/fom-website/drivers/C/CARSAI01_Carlos_Sainz/carsai01.png.transform/1col/image.png" alt="Carlos Sainz" width="60" style="vertical-align: middle; margin-right: 8px;">
-                C. Sainz
-              </td>
-              <td id="position-55">Cargando...</td>
-              <td id="date-55">Cargando...</td>
-            </tr>
-         
-          </tbody>
-        </table>
-      </div>
-
-
+	  
+	<!-- Seleccionador pilotos -->
+	<div class="custom-container">
+	<div class="custom-pilot-container">
+        <h1>Seleccionar Piloto</h1>
+        <div id="custom-driver-selectors">
+            <div class="custom-driver-cell">
+                <img id="custom-driver-image-1" src="" alt="Imagen del piloto" onerror="this.style.display='none'">
+                <select id="custom-driver-select-1" class="custom-select" onchange="customSelectDriver(1)">
+                    <option value="">Selecciona un piloto</option>
+                </select>
+                <div id="custom-position-info-1" class="custom-info"></div>
+                <div id="custom-date-info-1" class="custom-info custom-date"></div>
+                <div class="custom-delete-button" onclick="customDeleteDriver(1)">×</div>
+            </div>
+        </div>
+        <div id="custom-add-driver-button" class="custom-add-driver-button" onclick="customAddDriver()">+</div>
+    </div>
+	</div>
 
       <div class="separator"></div>
 
@@ -985,6 +1041,101 @@
       </div>
     </div>
   </main>
+  
+  
+      <script>
+	  // Función para ver posición pilotos
+        let customDriverCount = 1;
+        const customSelectedDrivers = new Set();
+        const customIntervals = {};
+
+        async function customFetchDrivers() {
+            const response = await fetch('https://api.openf1.org/v1/drivers?session_key=latest');
+            const drivers = await response.json();
+            for (let i = 1; i <= customDriverCount; i++) {
+                const driverSelect = document.getElementById(`custom-driver-select-${i}`);
+                if (driverSelect) {
+                    const selectedValue = driverSelect.value;
+                    driverSelect.innerHTML = '<option value="">Selecciona un piloto</option>'; // Reset options
+                    drivers.forEach(driver => {
+                        const option = document.createElement('option');
+                        option.value = driver.driver_number;
+                        option.textContent = driver.full_name;
+                        option.dataset.headshotUrl = driver.headshot_url;
+                        driverSelect.appendChild(option);
+                    });
+                    driverSelect.value = selectedValue; // Mantener el valor seleccionado
+                }
+            }
+        }
+
+        async function customSelectDriver(selectNumber) {
+            const driverSelect = document.getElementById(`custom-driver-select-${selectNumber}`);
+            const selectedOption = driverSelect.options[driverSelect.selectedIndex];
+            const driverImage = document.getElementById(`custom-driver-image-${selectNumber}`);
+            const positionInfo = document.getElementById(`custom-position-info-${selectNumber}`);
+            const dateInfo = document.getElementById(`custom-date-info-${selectNumber}`);
+
+            // Limpiar información anterior
+            driverImage.style.display = 'none';
+            positionInfo.textContent = '';
+            dateInfo.textContent = '';
+
+            // Limpiar intervalos anteriores
+            if (customIntervals[selectNumber]) {
+                clearInterval(customIntervals[selectNumber]);
+            }
+
+            if (selectedOption.value) {
+                driverImage.src = selectedOption.dataset.headshotUrl;
+                driverImage.style.display = 'block';
+                customSelectedDrivers.add(selectedOption.value);
+                customUpdateDriverPosition(selectNumber, selectedOption.value);
+                customIntervals[selectNumber] = setInterval(() => customUpdateDriverPosition(selectNumber, selectedOption.value), 3000);
+            } else {
+                customSelectedDrivers.delete(selectedOption.value);
+            }
+        }
+
+        async function customUpdateDriverPosition(selectNumber, driverNumber) {
+            const response = await fetch(`https://api.openf1.org/v1/position?meeting_key=latest&driver_number=${driverNumber}&session_key=latest`);
+            const positions = await response.json();
+            const latestPosition = positions[positions.length - 1];
+            const positionInfo = document.getElementById(`custom-position-info-${selectNumber}`);
+            const dateInfo = document.getElementById(`custom-date-info-${selectNumber}`);
+            positionInfo.textContent = `Posición: ${latestPosition.position}`;
+            dateInfo.textContent = new Date(latestPosition.date).toLocaleString();
+        }
+
+        function customAddDriver() {
+            customDriverCount++;
+            const driverSelectors = document.getElementById('custom-driver-selectors');
+            const newCell = document.createElement('div');
+            newCell.className = 'custom-driver-cell';
+            newCell.innerHTML = `
+                <img id="custom-driver-image-${customDriverCount}" src="" alt="Imagen del piloto" onerror="this.style.display='none'">
+                <select id="custom-driver-select-${customDriverCount}" class="custom-select" onchange="customSelectDriver(${customDriverCount})">
+                    <option value="">Selecciona un piloto</option>
+                </select>
+                <div id="custom-position-info-${customDriverCount}" class="custom-info"></div>
+                <div id="custom-date-info-${customDriverCount}" class="custom-info custom-date"></div>
+                <div class="custom-delete-button" onclick="customDeleteDriver(${customDriverCount})">×</div>
+            `;
+            driverSelectors.appendChild(newCell);
+            customFetchDrivers();
+        }
+
+        function customDeleteDriver(selectNumber) {
+            const driverCell = document.getElementById(`custom-driver-select-${selectNumber}`).parentElement;
+            if (driverCell) {
+                driverCell.style.display = 'none'; // Ocultar la celda visualmente
+                clearInterval(customIntervals[selectNumber]);
+                delete customIntervals[selectNumber];
+            }
+        }
+
+        customFetchDrivers();
+    </script>
 
   <script>
 
@@ -1084,68 +1235,7 @@ async function fetchF1Data() {
     }
 }
 
-    // Función datos piloto
-    async function fetchDriverPosition(driverNumber, positionElementId, dateElementId) {
-      try {
-        const response = await fetch(`https://api.openf1.org/v1/position?meeting_key=latest&driver_number=${driverNumber}&session_key=latest`);
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        const data = await response.json();
-        console.log(`Respuesta de la API para el conductor ${driverNumber}:`, data); // Log the whole JSON response
-
-        // Extract position and date
-        let position;
-        let date;
-
-        // Check if the top level object has the properties
-        if (data.position !== undefined) {
-          position = data.position;
-        } else {
-          // Traverse nested structures if necessary
-          for (const key in data) {
-            if (data[key] && typeof data[key] === 'object') {
-              if (data[key].position !== undefined) {
-                position = data[key].position;
-              }
-              if (data[key].date !== undefined) {
-                date = data[key].date;
-              }
-            }
-          }
-        }
-
-        // If position is an array, take the last element
-        if (Array.isArray(position)) {
-          position = position[position.length - 1];
-        }
-
-        // If date is an array, take the last element
-        if (Array.isArray(date)) {
-          date = date[date.length - 1];
-        }
-
-        // Convert date to Madrid time if date exists
-        const madridTime = date ? new Date(date).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' }) : undefined;
-
-        // Display position and date
-        if (position !== undefined) {
-          document.getElementById(positionElementId).textContent = position;
-        } else {
-          document.getElementById(positionElementId).textContent = `Error ${driverNumber}`;
-        }
-
-        if (madridTime !== undefined) {
-          document.getElementById(dateElementId).textContent = madridTime;
-        } else {
-          document.getElementById(dateElementId).textContent = `Error ${driverNumber}`;
-        }
-      } catch (error) {
-        console.error(`Error fetching data for driver ${driverNumber}:`, error);
-        document.getElementById(positionElementId).textContent = `Error ${driverNumber}`;
-        document.getElementById(dateElementId).textContent = '';
-      }
-    }
+    
 
         // Función datos clasificación carrera
         async function fetchLastF1Qualifying() {
@@ -1330,9 +1420,7 @@ async function fetchF1Data() {
 	// Función para actualizar fetchDriverPosition cada 3 segundos
     function startAutoUpdate() {
       setInterval(async () => {
-        await Promise.all([
-        fetchDriverPosition(14, 'position-14', 'date-14'),  
-        fetchDriverPosition(55, 'position-55', 'date-55'), 
+        await Promise.all([ 
         fetchWeatherData(),
        ]);
      }, 3000); // 3000 milisegundos = 3 segundos
