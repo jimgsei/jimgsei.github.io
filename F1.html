@@ -1035,7 +1035,6 @@
     </div>
   </main>
   
-  
 
 <script>
     let customDriverCount = 0; // Inicializar sin pilotos por defecto
@@ -1105,8 +1104,7 @@
                 id: `custom-driver-cell-${selectNumber}`,
                 driverNumber: selectedOption.value
             };
-            localStorage.setItem('customDriverData', JSON.stringify(customDriverData));
-            console.log(`Datos almacenados:`, JSON.parse(localStorage.getItem('customDriverData')));
+            localStorage.setItem('customDriverData', JSON.stringify(customDriverData));            
         } else {
             customSelectedDrivers.delete(selectedOption.value);
         }
@@ -1174,7 +1172,6 @@
 
     document.addEventListener('DOMContentLoaded', () => {
         // Cargar pilotos almacenados en localStorage
-        console.log('Datos leídos de localStorage:', customDriverData);
         if (Object.keys(customDriverData).length === 0) {
             // Si no hay datos en localStorage, cargar pilotos 14 y 55 por defecto
             customDriverData = {
@@ -1301,8 +1298,7 @@ async function fetchF1Data() {
         document.getElementById('dataContainer').textContent = 'Error fetching F1 data: ' + error.message;
     }
 }
-
-    
+   
 
         // Función datos clasificación carrera
         async function fetchLastF1Qualifying() {
@@ -1423,7 +1419,6 @@ async function fetchF1Data() {
                 document.getElementById('weatherData').innerHTML = `<div class="info-line"><span>Error al obtener los datos: ${error.message}</span></div>`;
             }
         }
-
 
 
         // Función datos proximas carreras
