@@ -607,7 +607,7 @@
 		
 		/* Status Api */
         .statusContainer {
-            width: auto;
+		    width: 300px;
             margin: auto;
             padding-bottom: 20px; /* Espacio adicional debajo de la tabla */
         }
@@ -1017,7 +1017,8 @@
 	
       <!-- Status -->
     <h2>API</h2>
-    <div id="tableContainer"></div>
+	<div class="statusContainer" id="tableContainer"></div>
+
 	
 	<!-- Github -->
       <div class="creditos">
@@ -1539,8 +1540,7 @@ startAutoUpdate();
 
   </script>
     
-  <script>
-	 // Status API
+ <script>
         async function checkApiStatus(apiUrl, elementId, expectedResponse) {
             const proxyUrl = 'https://api.allorigins.win/get?url=';
             try {
@@ -1557,6 +1557,7 @@ startAutoUpdate();
                     statusDiv.innerHTML = `<span>❌</span>`;
                 }
             } catch (error) {
+                console.error('Error al verificar el estado de la API:', error);
                 const statusDiv = document.getElementById(elementId);
                 statusDiv.innerHTML = `<span>❌</span>`;
             }
