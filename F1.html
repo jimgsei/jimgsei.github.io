@@ -22,8 +22,8 @@
       font-family: Arial, sans-serif;
       margin: 0;
     }
-
-         .container {
+        /* Estilo vídeo stream */
+        .container {
             text-align: center; /* Centrar contenido */
             width: 60%; /* Ancho del 60% de la pantalla */
             margin: 0 auto; /* Centrar el contenido */
@@ -99,7 +99,6 @@
       margin: 10px auto; /* Centrado horizontalmente */
       max-width: 300px;
     }
-
     .circuit-info img {
       max-width: 100%;
       display: block;
@@ -120,7 +119,6 @@
       grid-gap: 20px;
       padding: 20px;
     }
-
     .race-card {
       border: 1px solid #ccc;
       padding: 20px;
@@ -234,10 +232,9 @@
         margin-bottom: 10px; /* Ajusta según sea necesario */
       }
     }
+     
 
-       
-
-
+    /* Estilos información circuito */
     .containert {
             background-color: #1a1a1a;
             padding: 20px;
@@ -412,6 +409,7 @@
             border-radius: 8px;
         }
 
+        /* Información circuito */
         .circuit-card {
             background-color: #666; /* Fondo gris más oscuro */
             color: #fff; /* Letras blancas */
@@ -537,7 +535,6 @@
       color: white;
       font-family: Arial, sans-serif;
     }
-
         .button-container {
             display: flex;
             justify-content: center;
@@ -559,17 +556,14 @@
             width: 100%;
             height: 400px;
         }
-
-
+		
+		/* Proximos circuitos */
        .upcoming-circuits-container {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
             padding: 20px;
         }
-
-
-
         .upcoming-circuit-box {
             border: 2px solid maroon;
             background-color: transparent;
@@ -611,7 +605,7 @@
             }
         }
 		
-		// Status API
+		/* Status Api */
         .statusContainer {
             width: auto;
             margin: auto;
@@ -890,20 +884,21 @@
 </div>
    
 
-    <div class="container">
-           <div class="button-container">      
-               <button class="video-button" onclick="switchVideo('https://antuanct78.github.io/-016-ES-DAZN-F1/')">Opción 1</button>
-               <button class="video-button" onclick="switchVideo('https://en.gdplayertv.to/live-tv/dazn-f1/?embed=1')">Opción 2</button>
-               <button class="video-button" onclick="switchVideo('https://deporte-libre.top/en-vivo-online/dazn-formula-1-es/embed2.php')">Opción 3</button>
-               <button class="video-button" onclick="window.open('https://nt.dazcfutbolios.xyz/', '_blank')">Iphone</button>
-           </div>
-        <div class="video-container">
-            <iframe id="videoFrame" width="100%" height="100%" src="https://antuanct78.github.io/-016-ES-DAZN-F1/" allow="encrypted-media; picture-in-picture" scrolling="no" frameborder="0" gesture="autoplay" allowfullscreen="allowfullscreen"></iframe>        </div>
-    </div>
+    <!-- Vídeo -->
+	<div class="container">
+        <div class="button-container">      
+			<button class="video-button" onclick="loadVideo('https://antuanct78.github.io/-016-ES-DAZN-F1/', 'videoFrame')">Opción 1</button>
+			<button class="video-button" onclick="loadVideo('https://en.gdplayertv.to/live-tv/dazn-f1/?embed=1', 'videoFrame')">Opción 2</button>
+			<button class="video-button" onclick="loadVideo('https://dazcfutboltv.com/', 'iframe-container')">Opción 3</button>
+			<button class="video-button" onclick="loadVideo('https://nt.dazcfutbolios.xyz/', 'iframe-container')">Iphone</button>
+		</div>
+        
+			<iframe id="videoFrame" width="100%" height="100%" src="https://antuanct78.github.io/-016-ES-DAZN-F1/" allow="encrypted-media; picture-in-picture" scrolling="no" frameborder="0" gesture="autoplay" allowfullscreen="allowfullscreen"></iframe>
+            <iframe id="iframe-container" style="width: 90%; height: 500px; border: none; display: none;" allowfullscreen="allowfullscreen"></iframe>        
+	</div>
 
-      <div class="separator"></div>
+      
       <!-- Dashboard -->
-
    <div class="dashboard-container">
       <h2>Dashboard personalizable</h2>
       <iframe src="https://f1-dash.com/dashboard" frameborder="0" allowfullscreen></iframe>
@@ -1036,6 +1031,19 @@
   </main>
   
   
+<script>
+    function loadVideo(url, frameId) {
+        if (frameId === 'videoFrame') {
+            document.getElementById('videoFrame').style.display = 'block';
+            document.getElementById('iframe-container').style.display = 'none';
+            document.getElementById('videoFrame').src = url;
+        } else {
+            document.getElementById('videoFrame').style.display = 'none';
+            document.getElementById('iframe-container').style.display = 'block';
+            document.getElementById('iframe-container').src = url;
+        }
+    }
+</script>
 
 <script>
     let customDriverCount = 0; // Inicializar sin pilotos por defecto
