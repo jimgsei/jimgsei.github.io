@@ -872,17 +872,17 @@
     </div>
 </div>
 	  
-<!-- Seleccionador pilotos -->
-<div class="custom-container">
-    <div class="custom-pilot-container">
-        <h1>Seleccionar Piloto</h1>
-        <div id="custom-driver-selectors">
-            <!-- Las celdas de los pilotos se generarán dinámicamente -->
+  <!-- Seleccionador pilotos -->
+    <div class="custom-container">
+        <div class="custom-pilot-container">
+            <h1>Seleccionar Piloto</h1>
+            <div id="custom-driver-selectors">
+                <!-- Las celdas de los pilotos se generarán dinámicamente -->
+            </div>
+            <div id="custom-add-driver-button" class="custom-add-driver-button" onclick="customAddDriver()">+</div>
         </div>
-        <div id="custom-add-driver-button" class="custom-add-driver-button" onclick="customAddDriver()">+</div>
     </div>
-</div>
-   
+	
 
     <!-- Vídeo -->
 	<div class="container">
@@ -1045,170 +1045,205 @@
     }
 </script>
 
-<script>
-    let customDriverCount = 0; // Inicializar sin pilotos por defecto
-    const customSelectedDrivers = new Set();
-    const customIntervals = {};
-    let customDriverData = JSON.parse(localStorage.getItem('customDriverData')) || {}; // Cargar datos de pilotos desde localStorage
+ <script>
+        let customDriverCount = 0; // Inicializar sin pilotos por defecto
+        const customSelectedDrivers = new Set();
+        const customIntervals = {};
+        let customDriverData = JSON.parse(localStorage.getItem('customDriverData')) || {}; // Cargar datos de pilotos desde localStorage
 
-    async function customFetchDrivers() {
-        const response = await fetch('https://api.openf1.org/v1/drivers?session_key=latest');
-        const drivers = await response.json();
-        for (let i = 1; i <= customDriverCount; i++) {
-            const driverSelect = document.getElementById(`custom-driver-select-${i}`);
-            if (driverSelect) {
-                const selectedValue = driverSelect.value;
-                driverSelect.innerHTML = '<option value="">Selecciona un piloto</option>'; // Reset options
-                drivers.forEach(driver => {
-                    const option = document.createElement('option');
-                    option.value = driver.driver_number;
-                    option.textContent = driver.full_name;
-                    option.dataset.headshotUrl = driver.headshot_url;
-                    driverSelect.appendChild(option);
-                });
-                driverSelect.value = selectedValue; // Mantener el valor seleccionado
+        async function customFetchDrivers() {
+            const response = await fetch('https://api.openf1.org/v1/drivers?session_key=latest');
+            const drivers = await response.json();
+            for (let i = 1; i <= customDriverCount; i++) {
+                const driverSelect = document.getElementById(`custom-driver-select-${i}`);
+                if (driverSelect) {
+                    const selectedValue = driverSelect.value;
+                    driverSelect.innerHTML = '<option value="">Selecciona un piloto</option>'; // Reset options
+                    drivers.forEach(driver => {
+                        const option = document.createElement('option');
+                        option.value = driver.driver_number;
+                        option.textContent = driver.full_name;
+                        option.dataset.headshotUrl = driver.headshot_url;
+                        driverSelect.appendChild(option);
+                    });
+                    driverSelect.value = selectedValue; // Mantener el valor seleccionado
+                }
             }
-        }
-        // Cargar datos de posición y fecha para los pilotos almacenados
-        Object.keys(customDriverData).forEach(key => {
-            const driverNumber = customDriverData[key].driverNumber;
-            const driverSelect = document.getElementById(`custom-driver-select-${key}`);
-            if (driverSelect) {
-                driverSelect.value = driverNumber;
-                customSelectDriver(key);
-            }
-        });
-    }
-
-    async function customSelectDriver(selectNumber) {
-        const driverSelect = document.getElementById(`custom-driver-select-${selectNumber}`);
-        if (!driverSelect) return; // Verificar si el elemento existe
-
-        const selectedOption = driverSelect.options[driverSelect.selectedIndex];
-        const driverImage = document.getElementById(`custom-driver-image-${selectNumber}`);
-        const positionInfo = document.getElementById(`custom-position-info-${selectNumber}`);
-        const dateInfo = document.getElementById(`custom-date-info-${selectNumber}`);
-
-        // Limpiar información anterior
-        if (driverImage) driverImage.style.display = 'none';
-        if (positionInfo) positionInfo.textContent = '';
-        if (dateInfo) dateInfo.textContent = '';
-
-        // Limpiar intervalos anteriores
-        if (customIntervals[selectNumber]) {
-            clearInterval(customIntervals[selectNumber]);
-        }
-
-        if (selectedOption && selectedOption.value) {
-            if (driverImage) {
-                driverImage.src = selectedOption.dataset.headshotUrl;
-                driverImage.style.display = 'block';
-            }
-            customSelectedDrivers.add(selectedOption.value);
-            customUpdateDriverPosition(selectNumber, selectedOption.value);
-            customIntervals[selectNumber] = setInterval(() => customUpdateDriverPosition(selectNumber, selectedOption.value), 3000);
-
-            // Almacenar datos del piloto
-            customDriverData[selectNumber] = {
-                id: `custom-driver-cell-${selectNumber}`,
-                driverNumber: selectedOption.value
-            };
-            localStorage.setItem('customDriverData', JSON.stringify(customDriverData));            
-        } else {
-            customSelectedDrivers.delete(selectedOption.value);
-        }
-    }
-
-    async function customUpdateDriverPosition(selectNumber, driverNumber) {
-        const response = await fetch(`https://api.openf1.org/v1/position?meeting_key=latest&driver_number=${driverNumber}&session_key=latest`);
-        const positions = await response.json();
-        const latestPosition = positions[positions.length - 1];
-        const positionInfo = document.getElementById(`custom-position-info-${selectNumber}`);
-        const dateInfo = document.getElementById(`custom-date-info-${selectNumber}`);
-        if (positionInfo) positionInfo.textContent = `Posición: ${latestPosition.position}`;
-        if (dateInfo) dateInfo.textContent = new Date(latestPosition.date).toLocaleString();
-    }
-
-    function customAddDriver() {
-        customDriverCount++;
-        const driverSelectors = document.getElementById('custom-driver-selectors');
-        const newCell = document.createElement('div');
-        newCell.className = 'custom-driver-cell';
-        newCell.id = `custom-driver-cell-${customDriverCount}`;
-        newCell.innerHTML = `
-            <img id="custom-driver-image-${customDriverCount}" src="" alt="Imagen del piloto" onerror="this.style.display='none'">
-            <select id="custom-driver-select-${customDriverCount}" class="custom-select" onchange="customSelectDriver(${customDriverCount})">
-                <option value="">Selecciona un piloto</option>
-            </select>
-            <div id="custom-position-info-${customDriverCount}" class="custom-info"></div>
-            <div id="custom-date-info-${customDriverCount}" class="custom-info custom-date"></div>
-            <div class="custom-delete-button" onclick="customDeleteDriver(${customDriverCount})">×</div>
-        `;
-        driverSelectors.appendChild(newCell);
-        customFetchDrivers();
-    }
-
-    function customDeleteDriver(selectNumber) {
-        const driverCell = document.getElementById(`custom-driver-cell-${selectNumber}`);
-        if (driverCell) {
-            driverCell.remove(); // Eliminar la celda del DOM
-            clearInterval(customIntervals[selectNumber]);
-            delete customIntervals[selectNumber];
-            delete customDriverData[selectNumber];
-
-            // Reorganizar las celdas y los datos
-            const newCustomDriverData = {};
-            let newCustomDriverCount = 0;
-            document.querySelectorAll('.custom-driver-cell').forEach((cell, index) => {
-                newCustomDriverCount++;
-                cell.id = `custom-driver-cell-${newCustomDriverCount}`;
-                cell.querySelector('img').id = `custom-driver-image-${newCustomDriverCount}`;
-                const select = cell.querySelector('select');
-                select.id = `custom-driver-select-${newCustomDriverCount}`;
-                select.setAttribute('onchange', `customSelectDriver(${newCustomDriverCount})`);
-                cell.querySelector('.custom-delete-button').setAttribute('onclick', `customDeleteDriver(${newCustomDriverCount})`);
-                newCustomDriverData[newCustomDriverCount] = {
-                    id: `custom-driver-cell-${newCustomDriverCount}`,
-                    driverNumber: select.value
-                };
+            // Cargar datos de posición y fecha para los pilotos almacenados
+            Object.keys(customDriverData).forEach(key => {
+                const driverNumber = customDriverData[key].driverNumber;
+                const driverSelect = document.getElementById(`custom-driver-select-${key}`);
+                if (driverSelect) {
+                    driverSelect.value = driverNumber;
+                    customSelectDriver(key);
+                }
             });
-            customDriverData = newCustomDriverData;
-            customDriverCount = newCustomDriverCount;
-            localStorage.setItem('customDriverData', JSON.stringify(customDriverData));
-            customFetchDrivers(); // Volver a cargar los datos de los pilotos
         }
-    }
 
-    document.addEventListener('DOMContentLoaded', () => {
-        // Cargar pilotos almacenados en localStorage
-        if (Object.keys(customDriverData).length === 0) {
-            // Si no hay datos en localStorage, cargar pilotos 14 y 55 por defecto
-            customDriverData = {
-                1: { id: 'custom-driver-cell-1', driverNumber: '14' },
-                2: { id: 'custom-driver-cell-2', driverNumber: '55' }
-            };
-            localStorage.setItem('customDriverData', JSON.stringify(customDriverData));
+        async function customSelectDriver(selectNumber) {
+            const driverSelect = document.getElementById(`custom-driver-select-${selectNumber}`);
+            if (!driverSelect) return; // Verificar si el elemento existe
+
+            const selectedOption = driverSelect.options[driverSelect.selectedIndex];
+            const driverImage = document.getElementById(`custom-driver-image-${selectNumber}`);
+            const positionInfo = document.getElementById(`custom-position-info-${selectNumber}`);
+            const dateInfo = document.getElementById(`custom-date-info-${selectNumber}`);
+
+            // Limpiar información anterior
+            if (driverImage) driverImage.style.display = 'none';
+            if (positionInfo) positionInfo.textContent = '';
+            if (dateInfo) dateInfo.textContent = '';
+
+            // Limpiar intervalos anteriores
+            if (customIntervals[selectNumber]) {
+                clearInterval(customIntervals[selectNumber]);
+            }
+
+            if (selectedOption && selectedOption.value) {
+                if (driverImage) {
+                    driverImage.src = selectedOption.dataset.headshotUrl;
+                    driverImage.style.display = 'block';
+                }
+                customSelectedDrivers.add(selectedOption.value);
+                customUpdateDriverPosition(selectNumber, selectedOption.value);
+                customIntervals[selectNumber] = setInterval(() => customUpdateDriverPosition(selectNumber, selectedOption.value), 3000);
+
+                // Almacenar datos del piloto
+                customDriverData[selectNumber] = {
+                    id: `custom-driver-cell-${selectNumber}`,
+                    driverNumber: selectedOption.value
+                };
+                localStorage.setItem('customDriverData', JSON.stringify(customDriverData));            
+            } else {
+                customSelectedDrivers.delete(selectedOption.value);
+            }
         }
-        Object.keys(customDriverData).forEach(key => {
+
+        async function customUpdateDriverPosition(selectNumber, driverNumber) {
+            const response = await fetch(`https://api.openf1.org/v1/position?meeting_key=latest&driver_number=${driverNumber}&session_key=latest`);
+            const positions = await response.json();
+            const latestPosition = positions[positions.length - 1];
+            const positionInfo = document.getElementById(`custom-position-info-${selectNumber}`);
+            const dateInfo = document.getElementById(`custom-date-info-${selectNumber}`);
+            if (positionInfo) positionInfo.textContent = `Posición: ${latestPosition.position}`;
+            if (dateInfo) dateInfo.textContent = new Date(latestPosition.date).toLocaleString();
+        }
+
+        function customAddDriver() {
             customDriverCount++;
             const driverSelectors = document.getElementById('custom-driver-selectors');
             const newCell = document.createElement('div');
             newCell.className = 'custom-driver-cell';
-            newCell.id = `custom-driver-cell-${key}`;
+            newCell.id = `custom-driver-cell-${customDriverCount}`;
             newCell.innerHTML = `
-                <img id="custom-driver-image-${key}" src="" alt="Imagen del piloto" onerror="this.style.display='none'">
-                <select id="custom-driver-select-${key}" class="custom-select" onchange="customSelectDriver(${key})">
+                <img id="custom-driver-image-${customDriverCount}" src="" alt="Imagen del piloto" onerror="this.style.display='none'">
+                <select id="custom-driver-select-${customDriverCount}" class="custom-select" onchange="customSelectDriver(${customDriverCount})">
                     <option value="">Selecciona un piloto</option>
                 </select>
-                <div id="custom-position-info-${key}" class="custom-info"></div>
-                <div id="custom-date-info-${key}" class="custom-info custom-date"></div>
-                <div class="custom-delete-button" onclick="customDeleteDriver(${key})">×</div>
+                <div id="custom-position-info-${customDriverCount}" class="custom-info"></div>
+                <div id="custom-date-info-${customDriverCount}" class="custom-info custom-date"></div>
+                <div class="custom-delete-button" onclick="customDeleteDriver(${customDriverCount})">×</div>
             `;
             driverSelectors.appendChild(newCell);
+            customFetchDrivers();
+        }
+
+        function customDeleteDriver(selectNumber) {
+            const driverCell = document.getElementById(`custom-driver-cell-${selectNumber}`);
+            if (driverCell) {
+                driverCell.remove(); // Eliminar la celda del DOM
+                clearInterval(customIntervals[selectNumber]);
+                delete customIntervals[selectNumber];
+                delete customDriverData[selectNumber];
+
+                // Reorganizar las celdas y los datos
+                const newCustomDriverData = {};
+                let newCustomDriverCount = 0;
+                document.querySelectorAll('.custom-driver-cell').forEach((cell, index) => {
+                    newCustomDriverCount++;
+                    cell.id = `custom-driver-cell-${newCustomDriverCount}`;
+                    cell.querySelector('img').id = `custom-driver-image-${newCustomDriverCount}`;
+                    const select = cell.querySelector('select');
+                    select.id = `custom-driver-select-${newCustomDriverCount}`;
+                    select.setAttribute('onchange', `customSelectDriver(${newCustomDriverCount})`);
+                    cell.querySelector('.custom-delete-button').setAttribute('onclick', `customDeleteDriver(${newCustomDriverCount})`);
+                    newCustomDriverData[newCustomDriverCount] = {
+                        id: `custom-driver-cell-${newCustomDriverCount}`,
+                        driverNumber: select.value
+                    };
+                });
+                customDriverData = newCustomDriverData;
+                customDriverCount = newCustomDriverCount;
+                localStorage.setItem('customDriverData', JSON.stringify(customDriverData));
+
+                // Recargar el contenedor de selección de pilotos
+                const driverContainer = document.querySelector('.custom-pilot-container');
+                driverContainer.innerHTML = `
+                    <h1>Seleccionar Piloto</h1>
+                    <div id="custom-driver-selectors"></div>
+                    <div id="custom-add-driver-button" class="custom-add-driver-button" onclick="customAddDriver()">+</div>
+                `;
+                customDriverCount = 0; // Reiniciar el contador de pilotos
+                Object.keys(customDriverData).forEach(key => {
+                    customDriverCount++;
+                    const driverSelectors = document.getElementById('custom-driver-selectors');
+                    const newCell = document.createElement('div');
+                    newCell.className = 'custom-driver-cell';
+                    newCell.id = `custom-driver-cell-${key}`;
+                    newCell.innerHTML = `
+                        <img id="custom-driver-image-${key}" src="" alt="Imagen del piloto" onerror="this.style.display='none'">
+                        <select id="custom-driver-select-${key}" class="custom-select" onchange="customSelectDriver(${key})">
+                            <option value="">Selecciona un piloto</option>
+                        </select>
+                        <div id="custom-position-info-${key}" class="custom-info"></div>
+                        <div id="custom-date-info-${key}" class="custom-info custom-date"></div>
+                        <div class="custom-delete-button" onclick="customDeleteDriver(${key})">×</div>
+                    `;
+                    driverSelectors.appendChild(newCell);
+                });
+                customFetchDrivers().then(() => {
+                    Object.keys(customDriverData).forEach(key => {
+                        customSelectDriver(key);
+                    });
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Cargar pilotos almacenados en localStorage
+            if (Object.keys(customDriverData).length === 0) {
+                // Si no hay datos en localStorage, cargar pilotos 14 y 55 por defecto
+                customDriverData = {
+                    1: { id: 'custom-driver-cell-1', driverNumber: '14' },
+                                        2: { id: 'custom-driver-cell-2', driverNumber: '55' }
+                };
+                localStorage.setItem('customDriverData', JSON.stringify(customDriverData));
+            }
+            Object.keys(customDriverData).forEach(key => {
+                customDriverCount++;
+                const driverSelectors = document.getElementById('custom-driver-selectors');
+                const newCell = document.createElement('div');
+                newCell.className = 'custom-driver-cell';
+                newCell.id = `custom-driver-cell-${key}`;
+                newCell.innerHTML = `
+                    <img id="custom-driver-image-${key}" src="" alt="Imagen del piloto" onerror="this.style.display='none'">
+                    <select id="custom-driver-select-${key}" class="custom-select" onchange="customSelectDriver(${key})">
+                        <option value="">Selecciona un piloto</option>
+                    </select>
+                    <div id="custom-position-info-${key}" class="custom-info"></div>
+                    <div id="custom-date-info-${key}" class="custom-info custom-date"></div>
+                    <div class="custom-delete-button" onclick="customDeleteDriver(${key})">×</div>
+                `;
+                driverSelectors.appendChild(newCell);
+            });
+            customFetchDrivers().then(() => {
+                Object.keys(customDriverData).forEach(key => {
+                    customSelectDriver(key);
+                });
+            });
         });
-        customFetchDrivers();
-    });
-</script>
+    </script>
+
 
   <script>
 
@@ -1505,59 +1540,60 @@ startAutoUpdate();
 
   </script>
     
-  <script>
-        // Script Status API 
-        async function checkApiStatus(apiUrl, elementId, expectedResponse) {
-            const proxyUrl = 'https://api.allorigins.win/get?url=';
-            try {
-                const response = await fetch(proxyUrl + encodeURIComponent(apiUrl));
-                const data = await response.json();
-                const apiData = data.contents;
-                const statusDiv = document.getElementById(elementId);
-                if (apiData.includes(expectedResponse)) {
-                    statusDiv.innerHTML = `<span class="tick">✔️</span>`;
-                } else {
-                    statusDiv.innerHTML = `<span class="cross">❌</span>`;
-                }
-            } catch (error) {
-                console.error('Error al verificar el estado de la API:', error);
+<script>
+    // Script Status API 
+    async function checkApiStatus(apiUrl, elementId, expectedResponse) {
+        const proxyUrl = 'https://api.allorigins.win/get?url=';
+        try {
+            const response = await fetch(proxyUrl + encodeURIComponent(apiUrl));
+            const data = await response.json();
+            const apiData = data.contents;
+            const statusDiv = document.getElementById(elementId);
+            if (apiData.includes(expectedResponse)) {
+                statusDiv.innerHTML = `<span class="tick">✔️</span>`;
+            } else {
+                statusDiv.innerHTML = `<span class="cross">❌</span>`;
             }
+        } catch (error) {
+            console.error('Error al verificar el estado de la API:', error);
         }
+    }
 
-        function createTable() {
-            const tableContainer = document.getElementById('tableContainer');
-            const tableHTML = `
-                <table class="customTable">
-                    <thead>
-                        <tr>
-                            <th>API</th>
-                            <th>Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><a href="https://api.jolpi.ca/ergast/" target="_blank">Ergast</a></td>
-                            <td id="apiStatus1" class="status"></td>
-                        </tr>
-                        <tr>
-                            <td><a href="https://openf1.org/" target="_blank">OpenF1</a></td>
-                            <td id="apiStatus2" class="status"></td>
-                        </tr>
-                    </tbody>
-                </table>
-            `;
-            tableContainer.innerHTML = tableHTML;
-        }
+    function createTable() {
+        const tableContainer = document.getElementById('tableContainer');
+        const tableHTML = `
+            <table class="customTable">
+                <thead>
+                    <tr>
+                        <th>API</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><a href="https://api.jolpi.ca/ergast/" target="_blank">Ergast</a></td>
+                        <td id="apiStatus1" class="status"></td>
+                    </tr>
+                    <tr>
+                        <td><a href="https://openf1.org/" target="_blank">OpenF1</a></td>
+                        <td id="apiStatus2" class="status"></td>
+                    </tr>
+                </tbody>
+            </table>
+        `;
+        tableContainer.innerHTML = tableHTML;
+    }
 
-        function updateStatuses() {
-            checkApiStatus('https://api.jolpi.ca/', 'apiStatus1', 'OK');
-            checkApiStatus('https://api.openf1.org/', 'apiStatus2', 'Welcome to OpenF1!');
-        }
+    function updateStatuses() {
+        checkApiStatus('https://api.jolpi.ca/', 'apiStatus1', 'OK');
+        checkApiStatus('https://api.openf1.org/', 'apiStatus2', 'Welcome to OpenF1!');
+    }
 
-        createTable();
-        updateStatuses();
-        setInterval(updateStatuses, 10000); // Actualiza cada 5 segundos
-    </script>
+    createTable();
+    updateStatuses();
+    setInterval(updateStatuses, 10000); // Actualiza cada 10 segundos
+</script>
+
 
 <script>
     // Función para configurar las cookies del iframe
