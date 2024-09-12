@@ -1,29 +1,56 @@
-<!DOCTYPE html>
-  
- <title> DAZN F1 | AK LIVE  </title> 
-<head> 
-  <script type='text/javascript' src='//perilastronaut.com/37/ba/98/37ba9854968deef9b2f72730344824c6.js'></script>
-  <script type='text/javascript' src='//perilastronaut.com/b5/cf/31/b5cf3116c6e00d4c365e10b23bce0b8f.js'></script>
-</head>  
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
-<script disable-devtool-auto='true' src='https://cdn.jsdelivr.net/npm/disable-devtool' clear-log='true'
-  disable-select='true' disable-copy='true' disable-cut='true' disable-paste='true'></script>
-<script src="/js/click-heart.js" defer></script>
-<script src="/js/prodevs.js"></script>
-<script src="/login/protection.js"> </script>
-<link rel="stylesheet" href="/css/jw.css">
-<script src="/js/jw-topleft.js"></script>
-<div id="jwplayerDiv"></div> 
-<script src="/v3/master/sports/x/DAZN_F1.js" defer></script>
+</style>
 
-  <script>
-    
-    if (confirm("Join Telegram Channel For Latest Update") == true) {
-      window.open("/telegram.html", '_blank');
+<head>
+  <meta name="robots" content="noindex" />
+  <script src="//cdn.jsdelivr.net/npm/@clappr/player@0.4.0/dist/clappr.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/mux.js@5.6.7/dist/mux.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/level-selector@latest/dist/level-selector.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/clappr-chromecast-plugin@latest/dist/clappr-chromecast-plugin.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/clappr-pip@latest/dist/clappr-pip.min.js"></script>
+  <script
+    src="//cdn.jsdelivr.net/npm/clappr-playback-rate-plugin@latest/dist/clappr-playback-rate-plugin.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/shaka-player@2.5.10/dist/shaka-player.compiled.min.js"></script>
+  <script
+    src="//cdn.jsdelivr.net/gh/clappr/dash-shaka-playback@latest/dist/dash-shaka-playback.external.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/cdnbye-shaka@latest"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+  <style>
+    .player-poster[data-poster] {
+      background-size: cover;
     }
-  </script>
-  
-</html>
+
+    body {
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+</head>
+</a></center>
+<div id="player"></div>
+<script>
+  var player = new Clappr.Player({
+    source: 'https://dce-fs-live-dazn-cdn.dazn.com/dashdrm/dazn-linear-016/stream.mpd',
+    mimeType: 'application/dash+xml',
+    height: '97%',
+    width: '100%',
+    autoPlay: true,
+    plugins: [LevelSelector, DashShakaPlayback, ChromecastPlugin, ClapprPip.PipButton, ClapprPip.PipPlugin, Clappr.MediaControl],
+    events: {onReady: function () {var plugin = this.getPlugin('click_to_pause'); plugin && plugin.disable();}, },
+    chromecast: {
+      appId: '9DFB77C0',
+      contentType: 'video/mp4',
+    },
+    shakaConfiguration: {
+      drm: {
+        clearKeys: {
+          '1061be12d303247426ec25e8369b2647': 'bd622b0e610295de3b0bccb850ccaaaa'
+        }
+      },
+    },
+    shakaOnBeforeLoad: function (shaka_player) { },
+    parentId: '#player'
+  });
+</script>
+<script type="text/javascript">
+  document.oncontextmenu = function () {return false}
+</script>
