@@ -1254,97 +1254,105 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-// Función datos carrera actual
-async function fetchF1Data() {
-    try {
-        const proxyUrl = 'https://api.allorigins.win/get?url=';
-        const targetUrl = encodeURIComponent('https://api.jolpi.ca/ergast/f1/current.json');
-        const response = await fetch(proxyUrl + targetUrl);
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        const data = await response.json();
-        const jsonData = JSON.parse(data.contents);
+        // Función datos carrera actual
+        async function fetchF1Data() {
+            try {
+                const proxyUrl = 'https://api.allorigins.win/get?url=';
+                const targetUrl = encodeURIComponent('https://api.jolpi.ca/ergast/f1/current.json');
+                const response = await fetch(proxyUrl + targetUrl);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+                const jsonData = JSON.parse(data.contents);
 
-        // Obtener la fecha de hoy
-        const today = new Date().toISOString().split('T')[0];
+                // Obtener la fecha y hora actual en Madrid
+                const now = new Date().toLocaleString('en-US', { timeZone: 'Europe/Madrid' });
+                const today = new Date(now).toISOString().split('T')[0];
 
-        // Filtrar carreras por la fecha de hoy o la próxima carrera
-        const races = jsonData.MRData.RaceTable.Races;
-        let nextRace = null;
-        for (let race of races) {
-            if (race.date === today) {
-                nextRace = race;
-                break;
-            } else if (new Date(race.date) > new Date(today)) {
-                nextRace = race;
-                break;
+                // Filtrar carreras por la fecha de hoy o la próxima carrera
+                const races = jsonData.MRData.RaceTable.Races;
+                let nextRace = null;
+                for (let race of races) {
+                    if (race.date === today) {
+                        nextRace = race;
+                        break;
+                    } else if (new Date(race.date) > new Date(today)) {
+                        nextRace = race;
+                        break;
+                    }
+                }
+
+                // Insertar datos en el contenedor
+                const dataContainer = document.getElementById('dataContainer');
+                if (nextRace) {
+                    const dataBox = document.createElement('div');
+                    dataBox.className = 'current-circuit';
+
+                    // Convertir la hora a la zona horaria de Madrid
+                    const raceTime = new Date(`${nextRace.date}T${nextRace.time}`);
+                    const madridTime = raceTime.toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
+
+                    // Convertir la fecha al formato español
+                    const raceDate = new Date(nextRace.date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+
+                    // Convertir la fecha y hora de la Qualifying al formato español
+                    const qualifyingDate = new Date(nextRace.Qualifying.date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+                    const qualifyingTime = new Date(`${nextRace.Qualifying.date}T${nextRace.Qualifying.time}`);
+                    const madridQualifyingTime = qualifyingTime.toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
+
+                    dataBox.innerHTML = `
+                        <p class="race-name">${nextRace.raceName}</p>
+                        <div class="data-cell">${nextRace.Circuit.circuitName}</div>
+                        <div class="data-cell">${nextRace.date === today ? `${raceDate}` : `${qualifyingDate}`}</div>
+                        <div class="data-cell">Hora: ${nextRace.date === today ? `${madridTime}` : `${madridQualifyingTime}`}</div>
+                        <div class="data-cell">Ubicación: ${nextRace.Circuit.Location.locality}, ${nextRace.Circuit.Location.country}</div>
+                        <div class="data-cell">Carrera Nº: ${nextRace.round}</div>
+                        <div class="data-cell"><a href="${nextRace.url}" target="_blank">Más información en Wikipedia</a></div>
+                    `;
+
+                    // Crear una celda con todas las prácticas y sesiones
+                    let sessionsCell = `<div class="data-cell" style="border: 1px solid maroon;">`;
+
+                    const sessions = [
+                        { name: 'Libres 1', date: nextRace.FirstPractice.date, time: nextRace.FirstPractice.time },
+                        { name: 'Libres 2', date: nextRace.SecondPractice?.date, time: nextRace.SecondPractice?.time },
+                        { name: 'Libres 3', date: nextRace.ThirdPractice?.date, time: nextRace.ThirdPractice?.time },
+                        { name: 'Clasificación', date: nextRace.Qualifying.date, time: nextRace.Qualifying.time },
+                        { name: 'Clasificación Sprint', date: nextRace.SprintQualifying?.date, time: nextRace.SprintQualifying?.time },
+                        { name: 'Sprint', date: nextRace.Sprint?.date, time: nextRace.Sprint?.time }
+                    ];
+
+                    let upcomingSessions = false;
+
+                    for (let session of sessions) {
+                        if (session.date && session.time) {
+                            const sessionTime = new Date(`${session.date}T${session.time}`);
+                            const madridSessionTime = sessionTime.toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
+                            const sessionDay = sessionTime.toLocaleDateString('es-ES', { weekday: 'long' });
+
+                            if (sessionTime >= new Date(now)) {
+                                upcomingSessions = true;
+                                sessionsCell += `${session.name}: ${sessionDay.charAt(0).toUpperCase() + sessionDay.slice(1)}, ${sessionTime.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })} a las ${madridSessionTime}<br>`;
+                            }
+                        }
+                    }
+
+                    sessionsCell += `</div>`;
+
+                    if (upcomingSessions) {
+                        dataBox.innerHTML += sessionsCell;
+                    }
+
+                    dataContainer.appendChild(dataBox);
+                } else {
+                    dataContainer.textContent = 'No hay carreras próximas.';
+                }
+            } catch (error) {
+                console.error('Error OpenF1:', error);
+                document.getElementById('dataContainer').textContent = 'Error fetching F1 data: ' + error.message;
             }
         }
-
-        // Insertar datos en el contenedor
-        const dataContainer = document.getElementById('dataContainer');
-        if (nextRace) {
-            const dataBox = document.createElement('div');
-            dataBox.className = 'current-circuit';
-
-            // Convertir la hora a la zona horaria de Madrid
-            const raceTime = new Date(`${nextRace.date}T${nextRace.time}`);
-            const madridTime = raceTime.toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
-
-            // Convertir la fecha al formato español
-            const raceDate = new Date(nextRace.date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
-
-            // Convertir la fecha y hora de la Qualifying al formato español
-            const qualifyingDate = new Date(nextRace.Qualifying.date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
-            const qualifyingTime = new Date(`${nextRace.Qualifying.date}T${nextRace.Qualifying.time}`);
-            const madridQualifyingTime = qualifyingTime.toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
-
-            dataBox.innerHTML = `
-                <p class="race-name">${nextRace.raceName}</p>
-                <div class="data-cell">${nextRace.Circuit.circuitName}</div>
-                <div class="data-cell">${nextRace.date === today ? `${raceDate}` : `${qualifyingDate}`}</div>
-                <div class="data-cell">Hora: ${nextRace.date === today ? `${madridTime}` : `${madridQualifyingTime}`}</div>
-                <div class="data-cell">Ubicación: ${nextRace.Circuit.Location.locality}, ${nextRace.Circuit.Location.country}</div>
-                <div class="data-cell">Carrera Nº: ${nextRace.round}</div>
-                <div class="data-cell"><a href="${nextRace.url}" target="_blank">Más información en Wikipedia</a></div>
-            `;
-
-            // Crear una celda con todas las prácticas
-            let sessionsCell = `<div class="data-cell" style="border: 1px solid maroon;">`;
-
-            if (new Date(nextRace.FirstPractice.date) >= new Date(today)) {
-                const firstPracticeTime = new Date(`${nextRace.FirstPractice.date}T${nextRace.FirstPractice.time}`);
-                const madridFirstPracticeTime = firstPracticeTime.toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
-                const firstPracticeDay = firstPracticeTime.toLocaleDateString('es-ES', { weekday: 'long' });
-                sessionsCell += `Libres 1: ${firstPracticeDay.charAt(0).toUpperCase() + firstPracticeDay.slice(1)}, ${firstPracticeTime.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })} a las ${madridFirstPracticeTime}<br>`;
-            }
-            if (new Date(nextRace.SecondPractice.date) >= new Date(today)) {
-                const secondPracticeTime = new Date(`${nextRace.SecondPractice.date}T${nextRace.SecondPractice.time}`);
-                const madridSecondPracticeTime = secondPracticeTime.toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
-                const secondPracticeDay = secondPracticeTime.toLocaleDateString('es-ES', { weekday: 'long' });
-                sessionsCell += `Libres 2: ${secondPracticeDay.charAt(0).toUpperCase() + secondPracticeDay.slice(1)}, ${secondPracticeTime.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })} a las ${madridSecondPracticeTime}<br>`;
-            }
-            if (new Date(nextRace.ThirdPractice.date) >= new Date(today)) {
-                const thirdPracticeTime = new Date(`${nextRace.ThirdPractice.date}T${nextRace.ThirdPractice.time}`);
-                const madridThirdPracticeTime = thirdPracticeTime.toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
-                const thirdPracticeDay = thirdPracticeTime.toLocaleDateString('es-ES', { weekday: 'long' });
-                sessionsCell += `Libres 3: ${thirdPracticeDay.charAt(0).toUpperCase() + thirdPracticeDay.slice(1)}, ${thirdPracticeTime.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })} a las ${madridThirdPracticeTime}<br>`;
-            }
-
-            sessionsCell += `</div>`;
-            dataBox.innerHTML += sessionsCell;
-
-            dataContainer.appendChild(dataBox);
-        } else {
-            dataContainer.textContent = 'No hay carreras próximas.';
-        }
-    } catch (error) {
-        console.error('Error OpenF1:', error);
-        document.getElementById('dataContainer').textContent = 'Error fetching F1 data: ' + error.message;
-    }
-}
-
     
 
         // Función datos clasificación carrera
