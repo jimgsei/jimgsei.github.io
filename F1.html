@@ -1254,6 +1254,7 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
+
         // Función datos carrera actual
         async function fetchF1Data() {
             try {
@@ -1289,23 +1290,18 @@
                     const dataBox = document.createElement('div');
                     dataBox.className = 'current-circuit';
 
-                    // Convertir la hora a la zona horaria de Madrid
+                    // Convertir la hora de la carrera a la zona horaria de Madrid
                     const raceTime = new Date(`${nextRace.date}T${nextRace.time}`);
-                    const madridTime = raceTime.toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
+                    const madridRaceTime = raceTime.toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
 
-                    // Convertir la fecha al formato español
+                    // Convertir la fecha de la carrera al formato español
                     const raceDate = new Date(nextRace.date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
-
-                    // Convertir la fecha y hora de la Qualifying al formato español
-                    const qualifyingDate = new Date(nextRace.Qualifying.date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
-                    const qualifyingTime = new Date(`${nextRace.Qualifying.date}T${nextRace.Qualifying.time}`);
-                    const madridQualifyingTime = qualifyingTime.toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
 
                     dataBox.innerHTML = `
                         <p class="race-name">${nextRace.raceName}</p>
                         <div class="data-cell">${nextRace.Circuit.circuitName}</div>
-                        <div class="data-cell">${nextRace.date === today ? `${raceDate}` : `${qualifyingDate}`}</div>
-                        <div class="data-cell">Hora: ${nextRace.date === today ? `${madridTime}` : `${madridQualifyingTime}`}</div>
+                        <div class="data-cell">${raceDate}</div>
+                        <div class="data-cell">Hora: ${madridRaceTime}</div>
                         <div class="data-cell">Ubicación: ${nextRace.Circuit.Location.locality}, ${nextRace.Circuit.Location.country}</div>
                         <div class="data-cell">Carrera Nº: ${nextRace.round}</div>
                         <div class="data-cell"><a href="${nextRace.url}" target="_blank">Más información en Wikipedia</a></div>
@@ -1353,7 +1349,8 @@
                 document.getElementById('dataContainer').textContent = 'Error fetching F1 data: ' + error.message;
             }
         }
-    
+
+		
 
         // Función datos clasificación carrera
         async function fetchLastF1Qualifying() {
