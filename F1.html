@@ -909,18 +909,18 @@
 	
 
     <!-- Vídeo -->
-	<div class="container">
-        <div class="button-container">      
-			<button class="video-button" onclick="loadVideo('https://antuanct78.github.io/-016-ES-DAZN-F1/', 'videoFrame')">Opción 1</button>
-			<button class="video-button" onclick="loadVideo('https://en.gdplayertv.to/live-tv/dazn-f1/?embed=1', 'videoFrame')">Opción 2</button>
-		    <button class="video-button" onclick="loadVideo('https://embed.sdfgnksbounce.com/embed2/daznf1.html', 'videoFrame')">Opción 3</button>
-			<button class="video-button" onclick="loadVideo('https://dazcfutboltv.com/', 'iframe-container')">Fútbol + F1</button>
-			<button class="video-button" onclick="loadVideo('https://nt.dazcfutbolios.xyz/', 'iframe-container')">Iphone</button>
-		</div>
-        
-			<iframe id="videoFrame" width="100%" height="100%" src="https://jimgsei.github.io/daz" allow="encrypted-media; picture-in-picture" scrolling="no" frameborder="0" gesture="autoplay" allowfullscreen="allowfullscreen"></iframe>
-            <iframe id="iframe-container" style="width: 90%; height: 500px; border: none; display: none;" allowfullscreen="allowfullscreen"></iframe>        
-	</div>
+    <div class="container">
+      <div class="button-container">      
+        <button id="defaultButton" class="video-button" onclick="loadVideo(defaultUrl, 'videoFrame')">Opción 1</button>
+        <button class="video-button" onclick="loadVideo('https://en.gdplayertv.to/live-tv/dazn-f1/?embed=1', 'videoFrame')">Opción 2</button>
+        <button id="alternateButton" class="video-button" onclick="loadVideo(alternateUrl, 'videoFrame')">Opción 3</button>
+        <button class="video-button" onclick="loadVideo('https://dazcfutboltv.com/', 'iframe-container')">Fútbol + F1</button>
+        <button class="video-button" onclick="loadVideo('https://nt.dazcfutbolios.xyz/', 'iframe-container')">Iphone</button>
+      </div>
+    
+      <iframe id="videoFrame" width="100%" height="100%" src="" allow="encrypted-media; picture-in-picture" scrolling="no" frameborder="0" gesture="autoplay" allowfullscreen="allowfullscreen"></iframe>
+      <iframe id="iframe-container" style="width: 90%; height: 500px; border: none; display: none;" allowfullscreen="allowfullscreen"></iframe>        
+    </div>
 
       
       <!-- Dashboard -->
@@ -1022,8 +1022,19 @@
     </div>
   </main>
   
-  
-<script>
+  <!-- Vídeo -->
+  <script>
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const defaultUrl = isMobile ? 'https://antuanct78.github.io/-016-ES-DAZN-F1/' : 'https://embed.sdfgnksbounce.com/embed2/daznf1.html';
+    const alternateUrl = isMobile ? 'https://embed.sdfgnksbounce.com/embed2/daznf1.html' : 'https://antuanct78.github.io/-016-ES-DAZN-F1/';
+
+    document.getElementById('defaultButton').onclick = function() { loadVideo(defaultUrl, 'videoFrame'); };
+    document.getElementById('alternateButton').onclick = function() { loadVideo(alternateUrl, 'videoFrame'); };
+
+    window.onload = function() {
+        loadVideo(defaultUrl, 'videoFrame');
+    };
+
     function loadVideo(url, frameId) {
         if (frameId === 'videoFrame') {
             document.getElementById('videoFrame').style.display = 'block';
@@ -1035,7 +1046,7 @@
             document.getElementById('iframe-container').src = url;
         }
     }
-</script>
+   </script>
 
  <script>
         let customDriverCount = 0; // Inicializar sin pilotos por defecto
