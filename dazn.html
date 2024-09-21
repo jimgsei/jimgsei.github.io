@@ -23,6 +23,20 @@
     </style>
 </head>
 <body>
-    <iframe src="https://embed.sdfgnksbounce.com/embed2/daznf1.html" allow="autoplay; fullscreen"></iframe>
+    <iframe src="https://embed.sdfgnksbounce.com/embed2/daznf1.html" allow="autoplay; fullscreen; encrypted-media" allowfullscreen></iframe>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const iframe = document.querySelector('iframe');
+            iframe.addEventListener('load', function() {
+                const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
+                const video = iframeDocument.querySelector('video');
+                if (video) {
+                    video.muted = false;
+                    video.play();
+                }
+            });
+        });
+    </script>
 </body>
 </html>
+
