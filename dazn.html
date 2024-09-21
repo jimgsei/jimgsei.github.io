@@ -28,8 +28,8 @@
         document.addEventListener('DOMContentLoaded', function() {
             const iframe = document.querySelector('iframe');
             iframe.addEventListener('load', function() {
-                const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
-                const video = iframeDocument.querySelector('video');
+                const iframeWindow = iframe.contentWindow;
+                const video = iframeWindow.document.querySelector('video');
                 if (video) {
                     video.muted = false;
                     video.play();
@@ -39,4 +39,3 @@
     </script>
 </body>
 </html>
-
