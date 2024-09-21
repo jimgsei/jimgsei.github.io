@@ -22,74 +22,82 @@
       font-family: Arial, sans-serif;
       margin: 0;
     }
-        /* Estilo vídeo stream */
-        .container {
-            text-align: center; /* Centrar contenido */
-            width: 60%; /* Ancho del 60% de la pantalla */
-            margin: 0 auto; /* Centrar el contenido */
-            color: white; /* Color de texto blanco */
-            margin-top: 100px; /* Espacio superior para separar contenedores */
-        }
-        h1 {
-            text-align: center; /* Centrar el texto */
-        }
-        table {
-            border-collapse: separate; /* Cambiar a 'separate' para permitir bordes redondeados */
-            width: 100%; /* Ancho del 100% del contenedor */
-            margin: 0 auto; /* Centrar la tabla */
-            border-radius: 10px; /* Bordes redondeados */
-            overflow: hidden; /* Asegurar que los bordes redondeados se apliquen correctamente */
-        }
-        th, td {
-            border: none;
-            padding: 6px;
-            text-align: left;
-        }
-        th {
-            font-weight: bold;
-            background-color: maroon; /* Cabecera granate */
-            color: white;
-            text-align: center; /* Centrar el texto en la cabecera */
-            border-radius: 10px 10px 0 0; /* Bordes redondeados en la cabecera */
-        }
-        .separator {
-            margin-top: 20px;
-        }
-        #race-name {
-            margin: 20px 0;
-            font-size: 24px;
-            color: white;
-            text-align: center; /* Centrar el texto */
-        }
-        .table-wrapper {
-            display: flex;
-            flex-wrap: wrap; /* Permitir que los contenedores se envuelvan en dispositivos estrechos */
-            justify-content: space-between;
-            margin-top: 20px;
-        }
-        .table-container {
-            width: 40%;
-            margin-bottom: 20px;
-        }
-        .table-container table {
-            width: 90%;
-            border-collapse: separate; /* Cambiar a 'separate' para permitir bordes redondeados */
-            margin-bottom: 20px;
-        }
-        .table-container th,
-        .table-container td {
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 5px; /* Bordes redondeados */
-        }
-        .table-container th {
-            background-color: maroon; /* Cabecera granate */
-            color: white;
-        }
-        .highlight {
-            font-weight: bold;
-        }
+    /* Estilo vídeo stream */
+    .container {
+      text-align: center; /* Centrar contenido */
+      width: 60%; /* Ancho del 60% de la pantalla */
+      margin: 0 auto; /* Centrar el contenido */
+      color: white; /* Color de texto blanco */
+      margin-top: 100px; /* Espacio superior para separar contenedores */
+    }
+    h1 {
+      text-align: center; /* Centrar el texto */
+    }
+    table {
+      border-collapse: separate; /* Cambiar a 'separate' para permitir bordes redondeados */
+      width: 100%; /* Ancho del 100% del contenedor */
+      margin: 0 auto; /* Centrar la tabla */
+      border-radius: 10px; /* Bordes redondeados */
+      overflow: hidden; /* Asegurar que los bordes redondeados se apliquen correctamente */
+    }
+    th, td {
+      border: none;
+      padding: 6px;
+      text-align: left;
+    }
+    th {
+      font-weight: bold;
+      background-color: maroon; /* Cabecera granate */
+      color: white;
+      text-align: center; /* Centrar el texto en la cabecera */
+      border-radius: 10px 10px 0 0; /* Bordes redondeados en la cabecera */
+    }
+    .separator {
+      margin-top: 20px;
+    }
+    #race-name {
+      margin: 20px 0;
+      font-size: 24px;
+      color: white;
+      text-align: center; /* Centrar el texto */
+    }
+    .tables-container {
+      display: flex;
+      flex-wrap: wrap; /* Permitir que los contenedores se envuelvan en dispositivos estrechos */
+      justify-content: space-between;
+      margin-top: 20px;
+    }
+    .table-container {
+      width: 30%; /* Ajustar el ancho para que quepan tres tablas en horizontal */
+      margin-bottom: 20px;
+    }
+    .table-container table {
+      width: 100%;
+      border-collapse: separate; /* Cambiar a 'separate' para permitir bordes redondeados */
+      margin-bottom: 20px;
+    }
+    .table-container th,
+    .table-container td {
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 5px; /* Bordes redondeados */
+    }
+    .table-container th {
+      background-color: maroon; /* Cabecera granate */
+      color: white;
+    }
+    .highlight {
+      font-weight: bold;
+    }
 
+    /* Estilos para dispositivos móviles */
+    @media (max-width: 768px) {
+      .table-container {
+        width: 100%; /* Ancho completo para dispositivos móviles */
+      }
+    }
+	
+	
 
     /* Estilos para la información del circuito */
     .circuit-info {
@@ -911,7 +919,7 @@
     <div class="container">
       <div class="spacer"></div>
       <h2>Clasificación</h2>
-      <div class="table-wrapper" id="tables-container">
+      <div class="tables-container" id="tables-container">
         <!-- Las tablas se generarán aquí -->
       </div>
     </div>
