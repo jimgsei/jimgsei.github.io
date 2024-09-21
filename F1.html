@@ -10,24 +10,16 @@
     <link rel="shortcut icon" href="OIP.ico" type="image/x-icon" media="(prefers-color-scheme: dark)">
   <title>F1 | Jimgsey</title>
   <style>
-    /* Estilos base */
-    body {
-      background-color: black; /* Color de fondo negro */
-      color: white; /* Color de texto blanco */
-	  display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
-      font-family: Arial, sans-serif;
-      margin: 0;
-    }
+
     /* Estilo vídeo stream */
+ body {
+      background-color: black; /* Fondo negro */
+      color: white; /* Color de texto blanco */
+    }
     .container {
       text-align: center; /* Centrar contenido */
       width: 60%; /* Ancho del 60% de la pantalla */
       margin: 0 auto; /* Centrar el contenido */
-      color: white; /* Color de texto blanco */
       margin-top: 100px; /* Espacio superior para separar contenedores */
     }
     h1 {
@@ -94,6 +86,19 @@
     @media (max-width: 768px) {
       .table-container {
         width: 100%; /* Ancho completo para dispositivos móviles */
+      }
+    }
+
+    /* Estilos para pantallas más pequeñas */
+    @media (max-width: 1200px) {
+      .table-container {
+        width: 45%; /* Ajustar el ancho para que quepan dos tablas en horizontal */
+      }
+    }
+
+    @media (max-width: 992px) {
+      .table-container {
+        width: 100%; /* Ancho completo para pantallas más pequeñas */
       }
     }
 	
@@ -1568,14 +1573,18 @@
         }
 
     document.addEventListener('DOMContentLoaded', function() {
+	    function fetchDDs() {
             fetchF1Data(); // Datos circuito
 			fetchWeatherData(); // Tiempo
-			fetchLastF1Qualifying();
-            fetchChampionshipStandings();
-            fetchConstructorStandings();
+			fetchLastF1Qualifying(); // Pilostos circuito
+            fetchChampionshipStandings(); // Campeonato
+            fetchConstructorStandings(); // Constructores
             fetchUpcomingF1Data(); // Próximos circuitos
 
+       }
 
+    fetchDDs(); // Llamada inicial
+    setInterval(fetchDDs, 60000); // Actualizar cada 1 minuto (60000 ms)
         });
     
 	// Función para actualizar fetchDriverPosition cada 3 segundos
