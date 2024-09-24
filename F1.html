@@ -1291,26 +1291,22 @@ async function fetchF1Data() {
             const dataBox = document.createElement('div');
             dataBox.className = 'current-circuit';
 
-            // Convertir la hora de la carrera a la zona horaria de Madrid
-            const raceTime = new Date(`${nextRace.date}T${nextRace.time}`);
-            const madridRaceTime = raceTime.toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
-
-            // Convertir la fecha de la carrera al formato español
-            const raceDate = new Date(nextRace.date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
-
+            // Mantener la información del circuito, ubicación y enlace a Wikipedia
             dataBox.innerHTML = `
                 <p class="race-name">${nextRace.raceName}</p>
                 <div class="data-cell">${nextRace.Circuit.circuitName}</div>
-                <div class="data-cell">${raceDate}</div>
-                <div class="data-cell">Hora: ${madridRaceTime}</div>
                 <div class="data-cell">Ubicación: ${nextRace.Circuit.Location.locality}, ${nextRace.Circuit.Location.country}</div>
-                <div class="data-cell">Carrera Nº: ${nextRace.round}</div>
                 <div class="data-cell"><a href="${nextRace.url}" target="_blank">Más información en Wikipedia</a></div>
             `;
 
             // Crear una celda con todas las prácticas y sesiones
-            let carreraSessionsCell = `<div class="data-cell" style="border: 1px solid maroon;"><strong>Carrera</strong><br>`;
+            let carreraSessionsCell = `<div class="data-cell" style="border: 1px solid maroon;"><strong>Carrera Nº ${nextRace.round}</strong><br>`;
             let sprintSessionsCell = `<div class="data-cell" style="border: 1px solid maroon;"><strong>Sprint</strong><br>`;
+
+            // Añadir la fecha y hora de la carrera
+            const raceTime = new Date(`${nextRace.date}T${nextRace.time}`);
+            const madridRaceTime = raceTime.toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
+            const raceDay = raceTime.toLocaleDateString('es-ES', { weekday: 'long' });
 
             const sessions = [
                 { name: 'Libres 1', date: nextRace.FirstPractice.date, time: nextRace.FirstPractice.time },
@@ -1318,8 +1314,12 @@ async function fetchF1Data() {
                 { name: 'Libres 3', date: nextRace.ThirdPractice?.date, time: nextRace.ThirdPractice?.time },
                 { name: 'Clasificación', date: nextRace.Qualifying.date, time: nextRace.Qualifying.time },
                 { name: 'Clasificación', date: nextRace.SprintQualifying?.date, time: nextRace.SprintQualifying?.time },
-                { name: 'Carrera', date: nextRace.Sprint?.date, time: nextRace.Sprint?.time }
+                { name: 'Carrera', date: nextRace.Sprint?.date, time: nextRace.Sprint?.time },
+                { name: 'Carrera', date: nextRace.date, time: nextRace.time } // Añadir la carrera principal
             ];
+
+            // Ordenar las sesiones por fecha y hora
+            sessions.sort((a, b) => new Date(`${a.date}T${a.time}`) - new Date(`${b.date}T${b.time}`));
 
             let upcomingSessions = false;
 
@@ -1336,6 +1336,8 @@ async function fetchF1Data() {
                             sprintSessionsCell += `${session.name}: ${sessionDay.charAt(0).toUpperCase() + sessionDay.slice(1)}, ${sessionTime.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })} a las ${madridSessionTime}<br>`;
                         } else if (session.name === 'Carrera' && (session.date === nextRace.Sprint?.date && session.time === nextRace.Sprint?.time)) {
                             sprintSessionsCell += `${session.name}: ${sessionDay.charAt(0).toUpperCase() + sessionDay.slice(1)}, ${sessionTime.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })} a las ${madridSessionTime}<br>`;
+                        } else if (session.name === 'Carrera' && session.date === nextRace.date && session.time === nextRace.time) {
+                            carreraSessionsCell += `${session.name}: ${sessionDay.charAt(0).toUpperCase() + sessionDay.slice(1)}, ${sessionTime.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })} a las ${madridSessionTime}<br>`;
                         } else {
                             carreraSessionsCell += `${session.name}: ${sessionDay.charAt(0).toUpperCase() + sessionDay.slice(1)}, ${sessionTime.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })} a las ${madridSessionTime}<br>`;
                         }
@@ -1357,9 +1359,12 @@ async function fetchF1Data() {
         }
     } catch (error) {
         console.error('Error OpenF1:', error);
-        document.getElementById('dataContainer').textContent = 'Error fetching F1 data: ' + error.message;
+        document.getElementById('dataContainer').textContent = 'Error: ' + error.message;
     }
 }
+
+
+
 
 
 
