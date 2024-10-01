@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>F1</title>
-    <link href="https://vjs.zencdn.net/7.20.3/video-js.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.6.8/plyr.css" />
     <style>
         body, html {
             margin: 0;
@@ -14,19 +14,21 @@
             overflow: hidden;
             background-color: black;
         }
-        #my-video {
+        #player {
             width: 100%;
             height: 100%;
         }
     </style>
 </head>
 <body>
-    <video-js id="my-video" class="vjs-default-skin" controls autoplay preload="auto" width="100%" height="100%">
-        <source src="http://mku0414.oknirvana.club:8880/live/29ca10173n08/asdf23r2/2553.m3u8" type="application/x-mpegURL">
-    </video-js>
-    <script src="https://vjs.zencdn.net/7.20.3/video.min.js"></script>
+    <video id="player" playsinline controls autoplay>
+        <source src="http://mku0414.oknirvana.club:8880/live/29ca10173n08/asdf23r2/2553.m3u8" type="application/x-mpegURL" />
+    </video>
+    <script src="https://cdn.plyr.io/3.6.8/plyr.polyfilled.js"></script>
     <script>
-        var player = videojs('my-video');
+        const player = new Plyr('#player', {
+            autoplay: true
+        });
     </script>
 </body>
 </html>
