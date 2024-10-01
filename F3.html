@@ -3,34 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>F1 | Jimgsey</title>
-    <link rel="stylesheet" href="style.css">
+    <title>F1</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: black;
+        }
+        #player {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
 </head>
 <body>
-    <header>
-        <!-- Puedes agregar contenido del encabezado aquí -->
-    </header>
-    <main>
-        <div class="video-container">
-            <h1>F1</h1>
-            <div class="creditos">
-                <span>Creado por Jimgsey</span>
-                <a href="https://github.com/jimgsey" target="_blank">
-                    <img src="https://img.icons8.com/ios/50/000000/github.png" alt="Github">
-                </a>
-            </div>
-            <div id="player" style="width: 100%; height: 100vh;"></div>
-        </div>
-        <script src="https://cdn.jsdelivr.net/npm/clappr@latest/dist/clappr.min.js"></script>
-        <script>
-            var player = new Clappr.Player({
-                source: "https://cors-anywhere.herokuapp.com/http://mku0414.oknirvana.club:8880/live/29ca10173n08/asdf23r2/2553.m3u8",
-                parentId: "#player",
-                autoPlay: true,
-                width: '100%',
-                height: '100%'
-            });
-        </script>
-    </main>
+    <div id="player"></div>
+    <script src="https://cdn.jsdelivr.net/npm/clappr@latest/dist/clappr.min.js"></script>
+    <script>
+        var player = new Clappr.Player({
+            source: "http://mku0414.oknirvana.club:8880/live/29ca10173n08/asdf23r2/2553.m3u8",
+            parentId: "#player",
+            autoPlay: true,
+            width: '100%',
+            height: '100%'
+        });
+    </script>
 </body>
 </html>
+
