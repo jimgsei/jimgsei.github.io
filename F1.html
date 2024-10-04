@@ -1404,16 +1404,14 @@
                     });
                 } else {
                     dataContainer.textContent = 'No hay carreras próximas.';
-                }
-            } catch (error) {
-                console.error('Error OpenF1:', error);
-                document.getElementById('dataContainer').textContent = 'Error: ' + error.message;
-            }
         }
-
-
-
-
+           } catch (error) {
+               console.error('Error OpenF1:', error);
+               document.getElementById('dataContainer').textContent = 'Error: ' + error.message;
+              // Reintentar la carga después de 5 segundos
+                 setTimeout(fetchF1Data, 5000);
+                           }
+        }
 
 
 		
@@ -1675,34 +1673,32 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function() {
             fetchF1Data(); // Datos circuito
-            fetchWeatherData(); // Tiempo
-            fetchLastF1Qualifying(); // Pilotos circuito
+			fetchWeatherData(); // Tiempo
+			fetchLastF1Qualifying(); // Pilostos circuito
             fetchChampionshipStandings(); // Campeonato
             fetchConstructorStandings(); // Constructores
             fetchUpcomingF1Data(); // Próximos circuitos
-
-            startAutoUpdate(); // Inicia la actualización automática
         });
+ 
 
-        // Función para actualizar datos cada 60 segundos
-        function startAutoUpdate() {
-            setInterval(async () => {
-                await Promise.all([
-                    fetchConstructorStandings(),
-                    fetchChampionshipStandings(),
-                    fetchLastF1Qualifying(),
-                    fetchUpcomingF1Data(),
-                    fetchF1Data(),
-                ]);
-            }, 60000); // 60000 milisegundos = 60 segundos
+// Función para actualizar todas las funciones cada 3 segundos
+function startAutoUpdate() {
+    setInterval(async () => {
+        await Promise.all([ 
+            fetchConstructorStandings(),
+            fetchChampionshipStandings(),
+            fetchLastF1Qualifying(),
+            fetchUpcomingF1Data(),
+            fetchWeatherData()
+        ]);
+    }, 3000); // 3000 milisegundos = 3 segundos
+}
 
-            // Actualizar datos del tiempo cada 3 segundos
-            setInterval(async () => {
-                await fetchWeatherData();
-            }, 3000); // 3000 milisegundos = 3 segundos
-        }
+
+// Inicia la actualización automática
+startAutoUpdate();
 
   </script>
     
