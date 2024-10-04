@@ -258,7 +258,7 @@
     }
      
 
-    /* Estilos información circuito */
+    /* Estilos información circuito actual */
         .containert {
             background-color: #1a1a1a;
             padding: 20px;
@@ -375,14 +375,13 @@
         }
 		
 
-
+    /* Información Tiempo */
         .data-boxt {
             margin-top: 0px;
             padding: 10px;
-            border: 1px solid #444444;
-            border-radius: 8px;
             background-color: #2a2a2a;
             flex: 2; /* Más pequeño */
+			background-color: transparent;
         }
         .data-boxt p {
             margin: 5px 0;
@@ -422,6 +421,8 @@
             text-align: center;
             cursor: pointer;
             margin: 0 auto; /* Centrar el botón */
+			padding: 5px; /* Añade un relleno interno de 5 píxeles */
+			width: 93%; /* Ancho del 100% del contenedor */
         }
         @media (max-width: 768px) {
             .data-boxt {
@@ -434,8 +435,8 @@
 
 
 
-
-       .creditos {
+    /* Créditos */
+        .creditos {
             display: flex;
             justify-content: center;
             align-items: center;
@@ -445,8 +446,8 @@
 
 
 
-        
-         .containerN {
+    /* Contenedor Guía TV */    
+        .containerN {
             text-align: center;
             display: flex;
             align-items: center;
@@ -473,7 +474,7 @@
             border-radius: 8px;
         }
 
-        /* Información circuito */
+    /* Información circuito próximos */
         .circuit-card {
             background-color: #666; /* Fondo gris más oscuro */
             color: #fff; /* Letras blancas */
@@ -551,7 +552,7 @@
             }
         }
 
-        /* Estilo del botón */
+    /* Estilo del botón */
         .boton-flotante {
             position: fixed;
             bottom: 20px;
@@ -931,7 +932,7 @@
             <div class="data-boxt" id="weatherData">
                 <div class="info-line"><span>Cargando...</span></div>
             </div>
-            <button class="show-weather-btn" onclick="toggleWeatherData()">Mostrar tiempo</button>
+            <button class="show-weather-btn" onclick="toggleWeatherData()">Mostrar Meteorología</button>
         </div>
     </div>
 	  
@@ -1339,7 +1340,7 @@
                             <div class="data-cell">Ubicación: ${nextRace.Circuit.Location.locality}, ${nextRace.Circuit.Location.country}</div>
                             <div class="data-cell"><a href="${nextRace.url}" target="_blank">Más información en Wikipedia</a></div>
                         </div>
-                        <div class="show-more">Mostrar más información</div>
+                        <div class="show-more">Mostrar Horarios</div>
                     `;
 
                     // Crear una celda con todas las prácticas y sesiones
@@ -1399,7 +1400,7 @@
                     // Añadir evento de clic para desplegar/contraer detalles
                     dataBox.querySelector('.show-more').addEventListener('click', function() {
                         dataBox.classList.toggle('show-details');
-                        this.textContent = dataBox.classList.contains('show-details') ? 'Mostrar menos información' : 'Mostrar más información';
+                        this.textContent = dataBox.classList.contains('show-details') ? 'Ocultar Horarios' : 'Mostrar Horarios';
                     });
                 } else {
                     dataContainer.textContent = 'No hay carreras próximas.';
@@ -1613,12 +1614,12 @@
             const button = document.querySelector('.show-weather-btn');
             if (weatherDataDiv.style.display === 'none' || weatherDataDiv.style.display === '') {
                 weatherDataDiv.style.display = 'block';
-                button.textContent = 'Ocultar tiempo';
+                button.textContent = 'Ocultar Meteorología';
                 button.style.position = 'relative';
                 button.style.top = 'auto';
             } else {
                 weatherDataDiv.style.display = 'none';
-                button.textContent = 'Mostrar tiempo';
+                button.textContent = 'Mostrar Meteorología';
                 button.style.position = 'relative';
                 button.style.top = 'auto';
             }
