@@ -259,7 +259,7 @@
      
 
     /* Estilos información circuito */
-            .containert {
+        .containert {
             background-color: #1a1a1a;
             padding: 20px;
             border-radius: 8px;
@@ -375,6 +375,7 @@
         }
 		
 
+
         .data-boxt {
             margin-top: 0px;
             padding: 10px;
@@ -411,10 +412,28 @@
             font-weight: normal;
             font-size: 13px; /* Tamaño de fuente reducido */
         }
-        a {
+        .show-weather-btn {
+            display: none;
+            background-color: transparent;
             color: #ffffff;
-            text-decoration: underline;
+            border: 1px solid #800000;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            margin: 0 auto; /* Centrar el botón */
         }
+        @media (max-width: 768px) {
+            .data-boxt {
+                display: none;
+            }
+            .show-weather-btn {
+                display: block;
+            }
+        }
+
+
+
 
        .creditos {
             display: flex;
@@ -425,55 +444,6 @@
         }
 
 
-        /* Contenedor horizontal con flex-wrap */
-        .horizontal-container {
-            display: flex;
-            flex-direction: row; /* Horizontal por defecto */
-            justify-content: space-between; /* Opcional: para espaciar los elementos */
-            flex-wrap: wrap; /* Permite que los elementos se ajusten en pantallas pequeñas */
-        }
-
-        .current-circuit {
-            flex: 3; /* Más ancho */
-            width: 280px;
-            margin-right: 10px; /* Espacio entre los divs */
-        }
-
-        .data-boxt {
-            flex: 2; /* Más pequeño */
-            height: 200px; /* Ajusta la altura según tus necesidades */
-            padding: 5px; /* Reduce el padding para disminuir la altura */
-            position: relative; /* Posicionamiento relativo */
-            top: 70px; /* Ajusta la posición superior para subirlo */
-            background-color: transparent; /* Fondo transparente */
-            border: 0px solid #444444; /* Mantén el borde si lo deseas */
-        }
-
-        /* Media query para pantallas pequeñas */
-        @media (max-width: 768px) {
-            .containert {
-                max-width: 300px; /* Reduce el ancho máximo en pantallas pequeñas */
-                padding: 10px; /* Reduce el padding en pantallas pequeñas */
-                border-width: 2px; /* Reduce el ancho del borde en pantallas pequeñas */
-            }
-
-            .horizontal-container {
-                flex-direction: column; /* Cambia a vertical en pantallas pequeñas */
-            }
-
-            .current-circuit {
-                margin-right: 0; /* Elimina el margen derecho en pantallas pequeñas */
-                margin-bottom: 2px; /* Añade margen inferior para separar los divs */
-            }
-
-            .data-boxt {
-                width: 95%; /* Ajusta el ancho para pantallas pequeñas */
-                height: auto; /* Ajusta la altura para pantallas pequeñas */
-                top: 0; /* Elimina la posición superior en pantallas pequeñas */
-                margin-top: 0px; /* Añade margen superior para separar los divs */
-                background-color: transparent; /* Fondo transparente en pantallas pequeñas */
-            }
-        }
 
         
          .containerN {
@@ -953,18 +923,17 @@
 
   <main>
         <h1>Fórmula 1</h1>
-<div class="containert">
-    <div class="horizontal-container">
-    <div id="dataContainer">
-            <!-- Data will be inserted here -->
-        </div>
-        <div class="data-boxt">
-            <div id="weatherData">
+    <div class="containert">
+        <div class="horizontal-container">
+            <div id="dataContainer">
+                <!-- Data will be inserted here -->
+            </div>
+            <div class="data-boxt" id="weatherData">
                 <div class="info-line"><span>Cargando...</span></div>
             </div>
+            <button class="show-weather-btn" onclick="toggleWeatherData()">Mostrar tiempo</button>
         </div>
     </div>
-</div>
 	  
   <!-- Seleccionador pilotos -->
     <div class="custom-container">
@@ -1370,7 +1339,7 @@
                             <div class="data-cell">Ubicación: ${nextRace.Circuit.Location.locality}, ${nextRace.Circuit.Location.country}</div>
                             <div class="data-cell"><a href="${nextRace.url}" target="_blank">Más información en Wikipedia</a></div>
                         </div>
-                        <div class="show-more">Más información horarios</div>
+                        <div class="show-more">Mostrar más información</div>
                     `;
 
                     // Crear una celda con todas las prácticas y sesiones
@@ -1636,6 +1605,22 @@
                 }
             } catch (error) {
                 document.getElementById('weatherData').innerHTML = `<div class="info-line"><span>Error al obtener los datos: ${error.message}</span></div>`;
+            }
+        }
+
+        function toggleWeatherData() {
+            const weatherDataDiv = document.getElementById('weatherData');
+            const button = document.querySelector('.show-weather-btn');
+            if (weatherDataDiv.style.display === 'none' || weatherDataDiv.style.display === '') {
+                weatherDataDiv.style.display = 'block';
+                button.textContent = 'Ocultar tiempo';
+                button.style.position = 'relative';
+                button.style.top = 'auto';
+            } else {
+                weatherDataDiv.style.display = 'none';
+                button.textContent = 'Mostrar tiempo';
+                button.style.position = 'relative';
+                button.style.top = 'auto';
             }
         }
 
