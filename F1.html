@@ -259,30 +259,38 @@
      
 
     /* Estilos información circuito */
-    .containert {
+            .containert {
             background-color: #1a1a1a;
             padding: 20px;
             border-radius: 8px;
-            border: 3px solid #8B0000; /* Borde rojo oscuro */
+            border: 3px solid #8B0000;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
             max-width: 550px;
             width: 100%;
             margin: 0 auto;
-            background-color: transparent; /* Fondo transparente */
+            background-color: transparent;
         }
         h1 {
             text-align: center;
             color: #ffffff;
             font-weight: bold;
         }
+        .horizontal-container {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
         .current-circuit {
-            margin-top: 0px;
+            flex: 3;
+            width: 280px;
+            margin-right: 10px;
             padding: 10px;
             border: 0px solid #444444;
             border-radius: 8px;
             text-align: center;
-            font-size: 14px; /* Tamaño de fuente reducido */
-            background-color: transparent; /* Fondo transparente */
+            font-size: 14px;
+            background-color: transparent;
         }
         .current-circuit p {
             margin: 5px 0;
@@ -297,13 +305,75 @@
             margin: 5px 0;
         }
         .race-name {
-            font-size: 1.5em; /* Tamaño más grande */
+            font-size: 1.5em;
             margin: 10px 0;
         }
         a {
             color: #ffffff;
             text-decoration: underline;
         }
+        .data-boxt {
+            flex: 2;
+            height: 200px;
+            padding: 5px;
+            position: relative;
+            top: 70px;
+            background-color: transparent;
+            border: 0px solid #444444;
+        }
+        .details {
+            display: block;
+        }
+        .show-details .details {
+            display: block;
+        }
+        .show-details .race-name::after {
+            content: " ";
+        }
+        .race-name::after {
+            content: " ";
+        }
+        .show-more {
+            display: none;
+            cursor: pointer;
+            color: #ffffff;
+            background-color: rgba(139, 0, 0, 0.1);
+            border: 1px solid #8B0000;
+            border-radius: 8px;
+            padding: 5px;
+            margin-top: 10px;
+        }
+        @media (max-width: 768px) {
+            .containert {
+                max-width: 300px;
+                padding: 10px;
+                border-width: 2px;
+            }
+            .horizontal-container {
+                flex-direction: column;
+            }
+            .current-circuit {
+                margin-right: 0;
+                margin-bottom: 2px;
+            }
+            .data-boxt {
+                width: 95%;
+                height: auto;
+                top: 0;
+                margin-top: 0px;
+                background-color: transparent;
+            }
+            .details {
+                display: none;
+            }
+            .show-more {
+                display: block;
+            }
+            .current-circuit .data-cell:first-child {
+                display: block;
+            }
+        }
+		
 
         .data-boxt {
             margin-top: 0px;
@@ -1256,112 +1326,120 @@
         }
 
 
-// Función datos carrera actual
-async function fetchF1Data() {
-    try {
-        const proxyUrl = 'https://api.allorigins.win/get?url=';
-        const targetUrl = encodeURIComponent('https://api.jolpi.ca/ergast/f1/current.json');
-        const response = await fetch(proxyUrl + targetUrl);
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        const data = await response.json();
-        const jsonData = JSON.parse(data.contents);
+        // Función datos carrera actual
+        async function fetchF1Data() {
+            try {
+                const proxyUrl = 'https://api.allorigins.win/get?url=';
+                const targetUrl = encodeURIComponent('https://api.jolpi.ca/ergast/f1/current.json');
+                const response = await fetch(proxyUrl + targetUrl);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+                const jsonData = JSON.parse(data.contents);
 
-        // Obtener la fecha y hora actual en Madrid
-        const now = new Date().toLocaleString('en-US', { timeZone: 'Europe/Madrid' });
-        const today = new Date(now).toISOString().split('T')[0];
+                // Obtener la fecha y hora actual en Madrid
+                const now = new Date().toLocaleString('en-US', { timeZone: 'Europe/Madrid' });
+                const today = new Date(now).toISOString().split('T')[0];
 
-        // Filtrar carreras por la fecha de hoy o la próxima carrera
-        const races = jsonData.MRData.RaceTable.Races;
-        let nextRace = null;
-        for (let race of races) {
-            if (race.date === today) {
-                nextRace = race;
-                break;
-            } else if (new Date(race.date) > new Date(today)) {
-                nextRace = race;
-                break;
-            }
-        }
-
-        // Insertar datos en el contenedor
-        const dataContainer = document.getElementById('dataContainer');
-        if (nextRace) {
-            const dataBox = document.createElement('div');
-            dataBox.className = 'current-circuit';
-
-            // Mantener la información del circuito, ubicación y enlace a Wikipedia
-            dataBox.innerHTML = `
-                <p class="race-name">${nextRace.raceName}</p>
-                <div class="data-cell">${nextRace.Circuit.circuitName}</div>
-                <div class="data-cell">Ubicación: ${nextRace.Circuit.Location.locality}, ${nextRace.Circuit.Location.country}</div>
-                <div class="data-cell"><a href="${nextRace.url}" target="_blank">Más información en Wikipedia</a></div>
-            `;
-
-            // Crear una celda con todas las prácticas y sesiones
-            let carreraSessionsCell = `<div class="data-cell" style="border: 1px solid maroon;"><strong>Carrera Nº ${nextRace.round}</strong><br>`;
-            let sprintSessionsCell = `<div class="data-cell" style="border: 1px solid maroon;"><strong>Sprint</strong><br>`;
-
-            // Añadir la fecha y hora de la carrera
-            const raceTime = new Date(`${nextRace.date}T${nextRace.time}`);
-            const madridRaceTime = raceTime.toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
-            const raceDay = raceTime.toLocaleDateString('es-ES', { weekday: 'long' });
-
-            const sessions = [
-                { name: 'Libres 1', date: nextRace.FirstPractice.date, time: nextRace.FirstPractice.time },
-                { name: 'Libres 2', date: nextRace.SecondPractice?.date, time: nextRace.SecondPractice?.time },
-                { name: 'Libres 3', date: nextRace.ThirdPractice?.date, time: nextRace.ThirdPractice?.time },
-                { name: 'Clasificación', date: nextRace.Qualifying.date, time: nextRace.Qualifying.time },
-                { name: 'Clasificación', date: nextRace.SprintQualifying?.date, time: nextRace.SprintQualifying?.time },
-                { name: 'Carrera', date: nextRace.Sprint?.date, time: nextRace.Sprint?.time },
-                { name: 'Carrera', date: nextRace.date, time: nextRace.time } // Añadir la carrera principal
-            ];
-
-            // Ordenar las sesiones por fecha y hora
-            sessions.sort((a, b) => new Date(`${a.date}T${a.time}`) - new Date(`${b.date}T${b.time}`));
-
-            let upcomingSessions = false;
-
-            for (let session of sessions) {
-                if (session.date && session.time) {
-                    const sessionTime = new Date(`${session.date}T${session.time}`);
-                    const madridSessionTime = sessionTime.toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
-                    const sessionDay = sessionTime.toLocaleDateString('es-ES', { weekday: 'long' });
-
-                    if (sessionTime >= new Date(now)) {
-                        upcomingSessions = true;
-
-                        if (session.name === 'Clasificación' && (session.date === nextRace.SprintQualifying?.date && session.time === nextRace.SprintQualifying?.time)) {
-                            sprintSessionsCell += `${session.name}: ${sessionDay.charAt(0).toUpperCase() + sessionDay.slice(1)}, ${sessionTime.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })} a las ${madridSessionTime}<br>`;
-                        } else if (session.name === 'Carrera' && (session.date === nextRace.Sprint?.date && session.time === nextRace.Sprint?.time)) {
-                            sprintSessionsCell += `${session.name}: ${sessionDay.charAt(0).toUpperCase() + sessionDay.slice(1)}, ${sessionTime.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })} a las ${madridSessionTime}<br>`;
-                        } else if (session.name === 'Carrera' && session.date === nextRace.date && session.time === nextRace.time) {
-                            carreraSessionsCell += `${session.name}: ${sessionDay.charAt(0).toUpperCase() + sessionDay.slice(1)}, ${sessionTime.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })} a las ${madridSessionTime}<br>`;
-                        } else {
-                            carreraSessionsCell += `${session.name}: ${sessionDay.charAt(0).toUpperCase() + sessionDay.slice(1)}, ${sessionTime.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })} a las ${madridSessionTime}<br>`;
-                        }
+                // Filtrar carreras por la fecha de hoy o la próxima carrera
+                const races = jsonData.MRData.RaceTable.Races;
+                let nextRace = null;
+                for (let race of races) {
+                    if (race.date === today) {
+                        nextRace = race;
+                        break;
+                    } else if (new Date(race.date) > new Date(today)) {
+                        nextRace = race;
+                        break;
                     }
                 }
+
+                // Insertar datos en el contenedor
+                const dataContainer = document.getElementById('dataContainer');
+                if (nextRace) {
+                    const dataBox = document.createElement('div');
+                    dataBox.className = 'current-circuit';
+
+                    // Mantener la información del circuito, ubicación y enlace a Wikipedia
+                    dataBox.innerHTML = `
+                        <p class="race-name">${nextRace.raceName}</p>
+                        <div class="data-cell"><strong>Carrera Nº ${nextRace.round}</strong></div>
+                        <div class="details">
+                            <div class="data-cell">${nextRace.Circuit.circuitName}</div>
+                            <div class="data-cell">Ubicación: ${nextRace.Circuit.Location.locality}, ${nextRace.Circuit.Location.country}</div>
+                            <div class="data-cell"><a href="${nextRace.url}" target="_blank">Más información en Wikipedia</a></div>
+                        </div>
+                        <div class="show-more">Mostrar más información</div>
+                    `;
+
+                    // Crear una celda con todas las prácticas y sesiones
+                    let carreraSessionsCell = `<div class="data-cell" style="border: 1px solid maroon;"><strong>Carrera Nº ${nextRace.round}</strong><br>`;
+                    let sprintSessionsCell = `<div class="data-cell" style="border: 1px solid maroon;"><strong>Sprint</strong><br>`;
+
+                    // Añadir la fecha y hora de la carrera
+                    const raceTime = new Date(`${nextRace.date}T${nextRace.time}`);
+                    const madridRaceTime = raceTime.toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
+                    const raceDay = raceTime.toLocaleDateString('es-ES', { weekday: 'long' });
+
+                    const sessions = [
+                        { name: 'Libres 1', date: nextRace.FirstPractice.date, time: nextRace.FirstPractice.time },
+                        { name: 'Libres 2', date: nextRace.SecondPractice?.date, time: nextRace.SecondPractice?.time },
+                        { name: 'Libres 3', date: nextRace.ThirdPractice?.date, time: nextRace.ThirdPractice?.time },
+                        { name: 'Clasificación', date: nextRace.Qualifying.date, time: nextRace.Qualifying.time },
+                        { name: 'Clasificación', date: nextRace.SprintQualifying?.date, time: nextRace.SprintQualifying?.time },
+                        { name: 'Carrera', date: nextRace.Sprint?.date, time: nextRace.Sprint?.time },
+                        { name: 'Carrera', date: nextRace.date, time: nextRace.time }
+                    ];
+
+                    // Ordenar las sesiones por fecha y hora
+                    sessions.sort((a, b) => new Date(`${a.date}T${a.time}`) - new Date(`${b.date}T${b.time}`));
+
+                    let upcomingSessions = false;
+
+                    for (let session of sessions) {
+                        if (session.date && session.time) {
+                            const sessionTime = new Date(`${session.date}T${session.time}`);
+                            const madridSessionTime = sessionTime.toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
+                            const sessionDay = sessionTime.toLocaleDateString('es-ES', { weekday: 'long' });
+
+                            if (sessionTime >= new Date(now)) {
+                                upcomingSessions = true;
+
+                                if (session.name === 'Clasificación' && (session.date === nextRace.SprintQualifying?.date && session.time === nextRace.SprintQualifying?.time)) {
+                                    sprintSessionsCell += `${session.name}: ${sessionDay.charAt(0).toUpperCase() + sessionDay.slice(1)}, ${sessionTime.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })} a las ${madridSessionTime}<br>`;
+                                } else if (session.name === 'Carrera' && (session.date === nextRace.Sprint?.date && session.time === nextRace.Sprint?.time)) {
+                                    sprintSessionsCell += `${session.name}: ${sessionDay.charAt(0).toUpperCase() + sessionDay.slice(1)}, ${sessionTime.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })} a las ${madridSessionTime}<br>`;
+                                } else {
+                                    carreraSessionsCell += `${session.name}: ${sessionDay.charAt(0).toUpperCase() + sessionDay.slice(1)}, ${sessionTime.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })} a las ${madridSessionTime}<br>`;
+                                }
+                            }
+                        }
+                    }
+
+                    carreraSessionsCell += `</div>`;
+                    sprintSessionsCell += `</div>`;
+
+                    if (upcomingSessions) {
+                        dataBox.querySelector('.details').innerHTML += carreraSessionsCell;
+                        dataBox.querySelector('.details').innerHTML += sprintSessionsCell;
+                    }
+
+                    dataContainer.appendChild(dataBox);
+
+                    // Añadir evento de clic para desplegar/contraer detalles
+                    dataBox.querySelector('.show-more').addEventListener('click', function() {
+                        dataBox.classList.toggle('show-details');
+                        this.textContent = dataBox.classList.contains('show-details') ? 'Mostrar menos información' : 'Mostrar más información';
+                    });
+                } else {
+                    dataContainer.textContent = 'No hay carreras próximas.';
+                }
+            } catch (error) {
+                console.error('Error OpenF1:', error);
+                document.getElementById('dataContainer').textContent = 'Error: ' + error.message;
             }
-
-            carreraSessionsCell += `</div>`;
-            sprintSessionsCell += `</div>`;
-
-            if (upcomingSessions) {
-                dataBox.innerHTML += carreraSessionsCell;
-                dataBox.innerHTML += sprintSessionsCell;
-            }
-
-            dataContainer.appendChild(dataBox);
-        } else {
-            dataContainer.textContent = 'No hay carreras próximas.';
         }
-    } catch (error) {
-        console.error('Error OpenF1:', error);
-        document.getElementById('dataContainer').textContent = 'Error: ' + error.message;
-    }
-}
 
 
 
