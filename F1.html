@@ -615,6 +615,7 @@
             display: block;
             margin: 20px auto;
             text-align: center;
+			transition: background-color 0.3s, transform 0.3s; /* Transiciones suaves */
 			position: relative; /* Necesario para el menú flotante */
         }
         .main-button:hover {
@@ -655,11 +656,18 @@
         .dropdown-button:hover {
             background-color: #a00000; /* Color granate más claro al pasar el ratón */
         }
-
+		/* Ajustes para pantallas pequeñas */
+        @media (max-width: 600px) {
+            .menu-desplegable {
+                top: auto; /* Desactivar la posición superior */
+                bottom: 100%; /* Posicionar justo arriba del botón */
+            }
+        }
         .video-container {
             width: 100%;
             height: 400px;
         }
+
 		
 	/* Proximos circuitos */
        .upcoming-circuits-container {
