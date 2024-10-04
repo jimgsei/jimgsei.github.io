@@ -977,7 +977,7 @@
             <div class="data-boxt" id="weatherData">
                 <div class="info-line"><span>Cargando...</span></div>
             </div>
-            <button class="show-weather-btn" onclick="toggleWeatherData()">Mostrar Meteorología</button>
+            <button class="show-weather-btn" onclick="toggleWeatherData()">Mostrar Meteorología <strong>&#9660;</strong></button>
         </div>
     </div>
 	  
@@ -1400,7 +1400,7 @@
                             <div class="data-cell">Ubicación: ${nextRace.Circuit.Location.locality}, ${nextRace.Circuit.Location.country}</div>
                             <div class="data-cell"><a href="${nextRace.url}" target="_blank">Más información en Wikipedia</a></div>
                         </div>
-                        <div class="show-more">Mostrar Horarios</div>
+                        <div class="show-more">Mostrar Horarios <strong>&#9660;</strong></div>
                     `;
 
                     // Crear una celda con todas las prácticas y sesiones
@@ -1460,7 +1460,7 @@
                     // Añadir evento de clic para desplegar/contraer detalles
                     dataBox.querySelector('.show-more').addEventListener('click', function() {
                         dataBox.classList.toggle('show-details');
-                        this.textContent = dataBox.classList.contains('show-details') ? 'Ocultar Horarios' : 'Mostrar Horarios';
+                        this.innerHTML = dataBox.classList.contains('show-details') ? 'Ocultar Horarios <strong>&#9650;</strong>' : 'Mostrar Horarios <strong>&#9660;</strong>';
                     });
                 } else {
                     dataContainer.textContent = 'No hay carreras próximas.';
@@ -1672,12 +1672,12 @@
             const button = document.querySelector('.show-weather-btn');
             if (weatherDataDiv.style.display === 'none' || weatherDataDiv.style.display === '') {
                 weatherDataDiv.style.display = 'block';
-                button.textContent = 'Ocultar Meteorología';
+                button.textContent = 'Ocultar Meteorología ▲' ;
                 button.style.position = 'relative';
                 button.style.top = 'auto';
             } else {
                 weatherDataDiv.style.display = 'none';
-                button.textContent = 'Mostrar Meteorología';
+                button.textContent = 'Mostrar Meteorología ▼';
                 button.style.position = 'relative';
                 button.style.top = 'auto';
             }
