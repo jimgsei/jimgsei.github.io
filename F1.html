@@ -615,6 +615,7 @@
             display: block;
             margin: 20px auto;
             text-align: center;
+			position: relative; /* Necesario para el menú flotante */
         }
         .main-button:hover {
             background-color: #a00000; /* Color granate más claro al pasar el ratón */
@@ -623,9 +624,9 @@
         /* Contenedor del desplegable */
         .dropdown-container {
             display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
+            position: absolute; /* Posición absoluta para que flote */
+            top: 110%; /* Posicionar justo debajo del botón */
+			left: 50%;
             transform: translate(-50%, -50%);
             flex-direction: column;
             align-items: center;
