@@ -555,14 +555,14 @@
             }
         }
 
-    /* Estilo del botón */
+    /* Estilo del botón flecha flotante */
         .boton-flotante {
             position: fixed;
             bottom: 20px;
             right: 20px;
-            background-color: #8B0000; /* Rojo oscuro */
+            background-color: rgba(139, 0, 0, 0.8);
             color: white;
-            border: none;
+            border: 2px solid white; /* Filo blanco */
             padding: 10px; /* Tamaño reducido */
             width: 45px; /* Ancho del botón */
             height: 45px; /* Alto del botón */
@@ -603,7 +603,8 @@
       color: white;
       font-family: Arial, sans-serif;
     }
-        .button-container {
+        
+		.button-container {
             display: flex;
             justify-content: center;
             margin-bottom: 10px;
@@ -942,7 +943,7 @@
   <!-- Seleccionador pilotos -->
     <div class="custom-container">
         <div class="custom-pilot-container">
-            <h1>Seleccionar Piloto</h1>
+            <h1>Información Piloto</h1>
             <div id="custom-driver-selectors">
                 <!-- Las celdas de los pilotos se generarán dinámicamente -->
             </div>
