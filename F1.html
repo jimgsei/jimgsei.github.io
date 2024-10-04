@@ -605,68 +605,66 @@
     }
         
 	/* Botones opciones vídeo */	
-        .main-button {
-            padding: 10px 20px;
-            cursor: pointer;
-            background-color: #800000; /* Color granate */
-            color: white; /* Letras blancas */
-            border: 2px solid white; /* Filo blanco */
-            border-radius: 5px;
-            display: block;
-            margin: 20px auto;
-            text-align: center;
-			transition: background-color 0.3s, transform 0.3s; /* Transiciones suaves */
-			position: relative; /* Necesario para el menú flotante */
-        }
-        .main-button:hover {
-            background-color: #a00000; /* Color granate más claro al pasar el ratón */
-        }
+     .main-button {
+        padding: 10px 20px;
+        cursor: pointer;
+        background-color: #800000; /* Color granate */
+        color: white; /* Letras blancas */
+        border: 2px solid white; /* Filo blanco */
+        border-radius: 5px;
+        display: block;
+        margin: 20px auto;
+        text-align: center;
+        transition: background-color 0.3s, transform 0.3s; /* Transiciones suaves */
+        position: relative; /* Necesario para el menú flotante */
+    }
+    .main-button:hover {
+        background-color: #a00000; /* Color granate más claro al pasar el ratón */
+    }
 
-        /* Contenedor del desplegable */
+    /* Contenedor del desplegable */
+    .dropdown-container {
+        display: none;
+        position: absolute; /* Posición absoluta para que flote */
+        top: 125%; /* Posicionar justo debajo del botón */
+        left: 50%;
+        transform: translate(-50%, 0); /* Centrar horizontalmente */
+        flex-direction: column;
+        align-items: center;
+        background-color: transparent; /* Fondo transparente */
+        border: none;
+        border-radius: 5px;
+        padding: 10px;
+        max-width: 90%;
+        max-height: 80%;
+        overflow-y: auto;
+        z-index: 1000;
+    }
+
+    /* Botones del desplegable */
+    .dropdown-button {
+        padding: 10px 20px;
+        margin: 5px 0;
+        cursor: pointer;
+        background-color: #800000; /* Color granate */
+        color: white; /* Letras blancas */
+        border: 2px solid white; /* Filo blanco */
+        border-radius: 5px;
+        width: 100%;
+        text-align: center;
+    }
+    .dropdown-button:hover {
+        background-color: #a00000; /* Color granate más claro al pasar el ratón */
+    }
+
+    /* Ajustes para pantallas pequeñas */
+    @media (max-width: 600px) {
         .dropdown-container {
-            display: none;
-            position: absolute; /* Posición absoluta para que flote */
-            top: 110%; /* Posicionar justo debajo del botón */
-			left: 50%;
-            transform: translate(-50%, -50%);
-            flex-direction: column;
-            align-items: center;
-            background-color: transparent; /* Fondo transparente */
-            border: none;
-            border-radius: 5px;
-            padding: 10px;
-            max-width: 90%;
-            max-height: 80%;
-            overflow-y: auto;
-            z-index: 1000;
+            top: 120%; /* Asegurar que el menú aparezca justo debajo del botón */
+            transform: translate(-50%, 0); /* Ajustar la posición para pantallas pequeñas */
         }
+    }
 
-        /* Botones del desplegable */
-        .dropdown-button {
-            padding: 10px 20px;
-            margin: 5px 0;
-            cursor: pointer;
-            background-color: #800000; /* Color granate */
-            color: white; /* Letras blancas */
-            border: 2px solid white; /* Filo blanco */
-            border-radius: 5px;
-            width: 100%;
-            text-align: center;
-        }
-        .dropdown-button:hover {
-            background-color: #a00000; /* Color granate más claro al pasar el ratón */
-        }
-		/* Ajustes para pantallas pequeñas */
-        @media (max-width: 600px) {
-            .menu-desplegable {
-                top: auto; /* Desactivar la posición superior */
-                bottom: 100%; /* Posicionar justo arriba del botón */
-            }
-        }
-        .video-container {
-            width: 100%;
-            height: 400px;
-        }
 
 		
 	/* Proximos circuitos */
