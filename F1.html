@@ -848,8 +848,8 @@
             }
         }
 		
-		/* Custom pilots */
-		.custom-container {
+     /* Custom pilots */
+        .custom-container {
             background-color: transparent; /* Fondo transparente */
             color: white;
             display: flex;
@@ -872,8 +872,8 @@
         .custom-driver-cell {
             margin: -20px;
             display: inline-block;
-			justify-content: center; /* Centrar horizontalmente */
-			align-items: center; /* Centrar verticalmente */
+            justify-content: center; /* Centrar horizontalmente */
+            align-items: center; /* Centrar verticalmente */
             text-align: center;
             background-color: transparent;
             border: 2px solid white;
@@ -881,7 +881,7 @@
             position: relative;
             transform: scale(0.75);
             transform-origin: top center;
-			font-size: 1.2em; /* Aumentar tamaño del texto */
+            font-size: 1.2em; /* Aumentar tamaño del texto */
         }
         .custom-driver-cell img {
             display: table-cell; /* Cambiar a display table-cell */
@@ -895,7 +895,7 @@
             padding: 10px;
             border: none;
             border-radius: 5px;
-			font-size: 0.9em; /* Aumentar tamaño del texto */
+            font-size: 0.9em; /* Aumentar tamaño del texto */
         }
         .custom-select {
             background-color: #800000;
@@ -942,7 +942,6 @@
             justify-content: center; /* Centrar horizontalmente */
             align-items: center; /* Centrar verticalmente */
         }
-
   </style>
 <script src="https://cdn.jsdelivr.net/npm/luxon@2.3.0/build/global/luxon.min.js"></script>
 <script>
@@ -981,7 +980,7 @@
         </div>
     </div>
 	  
-  <!-- Seleccionador pilotos -->
+    <!-- Seleccionador pilotos -->
     <div class="custom-container">
         <div class="custom-pilot-container">
             <h1>Posición Pilotos</h1>
@@ -1148,7 +1147,7 @@
         }
     </script>
 
- <script>
+    <script>
         let customDriverCount = 0; // Inicializar sin pilotos por defecto
         const customSelectedDrivers = new Set();
         const customIntervals = {};
@@ -1191,11 +1190,21 @@
             const driverImage = document.getElementById(`custom-driver-image-${selectNumber}`);
             const positionInfo = document.getElementById(`custom-position-info-${selectNumber}`);
             const dateInfo = document.getElementById(`custom-date-info-${selectNumber}`);
+            const gapToLeaderInfo = document.getElementById(`custom-gap-to-leader-info-${selectNumber}`);
+            const intervalInfo = document.getElementById(`custom-interval-info-${selectNumber}`);
+            const pitStopInfo = document.getElementById(`custom-pitstop-info-${selectNumber}`);
+            const lapNumberInfo = document.getElementById(`custom-lap-number-info-${selectNumber}`);
+            const pitDurationInfo = document.getElementById(`custom-pit-duration-info-${selectNumber}`);
 
             // Limpiar información anterior
             if (driverImage) driverImage.style.display = 'none';
             if (positionInfo) positionInfo.textContent = '';
             if (dateInfo) dateInfo.textContent = '';
+            if (gapToLeaderInfo) gapToLeaderInfo.textContent = '';
+            if (intervalInfo) intervalInfo.textContent = '';
+            if (pitStopInfo) pitStopInfo.textContent = '';
+            if (lapNumberInfo) lapNumberInfo.textContent = '';
+            if (pitDurationInfo) pitDurationInfo.textContent = '';
 
             // Limpiar intervalos anteriores
             if (customIntervals[selectNumber]) {
@@ -1209,7 +1218,7 @@
                 }
                 customSelectedDrivers.add(selectedOption.value);
                 customUpdateDriverPosition(selectNumber, selectedOption.value);
-                customIntervals[selectNumber] = setInterval(() => customUpdateDriverPosition(selectNumber, selectedOption.value), 3000);
+                customIntervals[selectNumber] = setInterval(() => customUpdateDriverPosition(selectNumber, selectedOption.value), 1000);
 
                 // Almacenar datos del piloto
                 customDriverData[selectNumber] = {
@@ -1223,13 +1232,32 @@
         }
 
         async function customUpdateDriverPosition(selectNumber, driverNumber) {
-            const response = await fetch(`https://api.openf1.org/v1/position?meeting_key=latest&driver_number=${driverNumber}&session_key=latest`);
-            const positions = await response.json();
+            const response = await fetch(`https://api.openf1.org/v1/intervals?session_key=latest&driver_number=${driverNumber}`);
+            const intervals = await response.json();
+            const latestInterval = intervals.reduce((latest, current) => new Date(latest.date) > new Date(current.date) ? latest : current);
+
+            const positionResponse = await fetch(`https://api.openf1.org/v1/position?meeting_key=latest&driver_number=${driverNumber}&session_key=latest`);
+            const positions = await positionResponse.json();
             const latestPosition = positions[positions.length - 1];
+
+            const pitResponse = await fetch(`https://api.openf1.org/v1/pit?session_key=latest&driver_number=${driverNumber}`);
+            const pitstops = await pitResponse.json();
+            const latestPitstop = pitstops.reduce((latest, current) => new Date(latest.date) > new Date(current.date) ? latest : current);
+
             const positionInfo = document.getElementById(`custom-position-info-${selectNumber}`);
             const dateInfo = document.getElementById(`custom-date-info-${selectNumber}`);
+            const gapToLeaderInfo = document.getElementById(`custom-gap-to-leader-info-${selectNumber}`);
+            const intervalInfo = document.getElementById(`custom-interval-info-${selectNumber}`);
+            const pitStopInfo = document.getElementById(`custom-pitstop-info-${selectNumber}`);
+            const lapNumberInfo = document.getElementById(`custom-lap-number-info-${selectNumber}`);
+            const pitDurationInfo = document.getElementById(`custom-pit-duration-info-${selectNumber}`);
+
             if (positionInfo) positionInfo.textContent = `Posición: ${latestPosition.position}`;
-            if (dateInfo) dateInfo.textContent = new Date(latestPosition.date).toLocaleString();
+            if (dateInfo) dateInfo.textContent = `Fecha: ${new Date(latestPosition.date).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: '2-digit' })}, ${new Date(latestPosition.date).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`;
+            if (gapToLeaderInfo) gapToLeaderInfo.innerHTML = `<b>Diferencia Tiempo:</b> ${new Date(latestInterval.date).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })}`;
+            if (intervalInfo) intervalInfo.textContent = `P. líder: ${latestInterval.gap_to_leader}`;
+            if (intervalInfo) intervalInfo.textContent += ` P. delante: ${latestInterval.interval}`;
+            if (pitStopInfo) pitStopInfo.innerHTML = `<b>Box Vuelta:</b> ${latestPitstop.lap_number} <b>T.:</b> ${latestPitstop.pit_duration} s`;
         }
 
         function customAddDriver() {
@@ -1245,6 +1273,11 @@
                 </select>
                 <div id="custom-position-info-${customDriverCount}" class="custom-info"></div>
                 <div id="custom-date-info-${customDriverCount}" class="custom-info custom-date"></div>
+                <div id="custom-gap-to-leader-info-${customDriverCount}" class="custom-info"></div>
+                <div id="custom-interval-info-${customDriverCount}" class="custom-info"></div>
+                <div id="custom-pitstop-info-${customDriverCount}" class="custom-info"></div>
+                <div id="custom-lap-number-info-${customDriverCount}" class="custom-info"></div>
+                <div id="custom-pit-duration-info-${customDriverCount}" class="custom-info"></div>
                 <div class="custom-delete-button" onclick="customDeleteDriver(${customDriverCount})">×</div>
             `;
             driverSelectors.appendChild(newCell);
@@ -1300,6 +1333,11 @@
                         </select>
                         <div id="custom-position-info-${key}" class="custom-info"></div>
                         <div id="custom-date-info-${key}" class="custom-info custom-date"></div>
+                        <div id="custom-gap-to-leader-info-${key}" class="custom-info"></div>
+                        <div id="custom-interval-info-${key}" class="custom-info"></div>
+                        <div id="custom-pitstop-info-${key}" class="custom-info"></div>
+                        <div id="custom-lap-number-info-${key}" class="custom-info"></div>
+                        <div id="custom-pit-duration-info-${key}" class="custom-info"></div>
                         <div class="custom-delete-button" onclick="customDeleteDriver(${key})">×</div>
                     `;
                     driverSelectors.appendChild(newCell);
@@ -1318,7 +1356,7 @@
                 // Si no hay datos en localStorage, cargar pilotos 14 y 55 por defecto
                 customDriverData = {
                     1: { id: 'custom-driver-cell-1', driverNumber: '14' },
-                                        2: { id: 'custom-driver-cell-2', driverNumber: '55' }
+                    2: { id: 'custom-driver-cell-2', driverNumber: '55' }
                 };
                 localStorage.setItem('customDriverData', JSON.stringify(customDriverData));
             }
@@ -1335,6 +1373,11 @@
                     </select>
                     <div id="custom-position-info-${key}" class="custom-info"></div>
                     <div id="custom-date-info-${key}" class="custom-info custom-date"></div>
+                    <div id="custom-gap-to-leader-info-${key}" class="custom-info"></div>
+                    <div id="custom-interval-info-${key}" class="custom-info"></div>
+                    <div id="custom-pitstop-info-${key}" class="custom-info"></div>
+                    <div id="custom-lap-number-info-${key}" class="custom-info"></div>
+                    <div id="custom-pit-duration-info-${key}" class="custom-info"></div>
                     <div class="custom-delete-button" onclick="customDeleteDriver(${key})">×</div>
                 `;
                 driverSelectors.appendChild(newCell);
