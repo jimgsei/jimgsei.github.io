@@ -1,41 +1,71 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-  <title>M3U8 Player with HLS.js</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reproductor HLS.js</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+        video {
+            width: 80%;
+            max-width: 800px;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
-  <video id="myVideo" controls></video>
-  <p id="error-message"></p>
 
-  <!-- Incluir HLS.js desde CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-  <script>
-    const video = document.getElementById('myVideo');
-    const errorMessageElement = document.getElementById('error-message');
-    const m3u8Url = 'http://468515598262165419.ofgd919.xyz:80/live/zh813567/VujHjvynTP/165419.m3u8'; // Reemplaza con tu URL
+<h1>Pagina en local</h1>
+<video id="video" controls></video>
 
-    // Verificamos si el navegador soporta HLS.js
+<script>
+    const video = document.getElementById('video');
+    const videoSrc = 'http://468515598262165419.ofgd919.xyz:80/live/zh813567/VujHjvynTP/165419.m3u8';
+
     if (Hls.isSupported()) {
-      const hls = new Hls({ debug: true });  // Habilitamos la depuración
-      hls.loadSource(m3u8Url);
-      hls.attachMedia(video);
-      
-      // Escuchamos eventos de error en HLS.js
-      hls.on(Hls.Events.ERROR, function(event, data) {
-        console.error('HLS.js error:', data);
-        errorMessageElement.textContent = `Error: ${data.type}, Details: ${data.details}`;  // Mostramos el tipo de error
-      });
+        const hls = new Hls();
 
+        hls.loadSource(videoSrc);
+        hls.attachMedia(video);
+
+        hls.on(Hls.Events.MANIFEST_PARSED, function() {
+            video.play();
+        });
+
+        hls.on(Hls.Events.ERROR, function (event, data) {
+            if (data.fatal) {
+                switch (data.fatal) {
+                    case Hls.ErrorTypes.NETWORK_ERROR:
+                        console.error('Error de red:', data);
+                        break;
+                    case Hls.ErrorTypes.MEDIA_ERROR:
+                        console.error('Error de media:', data);
+                        break;
+                    case Hls.ErrorTypes.OTHER_ERROR:
+                        console.error('Otro error:', data);
+                        break;
+                }
+            }
+        });
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      // Si HLS.js no es soportado, usamos la funcionalidad nativa del navegador (Safari, por ejemplo)
-      video.src = m3u8Url;
-      video.addEventListener('error', (event) => {
-        console.error('Video error:', event.target.error.message);
-        errorMessageElement.textContent = `Error: ${event.target.error.message}`;
-      });
+        video.src = videoSrc;
+        video.addEventListener('loadedmetadata', function() {
+            video.play();
+        });
     } else {
-      errorMessageElement.textContent = 'M3U8 playback is not supported in this browser.';
+        console.error('HLS no es soportado en este navegador.');
     }
-  </script>
+</script>
+
 </body>
 </html>
