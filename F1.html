@@ -850,14 +850,11 @@
 		
     /* Custom pilots */
         .custom-container {
-            background-color: transparent; /* Fondo transparente */
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start; /* Alinear elementos en la parte superior */
-            margin: 0;
-            text-align: center;
-        }
+            justify-content: flex-start; /* Alinear a la izquierda */
+			align-items: flex-start; /* Alinear elementos en la parte superior */
+			text-align: center;
+			flex-wrap: wrap; /* Permitir que los elementos se envuelvan si no hay espacio */
+			}
         .custom-pilot-container {
             background-color: transparent;
             padding: 1px;
@@ -885,7 +882,7 @@
             transform-origin: top center;
             font-size: 1.2em; /* Aumentar tamaño del texto */
             min-height: 200px; /* Altura mínima */ 
-            transition: height 0.3s; /* Transición suave */
+            transition: down 0.3s; /* Transición suave */
         }
         .custom-driver-cell img {
             display: table-cell; /* Cambiar a display table-cell */
