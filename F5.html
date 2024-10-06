@@ -1,0 +1,22 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>M3U8 Player</title>
+</head>
+<body>
+  <video id="myVideo" controls></video>
+
+  <script>
+    const video = document.getElementById('myVideo');
+    const m3u8Url = 'http://mku0414.oknirvana.club:8880/live/29ca10173n08/asdf23r2/2553.m3u8'; // Replace with your actual link
+
+    video.src = m3u8Url;
+
+    video.addEventListener('error', (event) => {
+      console.error('Video error:', event.target.error.message);
+      // Handle the error, e.g., display an error message to the user
+    });
+  </script>
+</body>
+</html>
