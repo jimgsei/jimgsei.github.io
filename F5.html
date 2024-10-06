@@ -1,22 +1,41 @@
-
 <!DOCTYPE html>
 <html>
 <head>
-  <title>M3U8 Player</title>
+  <title>M3U8 Player with HLS.js</title>
 </head>
 <body>
   <video id="myVideo" controls></video>
+  <p id="error-message"></p>
 
+  <!-- Incluir HLS.js desde CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <script>
     const video = document.getElementById('myVideo');
-    const m3u8Url = 'http://mku0414.oknirvana.club:8880/live/29ca10173n08/asdf23r2/2553.m3u8'; // Replace with your actual link
+    const errorMessageElement = document.getElementById('error-message');
+    const m3u8Url = 'http://468515598262165419.ofgd919.xyz:80/live/zh813567/VujHjvynTP/165419.m3u8'; // Reemplaza con tu URL
 
-    video.src = m3u8Url;
+    // Verificamos si el navegador soporta HLS.js
+    if (Hls.isSupported()) {
+      const hls = new Hls({ debug: true });  // Habilitamos la depuración
+      hls.loadSource(m3u8Url);
+      hls.attachMedia(video);
+      
+      // Escuchamos eventos de error en HLS.js
+      hls.on(Hls.Events.ERROR, function(event, data) {
+        console.error('HLS.js error:', data);
+        errorMessageElement.textContent = `Error: ${data.type}, Details: ${data.details}`;  // Mostramos el tipo de error
+      });
 
-    video.addEventListener('error', (event) => {
-      console.error('Video error:', event.target.error.message);
-      // Handle the error, e.g., display an error message to the user
-    });
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      // Si HLS.js no es soportado, usamos la funcionalidad nativa del navegador (Safari, por ejemplo)
+      video.src = m3u8Url;
+      video.addEventListener('error', (event) => {
+        console.error('Video error:', event.target.error.message);
+        errorMessageElement.textContent = `Error: ${event.target.error.message}`;
+      });
+    } else {
+      errorMessageElement.textContent = 'M3U8 playback is not supported in this browser.';
+    }
   </script>
 </body>
 </html>
