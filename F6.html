@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página con Iframe</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .resp-iframe {
+            width: 100%;
+            max-width: 800px; /* Puedes ajustar el tamaño máximo según tus necesidades */
+            height: 450px; /* Ajusta la altura como desees */
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Página con Iframe de TV</h1>
+<iframe class="resp-iframe" 
+        src="https://williamyaps.github.io/tv/channel/myfreeview/tv-alhijrah/daznf1.html?player_mute=off" 
+        frameborder="0" 
+        allowfullscreen 
+        allow="autoplay">
+</iframe>
+
+</body>
+</html>
