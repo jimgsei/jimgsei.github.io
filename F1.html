@@ -969,27 +969,33 @@
             height: auto;
             margin-right: 20px;
         }
-	.header-image.enlarged {
+		.header-image.enlarged {
             transform: scale(2);
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%) scale(2);
             z-index: 1000;
-	    border: 5px solid #006F62; /* Añadir borde */
-	    border-radius: 15px; /* Añadir borde redondeado */
-        }
-	.overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            display: none;
-            z-index: 999;
+			border: 2px solid #006F62; /* Añadir borde */
+	        border-radius: 15px; /* Añadir borde redondeado */
         }
         .overlay.active {
+            display: block;
+        }
+        .caption {
+            display: none;
+            position: fixed;
+            top: calc(50% + 150px); /* Ajustar posición */
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 24px;
+            z-index: 1001;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 5px 10px;
+            border-radius: 10px;
+        }
+        .caption.active {
             display: block;
         }
 		
@@ -1021,6 +1027,7 @@
         <div class="overlay" id="overlay"></div>
         <img src="img/F1.jpg" alt="Descripción de la imagen" class="header-image" id="headerImage">
         <h1 class="header-title">Fórmula 1</h1>
+		<div class="caption" id="caption">Fernando Alonso</div>
     </div>
     <div class="containert">
         <div class="horizontal-container">
@@ -1166,20 +1173,23 @@
   
   
   <!-- Coche -->
-  <script>
+    <script>
         const headerImage = document.getElementById('headerImage');
         const overlay = document.getElementById('overlay');
+        const caption = document.getElementById('caption');
 
         headerImage.addEventListener('click', () => {
             headerImage.classList.toggle('enlarged');
             overlay.classList.toggle('active');
+            caption.classList.toggle('active');
         });
 
         overlay.addEventListener('click', () => {
             headerImage.classList.remove('enlarged');
             overlay.classList.remove('active');
+            caption.classList.remove('active');
         });
-    </script> 
+    </script>
   
       <!-- Vídeo -->
     <script>
