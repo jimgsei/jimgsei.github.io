@@ -1356,33 +1356,42 @@
     }
 
     async function customUpdateDriverPosition(selectNumber, driverNumber) {
-        const response = await fetch(`https://api.openf1.org/v1/intervals?session_key=latest&driver_number=${driverNumber}`);
-        const intervals = await response.json();
-        const latestInterval = intervals.reduce((latest, current) => new Date(latest.date) > new Date(current.date) ? latest : current);
+    const response = await fetch(`https://api.openf1.org/v1/intervals?session_key=latest&driver_number=${driverNumber}`);
+    const intervals = await response.json();
+    const latestInterval = intervals.reduce((latest, current) => new Date(latest.date) > new Date(current.date) ? latest : current, {});
 
-        const positionResponse = await fetch(`https://api.openf1.org/v1/position?meeting_key=latest&driver_number=${driverNumber}&session_key=latest`);
-        const positions = await positionResponse.json();
-        const latestPosition = positions[positions.length - 1];
+    const positionResponse = await fetch(`https://api.openf1.org/v1/position?meeting_key=latest&driver_number=${driverNumber}&session_key=latest`);
+    const positions = await positionResponse.json();
+    const latestPosition = positions.length ? positions[positions.length - 1] : {};
 
-        const pitResponse = await fetch(`https://api.openf1.org/v1/pit?session_key=latest&driver_number=${driverNumber}`);
-        const pitstops = await pitResponse.json();
-        const latestPitstop = pitstops.reduce((latest, current) => new Date(latest.date) > new Date(current.date) ? latest : current);
+    const pitResponse = await fetch(`https://api.openf1.org/v1/pit?session_key=latest&driver_number=${driverNumber}`);
+    const pitstops = await pitResponse.json();
+    const latestPitstop = pitstops.length ? pitstops.reduce((latest, current) => new Date(latest.date) > new Date(current.date) ? latest : current, {}) : {};
 
-        const positionInfo = document.getElementById(`custom-position-info-${selectNumber}`);
-        const dateInfo = document.getElementById(`custom-date-info-${selectNumber}`);
-        const gapToLeaderInfo = document.getElementById(`custom-gap-to-leader-info-${selectNumber}`);
-        const intervalInfo = document.getElementById(`custom-interval-info-${selectNumber}`);
-        const pitStopInfo = document.getElementById(`custom-pitstop-info-${selectNumber}`);
-        const lapNumberInfo = document.getElementById(`custom-lap-number-info-${selectNumber}`);
-        const pitDurationInfo = document.getElementById(`custom-pit-duration-info-${selectNumber}`);
+    const positionInfo = document.getElementById(`custom-position-info-${selectNumber}`);
+    const dateInfo = document.getElementById(`custom-date-info-${selectNumber}`);
+    const gapToLeaderInfo = document.getElementById(`custom-gap-to-leader-info-${selectNumber}`);
+    const intervalInfo = document.getElementById(`custom-interval-info-${selectNumber}`);
+    const pitStopInfo = document.getElementById(`custom-pitstop-info-${selectNumber}`);
+    const lapNumberInfo = document.getElementById(`custom-lap-number-info-${selectNumber}`);
+    const pitDurationInfo = document.getElementById(`custom-pit-duration-info-${selectNumber}`);
 
-        if (positionInfo) positionInfo.textContent = `Posición: ${latestPosition.position}`;
-        if (dateInfo) dateInfo.textContent = `Fecha: ${new Date(latestPosition.date).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: '2-digit' })}, ${new Date(latestPosition.date).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`;
-        if (gapToLeaderInfo) gapToLeaderInfo.innerHTML = `<b>Diferencia Tiemp.:</b> ${latestInterval.gap_to_leader}`;
-        if (intervalInfo) intervalInfo.textContent = `P. líder: ${latestInterval.gap_to_leader}`;
-        if (intervalInfo) intervalInfo.textContent += ` P. delante: ${latestInterval.interval}`;
-        if (pitStopInfo) pitStopInfo.innerHTML = `<b>Box V.:</b> ${latestPitstop.lap_number} <b>D.:</b> ${latestPitstop.pit_duration} s`;
+    if (positionInfo && latestPosition.position) {
+        positionInfo.textContent = `Posición: ${latestPosition.position}`;
     }
+    if (dateInfo && latestPosition.date) {
+        dateInfo.textContent = `Fecha: ${new Date(latestPosition.date).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: '2-digit' })}, ${new Date(latestPosition.date).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`;
+    }
+    if (gapToLeaderInfo && latestInterval.gap_to_leader) {
+        gapToLeaderInfo.innerHTML = `<b>Diferencia Tiemp.:</b> ${latestInterval.gap_to_leader}`;
+    }
+    if (intervalInfo && latestInterval.gap_to_leader && latestInterval.interval) {
+        intervalInfo.textContent = `P. líder: ${latestInterval.gap_to_leader} P. delante: ${latestInterval.interval}`;
+    }
+    if (pitStopInfo && latestPitstop.lap_number && latestPitstop.pit_duration) {
+        pitStopInfo.innerHTML = `<b>Box V.:</b> ${latestPitstop.lap_number} <b>D.:</b> ${latestPitstop.pit_duration} s`;
+    }
+}
 
     function customAddDriver() {
         customDriverCount++;
