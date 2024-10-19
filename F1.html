@@ -2470,7 +2470,8 @@ async function fetchPositions() {
         const tableBody = document.getElementById('positionsTableBody');
         top20Positions.forEach((item, index) => {
             const broadcastName = driverMap[item.driver_number] || "Desconocido";
-            const time = new Date(item.date).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+			const time = new Date(item.date).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
 
             // Verificar si ya existe una fila para este piloto
             let currentRow = tableBody.querySelector(`tr[data-driver="${item.driver_number}"]`);
