@@ -1004,49 +1004,90 @@
           }
         }
 
-	/* Radio y control */
-        .tables-container {
-            display: flex;
-            flex-wrap: wrap; /* Permitir que las tablas se ajusten */
-            justify-content: space-around; /* Espaciado horizontal entre tablas */
-            gap: 20px; /* Espacio entre las tablas */
-            width: 100%; /* Ocupa el 100% del contenedor padre */
-        }	
+    /* Radio y control */
+    .tables-container {
+        display: flex;
+        justify-content: space-between; /* Alinear el contenido en dos columnas */
+        width: 90%; /* Ocupa el 100% del contenedor padre */
+        gap: 20px; /* Espacio entre la tabla y el contenedor de radios */
+		margin: 0 auto; /* Centra el contenedor en la página */
+    }
+
+    .tableta {
+        width: 25%; /* Ancho más estrecho de la tabla de posiciones */
+        margin: 20px; /* Margen alrededor de la tabla */
+        flex-grow: 1; /* Permitir que esta tabla crezca y ocupe espacio disponible */
+    }
+
+    .radiocon-container {
+        display: flex;
+        flex-direction: column; /* Apilar verticalmente las secciones de radiocon */
+        width: 55%; /* Ancho del contenedor de radios y control */
+        margin: 20px; /* Margen alrededor del contenedor */
+    }
+
         .radiocon {
-            width: 100%;
-            max-width: 600px; /* Max width for mobile view */
             background-color: rgba(255, 255, 255, 0.1); /* Fondo transparente */
             border: 1px solid rgba(255, 255, 255, 0.3); /* Borde blanco y semi-transparente */
             padding: 10px;
             border-radius: 8px; /* Bordes redondeados para el contenedor */
-            flex-wrap: wrap;
-            gap: 20px;
-            justify-content: space-around;
-            margin: 20px;
+            margin-bottom: 20px; /* Espacio entre las secciones */
+            flex: 1; /* Para que ambas secciones ocupen el mismo espacio */
+            max-height: 350px; /* Limitar la altura máxima del contenedor */
+            overflow-y: auto; /* Agregar scroll vertical si el contenido excede la altura máxima */
         }
+
         #race-control, #team-radio {
-            max-height: 400px;
-            overflow-y: scroll;
+            max-height: 350px; /* Limitar la altura a 350px */
+            overflow-y: auto; /* Mantener el desplazamiento */
             display: flex;
             flex-direction: column;
             gap: 10px;
         }
+
+        /* Estilos para la barra de desplazamiento */
+        #race-control::-webkit-scrollbar,
+        #team-radio::-webkit-scrollbar {
+            width: 10px; /* Ancho de la barra de desplazamiento */
+        }
+
+        #race-control::-webkit-scrollbar-track,
+        #team-radio::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1); /* Color de fondo de la pista */
+            border-radius: 10px; /* Bordes redondeados para la pista */
+        }
+
+        #race-control::-webkit-scrollbar-thumb,
+        #team-radio::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.6); /* Color del pulgar */
+            border-radius: 10px; /* Bordes redondeados para el pulgar */
+        }
+
+        #race-control::-webkit-scrollbar-thumb:hover,
+        #team-radio::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.8); /* Color del pulgar al pasar el mouse */
+        }
+
         .race-message, .radio-message {
             margin-bottom: 15px;
         }
+
         .race-message time, .radio-message time {
             display: block;
             font-size: 12px;
             color: #fff; /* Color blanco para el tiempo */
         }
+
         .race-message p, .radio-message p {
             font-weight: bold;
             margin: 0;
             color: #fff; /* Color blanco para el texto */
         }
+
         audio {
             width: 100%;
         }
+
         .radio-message {
             background-color: rgba(255, 255, 255, 0.2); /* Fondo semi-transparente */
             padding: 10px;
@@ -1054,30 +1095,36 @@
             box-shadow: 0 0 5px rgba(255, 255, 255, 0.1); /* Sombra blanca y semi-transparente */
             display: flex;
         }
+
         .radio-message table {
             width: 100%; /* Full width for the table */
             border-collapse: collapse; /* Collapsing borders */
         }
+
         .radio-message td {
             border: 1px solid transparent; /* Transparent borders */
             vertical-align: center; /* Align cells at the top */
             padding: 3px; /* Space around text */
         }
+
         .radio-message td:first-child {
             width: 5%; /* Width for time and acronym column */
         }
+
         .radio-message td:last-child {
             width: 30%; /* Width for audio column */
         }
-		.radio-message audio {
-			height: 30px; /* Ajusta la altura del elemento de audio */
-			/* Puedes ajustar también el width si lo necesitas */
-			width: 100%; /* Mantenerlo en 100% para que ocupe toda la celda */
-		}
+
+        .radio-message audio {
+            height: 30px; /* Ajusta la altura del elemento de audio */
+            width: 100%; /* Mantenerlo en 100% para que ocupe toda la celda */
+        }
+
         .radio-message time {
             font-size: 14px; /* Smaller font for time */
             margin-bottom: 8px; /* Space between time and acronym */
         }
+
         .radio-message .acronym-container {
             display: flex;
             flex-direction: column;
@@ -1085,56 +1132,87 @@
             align-items: center; /* Center acronym */
             margin: 10px 0; /* Space between acronym and audio */
         }
+
         .radio-message .acronym-container p {
             font-size: 18px; /* Increase font size for the acronym */
             margin: 2; /* Remove margin */
             color: #fff; /* Color blanco para el acrónimo */
         }
+
         audio {
             margin: 2px 0; /* Space around audio */
         }
+
         .race-message {
             background-color: rgba(255, 255, 255, 0.2); /* Fondo semi-transparente */
             padding: 10px;
             border-radius: 5px;
             box-shadow: 0 0 5px rgba(255, 255, 255, 0.1); /* Sombra blanca y semi-transparente */
         }
+
         h1 {
             text-align: center;
             font-size: 18px;
             color: #fff; /* Color blanco para el título */
         }
 
-        /* Estilos para las barras de desplazamiento */
-        #race-control::-webkit-scrollbar,
-        #team-radio::-webkit-scrollbar {
-            width: 10px; /* Ancho de la barra de desplazamiento */
-        }
-        
-        #race-control::-webkit-scrollbar-track,
-        #team-radio::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.3); /* Color de fondo de la pista */
-            border-radius: 10px; /* Bordes redondeados para la pista */
-        }
-        
-        #race-control::-webkit-scrollbar-thumb,
-        #team-radio::-webkit-scrollbar-thumb {
-            background: #888; /* Color del pulgar */
-            border-radius: 10px; /* Bordes redondeados para el pulgar */
-        }
-        
-        #race-control::-webkit-scrollbar-thumb:hover,
-        #team-radio::-webkit-scrollbar-thumb:hover {
-            background: #555; /* Color del pulgar al pasar el mouse */
-        }
-
         @media (min-width: 768px) {
             .radiocon {
-                width: 45%; /* Dos columnas para pantallas más grandes */
+                width: 100%; /* Asegurar que ocupen todo el ancho en pantallas grandes */
             }
         }
-		
-  </style>
+
+        /* Tabla directo clasificación */		
+        .tableta {
+            width: 30%; /* Ancho mucho más estrecho de la tabla */
+            margin: 20px 0; /* Margen superior e inferior */
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            backdrop-filter: blur(10px); /* Efecto de desenfoque en el fondo */
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: rgba(255, 255, 255, 0.2);
+            font-weight: bold;
+        }
+
+        td {
+            font-weight: bold;
+        }
+
+        .position-cell {
+            width: 50px; /* Columna de posición estrecha */
+        }
+
+        .up {
+            animation: moveUp 0.5s forwards;
+        }
+
+        .down {
+            animation: moveDown 0.5s forwards;
+        }
+
+        @keyframes moveUp {
+            from { transform: translateY(10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes moveDown {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+</style>
+
+
 <script src="https://cdn.jsdelivr.net/npm/luxon@2.3.0/build/global/luxon.min.js"></script>
 <script>
         function switchVideo(videoSrc) {
@@ -1205,8 +1283,23 @@
         <iframe id="iframe-container" style="width: 120%; height: 500px; border: none; display: none;" allowfullscreen="allowfullscreen"></iframe>
     </div>
 
-   <!-- Radio + Control carrera -->
-    <div class="tables-container">
+<div class="tables-container">
+    <div class="tableta">
+        <table>
+            <thead>
+                <tr>
+                    <th class="position-cell">Posición</th>
+                    <th>Nombre del Piloto</th>
+                    <th>Hora</th>
+                </tr>
+            </thead>
+            <tbody id="positionsTableBody">
+                <!-- Las filas se agregarán aquí dinámicamente -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="radiocon-container">
         <div class="radiocon">
             <h1>Radios de Equipo F1</h1>
             <div id="team-radio">
@@ -1221,6 +1314,9 @@
             </div>
         </div>
     </div>
+</div>
+
+
 
 
 	
@@ -2309,6 +2405,89 @@ startAutoUpdate();
             }, 5000);
         });
     </script>
+	
+
+<script>
+// Clasificación en directo
+
+let previousPositions = [];
+
+async function fetchPositions() {
+    try {
+        // Obtener posiciones de pilotos
+        const positionsResponse = await fetch('https://api.openf1.org/v1/position?meeting_key=latest&session_key=latest');
+        const positionsData = await positionsResponse.json();
+
+        // Obtener datos de pilotos
+        const driversResponse = await fetch('https://api.openf1.org/v1/drivers?meeting_key=latest');
+        const driversData = await driversResponse.json();
+
+        // Crear un mapa de pilotos por driver_number
+        const driverMap = {};
+        driversData.forEach(driver => {
+            driverMap[driver.driver_number] = driver.broadcast_name; // Guardamos el broadcast_name
+        });
+
+        // Agrupar posiciones por driver_number y obtener el más reciente
+        const positionMap = {};
+        positionsData.forEach(entry => {
+            const { driver_number, date, position } = entry;
+            if (!positionMap[position] || new Date(date) > new Date(positionMap[position].date)) {
+                positionMap[position] = { driver_number, date };
+            }
+        });
+
+        // Convertir el mapa a un array y ordenar por posición
+        const sortedPositions = Object.keys(positionMap).map(pos => ({
+            position: pos,
+            driver_number: positionMap[pos].driver_number,
+            date: positionMap[pos].date
+        })).sort((a, b) => a.position - b.position);
+
+        // Limitar a las 20 posiciones
+        const top20Positions = sortedPositions.slice(0, 20);
+
+        // Crear filas de la tabla
+        const tableBody = document.getElementById('positionsTableBody');
+        top20Positions.forEach((item, index) => {
+            const broadcastName = driverMap[item.driver_number] || "Desconocido";
+            const time = new Date(item.date).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+
+            // Verificar si ya existe una fila para este piloto
+            let currentRow = tableBody.querySelector(`tr[data-driver="${item.driver_number}"]`);
+            if (!currentRow) {
+                // Si no existe, crear una nueva fila
+                currentRow = document.createElement('tr');
+                currentRow.dataset.driver = item.driver_number; // Guardar el número del piloto en el dataset
+                tableBody.appendChild(currentRow);
+            } else {
+                // Si existe, verificar cambios en la posición
+                const previousPosition = previousPositions.find(p => p.driver_number === item.driver_number);
+                if (previousPosition && previousPosition.position !== item.position) {
+                    // Si hay un cambio, aplicar la animación
+                    currentRow.classList.add(item.position > previousPosition.position ? 'down' : 'up');
+                }
+            }
+
+            // Actualizar la fila con la nueva información
+            currentRow.innerHTML = `
+                <td class="position-cell">${item.position}</td>
+                <td>${broadcastName}</td>
+                <td>${time}</td>
+            `;
+        });
+
+        // Almacenar posiciones actuales para comparación
+        previousPositions = top20Positions.map(item => ({ position: item.position, driver_number: item.driver_number }));
+    } catch (error) {
+        console.error('Error fetching data:', error);
+    }
+}
+
+// Ejecutar la función cada 2 segundos
+setInterval(fetchPositions, 2000);
+fetchPositions(); // Llamar la función inmediatamente al cargar la página
+</script>
 
 <script>
     // Función para configurar las cookies del iframe
