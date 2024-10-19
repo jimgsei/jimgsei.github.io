@@ -1022,7 +1022,7 @@
         .radiocon-container {
             display: flex;
             flex-direction: column; /* Apilar verticalmente las secciones de radiocon */
-            width: 55%; /* Ancho del contenedor de radios y control */
+            width: 45%; /* Ancho del contenedor de radios y control */
             margin: 20px; /* Margen alrededor del contenedor */
         }
 
@@ -1211,6 +1211,11 @@
             from { transform: translateY(-10px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
+		/* Ocultar columnas si necesario */
+		.interval-header,
+		.gap-header {
+			display: table-cell; /* Mostrar por defecto */
+		}
 
         /* Consulta de medios para dispositivos móviles */
         @media (max-width: 767px) {
@@ -1303,20 +1308,17 @@
     </div>
 
 <div class="tables-container">
-    <div class="tableta">
-        <table>
-            <thead>
-                <tr>
-                    <th class="position-cell">Posición</th>
-                    <th>Nombre del Piloto</th>
-                    <th>Hora</th>
-                </tr>
-            </thead>
-            <tbody id="positionsTableBody">
-                <!-- Las filas se agregarán aquí dinámicamente -->
-            </tbody>
-        </table>
-    </div>
+<div class="tableta">
+    <table>
+        <thead id="positionsTableHead">
+            <!-- Encabezados de la tabla -->
+        </thead>
+        <tbody id="positionsTableBody">
+            <!-- Las filas se agregarán aquí dinámicamente -->
+        </tbody>
+    </table>
+</div>
+
 
     <div class="radiocon-container">
         <div class="radiocon">
@@ -2430,7 +2432,10 @@ startAutoUpdate();
 // Clasificación en directo
 
 let previousPositions = [];
+let previousIntervals = {};
+let previousGaps = {};
 
+// Función para obtener las posiciones
 async function fetchPositions() {
     try {
         // Obtener posiciones de pilotos
@@ -2466,35 +2471,28 @@ async function fetchPositions() {
         // Limitar a las 20 posiciones
         const top20Positions = sortedPositions.slice(0, 20);
 
-        // Crear filas de la tabla
+        // Crear o actualizar las filas de la tabla
         const tableBody = document.getElementById('positionsTableBody');
-        top20Positions.forEach((item, index) => {
+        tableBody.innerHTML = ''; // Limpiar el cuerpo de la tabla para reordenarlo correctamente
+
+        top20Positions.forEach((item) => {
             const broadcastName = driverMap[item.driver_number] || "Desconocido";
-			const time = new Date(item.date).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const time = new Date(item.date).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
+            // Crear una nueva fila o actualizar si ya existe
+            let currentRow = document.createElement('tr');
+            currentRow.dataset.driver = item.driver_number; // Guardar el número del piloto en el dataset
 
-            // Verificar si ya existe una fila para este piloto
-            let currentRow = tableBody.querySelector(`tr[data-driver="${item.driver_number}"]`);
-            if (!currentRow) {
-                // Si no existe, crear una nueva fila
-                currentRow = document.createElement('tr');
-                currentRow.dataset.driver = item.driver_number; // Guardar el número del piloto en el dataset
-                tableBody.appendChild(currentRow);
-            } else {
-                // Si existe, verificar cambios en la posición
-                const previousPosition = previousPositions.find(p => p.driver_number === item.driver_number);
-                if (previousPosition && previousPosition.position !== item.position) {
-                    // Si hay un cambio, aplicar la animación
-                    currentRow.classList.add(item.position > previousPosition.position ? 'down' : 'up');
-                }
-            }
-
-            // Actualizar la fila con la nueva información
+            // Actualizar la fila con la información actualizada
             currentRow.innerHTML = `
                 <td class="position-cell">${item.position}</td>
-                <td>${broadcastName}</td>
-                <td>${time}</td>
+                <td class="name-cell">${broadcastName}</td>
+                <td class="time-cell">${time}</td>
+                <td class="interval-cell">N/A</td>
+                <td class="gap-cell">N/A</td>
             `;
+
+            tableBody.appendChild(currentRow);
         });
 
         // Almacenar posiciones actuales para comparación
@@ -2504,10 +2502,119 @@ async function fetchPositions() {
     }
 }
 
-// Ejecutar la función cada 2 segundos
+// Función para obtener los intervalos y la diferencia con el líder (cada 4 segundos)
+async function fetchIntervalsAndGaps() {
+    try {
+        // Obtener los pilotos de la tabla actual
+        const driverNumbers = previousPositions.map(p => p.driver_number);
+        const intervalMap = {};
+        const gapMap = {};
+
+        // Hacer llamadas individuales para cada piloto y agregar los intervalos y las diferencias al mapa
+        await Promise.all(driverNumbers.map(async (driver_number) => {
+            try {
+                const response = await fetch(`https://api.openf1.org/v1/intervals?session_key=latest&driver_number=${driver_number}`);
+                const intervalData = await response.json();
+
+                // Buscar el intervalo más reciente para el piloto
+                if (intervalData.length > 0) {
+                    const latestInterval = intervalData[intervalData.length - 1];
+                    intervalMap[driver_number] = latestInterval.interval;
+                    gapMap[driver_number] = latestInterval.gap_to_leader;
+                }
+            } catch (error) {
+                console.error(`Error fetching interval or gap for driver ${driver_number}:`, error);
+            }
+        }));
+
+        // Variables para verificar si todas las columnas tienen N/A
+        let allIntervalsNA = true;
+        let allGapsNA = true;
+
+        // Actualizar las celdas de intervalo y diferencia solo si han cambiado
+        const tableBody = document.getElementById('positionsTableBody');
+        previousPositions.forEach((item) => {
+            const interval = intervalMap[item.driver_number] || "N/A";
+            const gapToLeader = gapMap[item.driver_number] || "N/A";
+
+            if (interval !== "N/A") allIntervalsNA = false;
+            if (gapToLeader !== "N/A") allGapsNA = false;
+
+            // Verificar si ya existe una fila para este piloto
+            let currentRow = tableBody.querySelector(`tr[data-driver="${item.driver_number}"]`);
+            if (currentRow) {
+                const intervalCell = currentRow.querySelector('.interval-cell');
+                const gapCell = currentRow.querySelector('.gap-cell');
+
+                if (!intervalCell || intervalCell.textContent !== interval) {
+                    currentRow.querySelector('.interval-cell').textContent = interval;
+                }
+
+                if (!gapCell || gapCell.textContent !== gapToLeader) {
+                    currentRow.querySelector('.gap-cell').textContent = gapToLeader;
+                }
+            }
+        });
+
+        // Si todas las celdas de intervalo o P. Diferencia son N/A, oculta la columna
+        const intervalCells = document.querySelectorAll('.interval-cell');
+        const gapCells = document.querySelectorAll('.gap-cell');
+
+        if (allIntervalsNA) {
+            intervalCells.forEach(cell => cell.style.display = 'none');
+            document.querySelector('th.interval-header').style.display = 'none';
+        } else {
+            intervalCells.forEach(cell => cell.style.display = 'table-cell');
+            document.querySelector('th.interval-header').style.display = 'table-cell';
+        }
+
+        if (allGapsNA) {
+            gapCells.forEach(cell => cell.style.display = 'none');
+            document.querySelector('th.gap-header').style.display = 'none';
+        } else {
+            gapCells.forEach(cell => cell.style.display = 'table-cell');
+            document.querySelector('th.gap-header').style.display = 'table-cell';
+        }
+
+        // Almacenar los intervalos y diferencias actuales
+        previousIntervals = intervalMap;
+        previousGaps = gapMap;
+    } catch (error) {
+        console.error('Error fetching intervals and gaps:', error);
+    }
+}
+
+// Función para crear la cabecera de la tabla con las 5 columnas
+function createTableHeader() {
+    const tableHead = document.getElementById('positionsTableHead');
+    tableHead.innerHTML = `
+        <tr>
+            <th>Posición</th>
+            <th>Nombre del Piloto</th>
+            <th>Hora</th>
+            <th class="interval-header">Diferencia</th>
+            <th class="gap-header">P. Diferencia</th>
+        </tr>
+    `;
+}
+
+// Ejecutar la función de posiciones cada 2 segundos
 setInterval(fetchPositions, 2000);
-fetchPositions(); // Llamar la función inmediatamente al cargar la página
+
+// Ejecutar la función de intervalos y diferencias cada 4 segundos
+setInterval(fetchIntervalsAndGaps, 4000);
+
+// Ejecutar las funciones inmediatamente al cargar la página
+fetchPositions();
+fetchIntervalsAndGaps();
+createTableHeader();
 </script>
+
+
+
+
+
+
 
 <script>
     // Función para configurar las cookies del iframe
