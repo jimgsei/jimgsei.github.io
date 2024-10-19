@@ -1004,27 +1004,27 @@
           }
         }
 
-    /* Radio y control */
-    .tables-container {
-        display: flex;
-        justify-content: space-between; /* Alinear el contenido en dos columnas */
-        width: 90%; /* Ocupa el 100% del contenedor padre */
-        gap: 20px; /* Espacio entre la tabla y el contenedor de radios */
-		margin: 0 auto; /* Centra el contenedor en la página */
-    }
+        /* Radio y control */
+        .tables-container {
+            display: flex;
+            justify-content: space-between; /* Alinear el contenido en dos columnas */
+            width: 90%; /* Ocupa el 100% del contenedor padre */
+            gap: 20px; /* Espacio entre la tabla y el contenedor de radios */
+            margin: 0 auto; /* Centra el contenedor en la página */
+        }
 
-    .tableta {
-        width: 25%; /* Ancho más estrecho de la tabla de posiciones */
-        margin: 20px; /* Margen alrededor de la tabla */
-        flex-grow: 1; /* Permitir que esta tabla crezca y ocupe espacio disponible */
-    }
+        .tableta {
+            width: 25%; /* Ancho más estrecho de la tabla de posiciones */
+            margin: 20px; /* Margen alrededor de la tabla */
+            flex-grow: 1; /* Permitir que esta tabla crezca y ocupe espacio disponible */
+        }
 
-    .radiocon-container {
-        display: flex;
-        flex-direction: column; /* Apilar verticalmente las secciones de radiocon */
-        width: 55%; /* Ancho del contenedor de radios y control */
-        margin: 20px; /* Margen alrededor del contenedor */
-    }
+        .radiocon-container {
+            display: flex;
+            flex-direction: column; /* Apilar verticalmente las secciones de radiocon */
+            width: 55%; /* Ancho del contenedor de radios y control */
+            margin: 20px; /* Margen alrededor del contenedor */
+        }
 
         .radiocon {
             background-color: rgba(255, 255, 255, 0.1); /* Fondo transparente */
@@ -1209,6 +1209,24 @@
         @keyframes moveDown {
             from { transform: translateY(-10px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Consulta de medios para dispositivos móviles */
+        @media (max-width: 767px) {
+            .tables-container {
+                flex-direction: column; /* Cambia a una dirección de columna para dispositivos móviles */
+                width: 100%; /* Asegúrate de que el contenedor ocupe todo el ancho */
+            }
+
+            .tableta {
+                width: 100%; /* Asegúrate de que la tabla ocupe todo el ancho en dispositivos móviles */
+                margin: 10px 0; /* Margen más pequeño alrededor de la tabla */
+            }
+
+            .radiocon-container {
+                width: 100%; /* Asegúrate de que el contenedor de radio y control ocupe todo el ancho */
+                margin: 10px 0; /* Margen más pequeño alrededor del contenedor */
+            }
         }
 </style>
 
