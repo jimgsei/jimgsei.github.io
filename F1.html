@@ -1060,15 +1060,20 @@
         }
         .radio-message td {
             border: 1px solid transparent; /* Transparent borders */
-            vertical-align: top; /* Align cells at the top */
-            padding: 5px; /* Space around text */
+            vertical-align: center; /* Align cells at the top */
+            padding: 3px; /* Space around text */
         }
         .radio-message td:first-child {
             width: 5%; /* Width for time and acronym column */
         }
         .radio-message td:last-child {
-            width: 95%; /* Width for audio column */
+            width: 30%; /* Width for audio column */
         }
+		.radio-message audio {
+			height: 30px; /* Ajusta la altura del elemento de audio */
+			/* Puedes ajustar también el width si lo necesitas */
+			width: 100%; /* Mantenerlo en 100% para que ocupe toda la celda */
+		}
         .radio-message time {
             font-size: 14px; /* Smaller font for time */
             margin-bottom: 8px; /* Space between time and acronym */
@@ -1086,7 +1091,7 @@
             color: #fff; /* Color blanco para el acrónimo */
         }
         audio {
-            margin: 5px 0; /* Space around audio */
+            margin: 2px 0; /* Space around audio */
         }
         .race-message {
             background-color: rgba(255, 255, 255, 0.2); /* Fondo semi-transparente */
