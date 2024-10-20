@@ -1888,6 +1888,7 @@
                     sessions.sort((a, b) => new Date(`${a.date}T${a.time}`) - new Date(`${b.date}T${b.time}`));
 
                     let upcomingSessions = false;
+                    let hasSprintSessions = false; // Variable para controlar si hay sesiones de Sprint
 
                     for (let session of sessions) {
                         if (session.date && session.time) {
@@ -1900,8 +1901,10 @@
 
                                 if (session.name === 'Clasificación' && (session.date === nextRace.SprintQualifying?.date && session.time === nextRace.SprintQualifying?.time)) {
                                     sprintSessionsCell += `${session.name}: ${sessionDay.charAt(0).toUpperCase() + sessionDay.slice(1)}, ${sessionTime.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })} a las ${madridSessionTime}<br>`;
+                                    hasSprintSessions = true; // Se encuentra al menos una sesión de Sprint
                                 } else if (session.name === 'Carrera' && (session.date === nextRace.Sprint?.date && session.time === nextRace.Sprint?.time)) {
                                     sprintSessionsCell += `${session.name}: ${sessionDay.charAt(0).toUpperCase() + sessionDay.slice(1)}, ${sessionTime.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })} a las ${madridSessionTime}<br>`;
+                                    hasSprintSessions = true; // Se encuentra al menos una sesión de Sprint
                                 } else {
                                     carreraSessionsCell += `${session.name}: ${sessionDay.charAt(0).toUpperCase() + sessionDay.slice(1)}, ${sessionTime.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })} a las ${madridSessionTime}<br>`;
                                 }
@@ -1914,7 +1917,11 @@
 
                     if (upcomingSessions) {
                         dataBox.querySelector('.details').innerHTML += carreraSessionsCell;
-                        dataBox.querySelector('.details').innerHTML += sprintSessionsCell;
+
+                        // Solo añadir sprintSessionsCell si hay sesiones de Sprint
+                        if (hasSprintSessions) {
+                            dataBox.querySelector('.details').innerHTML += sprintSessionsCell;
+                        }
                     }
 
                     dataContainer.appendChild(dataBox);
