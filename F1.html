@@ -1004,6 +1004,7 @@
           }
         }
 
+	
 	/* Radio y control */
 	.radiocon-container {
     	display: flex;
@@ -1013,78 +1014,78 @@
    	    margin: 0 auto 100px auto; /* Añadir espacio debajo del contenedor */
     }
 
-.radiocon {
-    background-color: rgba(255, 255, 255, 0.1);
-    border: 0px solid rgba(255, 255, 255, 0.3);
-    padding: 10px;
-    border-radius: 8px;
-    margin-bottom: 100px;
-    flex: 1; /* Para que ambas secciones ocupen el mismo espacio */
-    max-height: 340px;
-    overflow: hidden;
-    max-width: 48%; /* Limitar el ancho de cada contenedor en pantallas grandes */
-    box-sizing: border-box; /* Incluir padding en el cálculo del ancho */
-}
+	.radiocon {
+		background-color: rgba(255, 255, 255, 0.1);
+		border: 0px solid rgba(255, 255, 255, 0.3);
+		padding: 10px;
+		border-radius: 8px;
+		margin-bottom: 100px;
+		flex: 1; /* Para que ambas secciones ocupen el mismo espacio */
+		max-height: 340px;
+		overflow: hidden;
+		max-width: 48%; /* Limitar el ancho de cada contenedor en pantallas grandes */
+		box-sizing: border-box; /* Incluir padding en el cálculo del ancho */
+	}
 
-/* Control de scroll */
-#race-control, #team-radio {
-    max-height: 350px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
+	/* Control de scroll */
+	#race-control, #team-radio {
+		max-height: 350px;
+		overflow-y: auto;
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+	}
 
-/* Estilos de barra de desplazamiento */
-#race-control::-webkit-scrollbar,
-#team-radio::-webkit-scrollbar {
-    width: 10px;
-}
+	/* Estilos de barra de desplazamiento */
+	#race-control::-webkit-scrollbar,
+	#team-radio::-webkit-scrollbar {
+		width: 10px;
+	}
 
-#race-control::-webkit-scrollbar-track,
-#team-radio::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-}
+	#race-control::-webkit-scrollbar-track,
+	#team-radio::-webkit-scrollbar-track {
+		background: rgba(255, 255, 255, 0.1);
+		border-radius: 10px;
+	}
 
-#race-control::-webkit-scrollbar-thumb,
-#team-radio::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.6);
-    border-radius: 10px;
-}
+	#race-control::-webkit-scrollbar-thumb,
+	#team-radio::-webkit-scrollbar-thumb {
+		background: rgba(255, 255, 255, 0.6);
+		border-radius: 10px;
+	}
 
-#race-control::-webkit-scrollbar-thumb:hover,
-#team-radio::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.8);
-}
+	#race-control::-webkit-scrollbar-thumb:hover,
+	#team-radio::-webkit-scrollbar-thumb:hover {
+		background: rgba(255, 255, 255, 0.8);
+	}
+	
+	/* Mensajes de radio */
+	.race-message, .radio-message {
+		margin-bottom: 15px;
+		background-color: rgba(255, 255, 255, 0.2);
+		padding: 10px;
+		border-radius: 5px;
+		box-shadow: 0 0 5px rgba(255, 255, 255, 0.1);
+	}
 
-/* Mensajes de radio */
-.race-message, .radio-message {
-    margin-bottom: 15px;
-    background-color: rgba(255, 255, 255, 0.2);
-    padding: 10px;
-    border-radius: 5px;
-    box-shadow: 0 0 5px rgba(255, 255, 255, 0.1);
-}
+	/* Título */
+	h1 {
+		text-align: center;
+		font-size: 18px;
+		color: #fff;
+	}
 
-/* Título */
-h1 {
-    text-align: center;
-    font-size: 18px;
-    color: #fff;
-}
+	/* Consulta de medios para dispositivos móviles */
+	@media (max-width: 767px) {
+	.radiocon-container {
+			flex-direction: column; /* Cambia la dirección a columna en móviles */
+			max-width: 80%; /* Asegúrate de que ocupe todo el ancho */
+		}
 
-/* Consulta de medios para dispositivos móviles */
-@media (max-width: 767px) {
-    .radiocon-container {
-        flex-direction: column; /* Cambia la dirección a columna en móviles */
-        max-width: 100%; /* Asegúrate de que ocupe todo el ancho */
-    }
-
-    .radiocon {
-        max-width: 100%; /* Asegúrate de que el contenedor de radio y control ocupe todo el ancho en móviles */
-    }
-}
+		.radiocon {
+			max-width: 100%; /* Asegúrate de que el contenedor de radio y control ocupe todo el ancho en móviles */
+		}
+	}
 </style>
 
 
