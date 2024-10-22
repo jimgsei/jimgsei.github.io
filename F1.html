@@ -1005,88 +1005,162 @@
         }
 
 	
-	/* Radio y control */
-	.radiocon-container {
-    	display: flex;
- 	    justify-content: space-between;
-    	flex-wrap: wrap; /* Permitir que los elementos se muevan a una nueva fila si no caben */
-	    max-width: 1200px; /* Limitar el ancho total del contenedor para que no ocupe toda la pantalla */
-   	    margin: 0 auto 100px auto; /* Añadir espacio debajo del contenedor */
-    }
+        /* Contenedor de radio y control */
+        /* Radio y control */
+        .radiocon-container {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            max-width: 1200px;
+            margin: 0 auto 80px auto; /* Reducir el espacio debajo del contenedor */
+			gap: 20px; /* Espacio entre la tabla y el contenedor de radios */
+        }
 
-	.radiocon {
-		background-color: rgba(255, 255, 255, 0.1);
-		border: 0px solid rgba(255, 255, 255, 0.3);
-		padding: 8px;
-		border-radius: 8px;
-		margin-bottom: 100px;
-		flex: 1; /* Para que ambas secciones ocupen el mismo espacio */
-		max-height: 340px;
-		overflow: hidden;
-		max-width: 48%; /* Limitar el ancho de cada contenedor en pantallas grandes */
-		box-sizing: border-box; /* Incluir padding en el cálculo del ancho */
-	}
+        .radiocon {
+            background-color: rgba(255, 255, 255, 0.1); /* Fondo transparente */
+            border: 1px solid rgba(255, 255, 255, 0.3); /* Borde blanco y semi-transparente */
+            padding: 10px;
+            border-radius: 8px; /* Bordes redondeados para el contenedor */
+            margin-bottom: 20px; /* Espacio entre las secciones */
+            flex: 1; /* Para que ambas secciones ocupen el mismo espacio */
+            max-height: 340px; /* Limitar la altura máxima del contenedor */
+            overflow: hidden; /* Ocultar la barra de desplazamiento */
+        }
 
-	/* Control de scroll */
-	#race-control, #team-radio {
-		max-height: 350px;
-		overflow-y: auto;
-		display: flex;
-		flex-direction: column;
-		gap: 10px;
-	}
+        #race-control, #team-radio {
+            max-height: 350px; /* Limitar la altura a 350px */
+            overflow-y: auto; /* Mantener el desplazamiento */
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
 
-	/* Estilos de barra de desplazamiento */
-	#race-control::-webkit-scrollbar,
-	#team-radio::-webkit-scrollbar {
-		width: 10px;
-	}
+        /* Estilos para la barra de desplazamiento */
+        #race-control::-webkit-scrollbar,
+        #team-radio::-webkit-scrollbar {
+            width: 10px; /* Ancho de la barra de desplazamiento */
+        }
 
-	#race-control::-webkit-scrollbar-track,
-	#team-radio::-webkit-scrollbar-track {
-		background: rgba(255, 255, 255, 0.1);
-		border-radius: 10px;
-	}
+        #race-control::-webkit-scrollbar-track,
+        #team-radio::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1); /* Color de fondo de la pista */
+            border-radius: 10px; /* Bordes redondeados para la pista */
+        }
 
-	#race-control::-webkit-scrollbar-thumb,
-	#team-radio::-webkit-scrollbar-thumb {
-		background: rgba(255, 255, 255, 0.6);
-		border-radius: 10px;
-	}
+        #race-control::-webkit-scrollbar-thumb,
+        #team-radio::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.6); /* Color del pulgar */
+            border-radius: 10px; /* Bordes redondeados para el pulgar */
+        }
 
-	#race-control::-webkit-scrollbar-thumb:hover,
-	#team-radio::-webkit-scrollbar-thumb:hover {
-		background: rgba(255, 255, 255, 0.8);
-	}
-	
-	
-	/* Mensajes de radio */
-	.race-message, .radio-message {
-		margin-bottom: 10px;
-		background-color: rgba(255, 255, 255, 0.2);
-		padding: 8px;
-		border-radius: 5px;
-		box-shadow: 0 0 5px rgba(255, 255, 255, 0.1);
-	}
+        #race-control::-webkit-scrollbar-thumb:hover,
+        #team-radio::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.8); /* Color del pulgar al pasar el mouse */
+        }
 
-	/* Título */
-	h1 {
-		text-align: center;
-		font-size: 18px;
-		color: #fff;
-	}
+        .race-message, .radio-message {
+            margin-bottom: 15px;
+        }
 
-	/* Consulta de medios para dispositivos móviles */
-	@media (max-width: 767px) {
-	.radiocon-container {
-			flex-direction: column; /* Cambia la dirección a columna en móviles */
-			max-width: 80%; /* Asegúrate de que ocupe todo el ancho */
-		}
+        .race-message time, .radio-message time {
+            display: block;
+            font-size: 12px;
+            color: #fff; /* Color blanco para el tiempo */
+        }
 
-		.radiocon {
-			max-width: 100%; /* Asegúrate de que el contenedor de radio y control ocupe todo el ancho en móviles */
-		}
-	}
+        .race-message p, .radio-message p {
+            font-weight: bold;
+            margin: 0;
+            color: #fff; /* Color blanco para el texto */
+        }
+
+        audio {
+            width: 100%;
+        }
+
+        .radio-message {
+            background-color: rgba(255, 255, 255, 0.2); /* Fondo semi-transparente */
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.1); /* Sombra blanca y semi-transparente */
+            display: flex;
+        }
+
+        .radio-message table {
+            width: 100%; /* Full width for the table */
+            border-collapse: collapse; /* Collapsing borders */
+        }
+
+        .radio-message td {
+            border: 1px solid transparent; /* Transparent borders */
+            vertical-align: center; /* Align cells at the top */
+            padding: 3px; /* Space around text */
+        }
+
+        .radio-message td:first-child {
+            width: 5%; /* Width for time and acronym column */
+        }
+
+        .radio-message td:last-child {
+            width: 30%; /* Width for audio column */
+        }
+
+        .radio-message audio {
+            height: 30px; /* Ajusta la altura del elemento de audio */
+            width: 100%; /* Mantenerlo en 100% para que ocupe toda la celda */
+        }
+
+        .radio-message time {
+            font-size: 14px; /* Smaller font for time */
+            margin-bottom: 8px; /* Space between time and acronym */
+        }
+
+        .radio-message .acronym-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center; /* Center acronym */
+            margin: 10px 0; /* Space between acronym and audio */
+        }
+
+        .radio-message .acronym-container p {
+            font-size: 18px; /* Increase font size for the acronym */
+            margin: 2; /* Remove margin */
+            color: #fff; /* Color blanco para el acrónimo */
+        }
+
+        audio {
+            margin: 2px 0; /* Space around audio */
+        }
+
+        .race-message {
+            background-color: rgba(255, 255, 255, 0.2); /* Fondo semi-transparente */
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.1); /* Sombra blanca y semi-transparente */
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 18px;
+            color: #fff; /* Color blanco para el título */
+        }
+
+        @media (min-width: 768px) {
+            .radiocon {
+                width: 100%; /* Asegurar que ocupen todo el ancho en pantallas grandes */
+            }
+        }
+
+
+        /* Consulta de medios para dispositivos móviles */
+        @media (max-width: 767px) {
+             .radiocon-container {
+                margin: 10px auto; /* Margen más pequeño alrededor del contenedor y centrar */
+				flex-direction: column;
+                max-width: 80%; /* Asegúrate de que ocupe casi todo el ancho */
+            }
+        }
 </style>
 
 
