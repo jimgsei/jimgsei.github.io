@@ -278,7 +278,8 @@
         .horizontal-container {
             display: flex;
             flex-direction: row;
-            justify-content: space-between;
+            justify-content: center; /* Centra todos los elementos */
+			align-items: flex-start; /* Alinea elementos en la parte superior */
             flex-wrap: wrap;
         }
         .current-circuit {
@@ -320,6 +321,7 @@
             top: 70px;
             background-color: transparent;
             border: 0px solid #8B0000;
+			margin: 0 auto; /* Centrar el elemento */
         }
         .details {
             display: block;
