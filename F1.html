@@ -1950,43 +1950,76 @@
       }
     }
 
-    // Función datos clasificación de constructores
-    async function fetchConstructorStandings() {
-      try {
-        const proxyUrl = 'https://api.allorigins.win/get?url=';
-        const targetUrl = encodeURIComponent('https://api.jolpi.ca/ergast/f1/2024/constructorstandings.json');
-        const response = await fetch(proxyUrl + targetUrl);
-        const data = await response.json();
-        const jsonData = JSON.parse(data.contents);
+	// Variables para almacenar el último número de carrera y nombre de carrera
+	let lastRound = null;
+	let lastRaceName = null;
 
-        // Extraer información de la clasificación de constructores
-        const standings = jsonData.MRData.StandingsTable.StandingsLists[0].ConstructorStandings;
-        const round = jsonData.MRData.StandingsTable.StandingsLists[0].round;
+	// Función datos clasificación de constructores
+	async function fetchConstructorStandings() {
+	  try {
+		const proxyUrl = 'https://api.allorigins.win/get?url=';
+		const targetUrl = encodeURIComponent('https://api.jolpi.ca/ergast/f1/2024/constructorstandings.json');
+		const response = await fetch(proxyUrl + targetUrl);
+		const data = await response.json();
+		const jsonData = JSON.parse(data.contents);
 
-        // Obtener el nombre de la carrera correspondiente al round
-        const raceResponse = await fetch(proxyUrl + encodeURIComponent('https://api.jolpi.ca/ergast/f1/2024/races.json'));
-        const raceData = await raceResponse.json();
-        const raceJsonData = JSON.parse(raceData.contents);
-        const raceName = raceJsonData.MRData.RaceTable.Races.find(race => race.round == round).raceName;
+		// Extraer información de la clasificación de constructores
+		const standings = jsonData.MRData.StandingsTable.StandingsLists[0].ConstructorStandings;
+		const round = jsonData.MRData.StandingsTable.StandingsLists[0].round;
 
-        // Mostrar el número de carrera y el nombre de la carrera en la cabecera de la tabla de constructores
-        document.getElementById('constructor-table').rows[0].cells[0].textContent = `Nº carrera: ${round} - ${raceName}`;
+		// Obtener el nombre de la carrera correspondiente al round
+		const raceResponse = await fetch(proxyUrl + encodeURIComponent('https://api.jolpi.ca/ergast/f1/2024/races.json'));
+		const raceData = await raceResponse.json();
+		const raceJsonData = JSON.parse(raceData.contents);
+		const raceName = raceJsonData.MRData.RaceTable.Races.find(race => race.round == round).raceName;
 
-        // Construir la tabla con los resultados de los constructores
-        const tableBody = document.getElementById('constructor-table').querySelector('tbody');
-        let html = '';
-        standings.forEach(standing => {
-          const position = standing.position;
-          const teamName = standing.Constructor.name;
-          const points = standing.points;
-          html += `<tr><td>${position}</td><td>${teamName}</td><td>${points}</td></tr>`;
-        });
-        tableBody.innerHTML = html;
-      } catch (error) {
-        console.error('Error fetching constructor standings:', error);
-        document.getElementById('constructor-table').querySelector('tbody').textContent = 'Hubo un error al obtener la clasificación de constructores de F1.';
-      }
-    }
+		// Obtener el elemento de la tabla y la cabecera
+		const table = document.getElementById('constructor-table');
+		const thead = table.querySelector('thead');
+
+		// Verificar si la fila de "Mundial Constructores" ya existe
+		if (!thead.querySelector('tr:nth-child(1) th[colspan="3"]')) {
+		   // Agregar una nueva fila a la cabecera que ocupe las tres columnas
+		   const headerRow1 = document.createElement('tr');
+		   const headerCell1 = document.createElement('th');
+           headerCell1.colSpan = 3; // Hacer que ocupe las tres columnas
+           headerCell1.textContent = 'Clasificación de Constructores';
+           headerCell1.style.textAlign = 'center'; // Centrar el texto en la celda
+           headerRow1.appendChild(headerCell1);
+           thead.insertBefore(headerRow1, thead.firstChild); // Insertar como la primera fila
+        }
+
+		// Verificar si el número de carrera o el nombre de la carrera han cambiado
+		if (lastRound !== round || lastRaceName !== raceName) {
+		   // Mostrar el número de carrera y el nombre de la carrera en la cabecera de la tabla de constructores
+		   const roundHeader = document.createElement('tr');
+		   const roundCell = document.createElement('th');
+		   roundCell.colSpan = 3; // Hacer que ocupe las tres columnas
+		   roundCell.textContent = `Nº carrera: ${round} - ${raceName}`;
+		   roundCell.style.textAlign = 'center'; // Centrar el texto en la celda
+		   roundHeader.appendChild(roundCell);
+		   thead.insertBefore(roundHeader, thead.querySelector('tr:nth-child(2)')); // Insertar antes de la fila de encabezado existente
+
+		   // Actualizar las variables para el siguiente ciclo
+		   lastRound = round;
+		   lastRaceName = raceName;
+        }
+
+		// Construir la tabla con los resultados de los constructores
+		const tableBody = table.querySelector('tbody');
+		let html = '';
+		standings.forEach(standing => {
+			const position = standing.position;
+			const teamName = standing.Constructor.name;
+			const points = standing.points;
+			html += `<tr><td>${position}</td><td>${teamName}</td><td>${points}</td></tr>`;
+		});
+		tableBody.innerHTML = html;
+	 } catch (error) {
+		console.error('Error fetching constructor standings:', error);
+		document.getElementById('constructor-table').querySelector('tbody').textContent = 'Hubo un error al obtener la clasificación de constructores de F1.';
+	 }
+	}
    
 
        // Función datos tiempo
