@@ -2283,10 +2283,9 @@
         });
     </script>
     
-	  <!-- Comprobación api -->
- <script>
- 
- // comprueba estado api
+	
+   <script>
+        // Función para comprobar el estado de la API
         async function checkApiStatus(apiUrl, elementId, expectedResponse) {
             const proxyUrl = 'https://api.allorigins.win/get?url=';
             try {
@@ -2296,11 +2295,28 @@
                 }
                 const data = await response.json();
                 const apiData = data.contents;
+
+                // Inspecciona la respuesta de la API
+                console.log(apiData); // Para verificar la respuesta real
+
                 const statusDiv = document.getElementById(elementId);
-                if (apiData.includes(expectedResponse)) {
-                    statusDiv.innerHTML = `<span>✔️</span>`;
-                } else {
-                    statusDiv.innerHTML = `<span>❌</span>`;
+
+                // Verifica si la respuesta es JSON
+                try {
+                    const parsedData = JSON.parse(apiData);
+                    // Ajusta según la estructura de respuesta de la API
+                    if (parsedData.status === 'OK') {
+                        statusDiv.innerHTML = `<span>✔️</span>`;
+                    } else {
+                        statusDiv.innerHTML = `<span>❌</span>`;
+                    }
+                } catch (e) {
+                    // Si no es un JSON válido, comprueba si incluye el mensaje esperado
+                    if (apiData.includes(expectedResponse)) {
+                        statusDiv.innerHTML = `<span>✔️</span>`;
+                    } else {
+                        statusDiv.innerHTML = `<span>❌</span>`;
+                    }
                 }
             } catch (error) {
                 console.error('Error al verificar el estado de la API:', error);
@@ -2309,6 +2325,7 @@
             }
         }
 
+        // Función para crear la tabla
         function createTable() {
             const tableHTML = `
                 <table>
@@ -2333,16 +2350,17 @@
             document.getElementById('tableContainer').innerHTML = tableHTML;
         }
 
+        // Función para actualizar los estados de las APIs
         function updateStatuses() {
-            checkApiStatus('https://api.jolpi.ca/', 'apiStatus1', 'OK');
+            checkApiStatus('https://api.jolpi.ca/ergast/', 'apiStatus1', 'OK');
             checkApiStatus('https://api.openf1.org/', 'apiStatus2', 'Welcome to OpenF1!');
         }
 
+        // Inicializar la tabla y los estados
         createTable();
         updateStatuses();
         setInterval(updateStatuses, 10000); // Actualiza cada 10 segundos
     </script>
-
 
 
   <!-- Control de carreras -->
