@@ -1735,15 +1735,217 @@
     });
 </script>
 
- <!-- Horarios y datos carrera actual -->
+ 
+
+
+<!-- Clasificaciones -->
 <script>
-    // Datos de la carrera actual
-    let lastRaceData = null;
+    // Variables para almacenar datos
+    let qualifyingData = null;
+    let championshipData = null;
+    let constructorData = null;
+
+    // Función para crear una tabla
+    function createTable(id, header, columns) {
+        const tableContainer = document.createElement('div');
+        tableContainer.classList.add('table-container');
+        const table = document.createElement('table');
+        table.id = id;
+
+        const thead = document.createElement('thead');
+        const headerRow = document.createElement('tr');
+        const headerCell = document.createElement('th');
+        headerCell.colSpan = columns.length;
+        headerCell.textContent = header;
+        headerRow.appendChild(headerCell);
+        thead.appendChild(headerRow);
+
+        const columnRow = document.createElement('tr');
+        columns.forEach(col => {
+            const th = document.createElement('th');
+            th.textContent = col;
+            columnRow.appendChild(th);
+        });
+        thead.appendChild(columnRow);
+
+        table.appendChild(thead);
+        const tbody = document.createElement('tbody');
+        table.appendChild(tbody);
+
+        tableContainer.appendChild(table);
+        return tableContainer;
+    }
+
+    // Añadir las tablas al contenedor
+    const tablesContainer = document.getElementById('tables-container');
+    tablesContainer.appendChild(createTable('qualifying-table', 'Clasificación de la Última Carrera', ['Puesto', 'Piloto']));
+    tablesContainer.appendChild(createTable('championship-table', 'Clasificación del Campeonato', ['Puesto', 'Piloto', 'Puntos']));
+    tablesContainer.appendChild(createTable('constructor-table', 'Clasificación de Constructores', ['Puesto', 'Equipo', 'Puntos']));
+
+    // Retrasos en milisegundos
+    const retryDelay = 30000; // 30 segundos para reintentos
+    const fetchDelay = 5000; // 5 segundos para el reintento
+
+    async function fetchWithRetry(url, useProxy = true) {
+        const proxyUrl = 'https://api.allorigins.win/get?url=';
+        const fullUrl = useProxy ? proxyUrl + encodeURIComponent(url) : url;
+
+        try {
+            const response = await fetch(fullUrl);
+            if (!response.ok) throw new Error('Network response was not ok');
+
+            const data = await response.json();
+            let jsonData;
+            try {
+                jsonData = useProxy ? JSON.parse(data.contents) : data;
+            } catch (jsonError) {
+                console.warn("Error al analizar JSON, intentando con proxy...");
+                return useProxy ? fetchWithRetry(url, false) : null; // Retornar null si falla en ambos
+            }
+
+            return jsonData;
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            throw error; // Volver a lanzar el error para manejarlo en la función que llama
+        }
+    }
+
+    // Función datos clasificación carrera
+    async function fetchLastF1Qualifying() {
+        if (qualifyingData) {
+            updateQualifyingTable(qualifyingData);
+            return;
+        }
+
+        try {
+            // Intentar sin proxy primero
+            qualifyingData = await fetchWithRetry('https://api.jolpi.ca/ergast/f1/current/last/qualifying.json', false);
+            if (!qualifyingData) {
+                // Si no hay datos después de intentar sin proxy, intenta con proxy
+                qualifyingData = await fetchWithRetry('https://api.jolpi.ca/ergast/f1/current/last/qualifying.json', true);
+            }
+            updateQualifyingTable(qualifyingData);
+        } catch (error) {
+            console.error('Error fetching last F1 qualifying:', error);
+            document.getElementById('qualifying-table').querySelector('tbody').textContent = 'Hubo un error al obtener la información de la última clasificación de F1.';
+        }
+    }
+
+    function updateQualifyingTable(data) {
+        const raceName = data.MRData.RaceTable.Races[0].raceName;
+        const qualifyingResults = data.MRData.RaceTable.Races[0].QualifyingResults;
+
+        // Mostrar el nombre del Gran Premio en la tabla de clasificación
+        document.getElementById('qualifying-table').rows[0].cells[0].textContent = raceName;
+
+        // Construir la tabla con los resultados de la clasificación
+        const tableBody = document.getElementById('qualifying-table').querySelector('tbody');
+        let html = '';
+        qualifyingResults.forEach(result => {
+            const driverName = `${result.Driver.givenName} ${result.Driver.familyName}`;
+            const position = result.position;
+            const isFernandoOrCarlos = driverName.includes('Fernando Alonso') || driverName.includes('Carlos Sainz');
+            html += `<tr${isFernandoOrCarlos ? ' class="highlight"' : ''}><td>${position}</td><td>${driverName}</td></tr>`;
+        });
+        tableBody.innerHTML = html;
+    }
+
+    // Función datos clasificación del campeonato
+    async function fetchChampionshipStandings() {
+        if (championshipData) {
+            updateChampionshipTable(championshipData);
+            return;
+        }
+
+        try {
+            championshipData = await fetchWithRetry('https://api.jolpi.ca/ergast/f1/2024/driverstandings.json', false);
+            if (!championshipData) {
+                championshipData = await fetchWithRetry('https://api.jolpi.ca/ergast/f1/2024/driverstandings.json', true);
+            }
+            updateChampionshipTable(championshipData);
+        } catch (error) {
+            console.error('Error fetching championship standings:', error);
+            document.getElementById('championship-table').querySelector('tbody').textContent = 'Hubo un error al obtener la clasificación del campeonato de F1.';
+        }
+    }
+
+    function updateChampionshipTable(data) {
+        const standings = data.MRData.StandingsTable.StandingsLists[0].DriverStandings;
+
+        // Construir la tabla con los resultados del campeonato
+        const tableBody = document.getElementById('championship-table').querySelector('tbody');
+        let html = '';
+        standings.forEach(standing => {
+            const position = standing.position;
+            const driverName = `${standing.Driver.givenName} ${standing.Driver.familyName}`;
+            const points = standing.points;
+            html += `<tr><td>${position}</td><td>${driverName}</td><td>${points}</td></tr>`;
+        });
+        tableBody.innerHTML = html;
+    }
+
+    // Función para obtener datos de clasificación de constructores
+    async function fetchConstructorStandings() {
+        if (constructorData) {
+            updateConstructorTable(constructorData);
+            return;
+        }
+
+        try {
+            constructorData = await fetchWithRetry('https://api.jolpi.ca/ergast/f1/2024/constructorstandings.json', false);
+            if (!constructorData) {
+                constructorData = await fetchWithRetry('https://api.jolpi.ca/ergast/f1/2024/constructorstandings.json', true);
+            }
+            updateConstructorTable(constructorData);
+        } catch (error) {
+            console.error('Error fetching constructor standings:', error);
+            document.getElementById('constructor-table').querySelector('tbody').textContent = 'Hubo un error al obtener la clasificación de constructores de F1.';
+        }
+    }
+
+    function updateConstructorTable(data) {
+        const standings = data.MRData.StandingsTable.StandingsLists[0].ConstructorStandings;
+
+        const tableBody = document.getElementById('constructor-table').querySelector('tbody');
+        let html = '';
+        standings.forEach(standing => {
+            const position = standing.position;
+            const teamName = standing.Constructor.name;
+            const points = standing.points;
+            html += `<tr><td>${position}</td><td>${teamName}</td><td>${points}</td></tr>`;
+        });
+        tableBody.innerHTML = html;
+    }
+
+    // Llamadas a las funciones para cargar los datos
+    async function loadF1Data() {
+        while (true) {
+            try {
+                await fetchLastF1Qualifying();
+                await fetchChampionshipStandings();
+                await fetchConstructorStandings();
+                break; // Salir del bucle si se obtienen los datos correctamente
+            } catch (error) {
+                console.error('Fallo en la obtención de datos. Esperando 30 segundos para volver a intentar...', error);
+                await new Promise(resolve => setTimeout(resolve, retryDelay)); // Esperar 30 segundos antes del siguiente intento
+            }
+        }
+    }
+
+    loadF1Data(); // Cargar los datos al inicio
+</script>
+
+
+<!-- Script combinado para horarios y datos de carrera actual y próximas carreras -->
+<script>
+    // Datos de la carrera actual y próximas carreras
+    let lastRaceData = null; // Datos de la última carrera
     let cachedRaceData = null; // Variable para almacenar datos en caché
 
-    // Función datos carrera actual
+    // Función para obtener datos de la carrera actual y próximas carreras
     async function fetchF1Data() {
         const dataContainer = document.getElementById('dataContainer');
+        const upcomingDataContainer = document.getElementById('upcomingDataContainer');
         const targetUrl = 'https://api.jolpi.ca/ergast/f1/current.json';
 
         try {
@@ -1754,136 +1956,104 @@
             }
             const jsonData = await response.json();
             cachedRaceData = jsonData; // Almacenar en caché
+
+            // Obtener la fecha y hora actual en Madrid
+            const now = new Date().toLocaleString('en-US', { timeZone: 'Europe/Madrid' });
+            const today = new Date(now).toISOString().split('T')[0];
+
+            // Filtrar carreras por la fecha de hoy o la próxima carrera
+            const races = cachedRaceData.MRData.RaceTable.Races;
+            let nextRace = null;
+            for (let race of races) {
+                if (race.date === today || new Date(race.date) > new Date(today)) {
+                    nextRace = race;
+                    break;
+                }
+            }
+
+            // Actualizar datos de la carrera actual
+            if (JSON.stringify(nextRace) !== JSON.stringify(lastRaceData)) {
+                lastRaceData = nextRace; // Actualizar los datos almacenados
+                displayCurrentRace(dataContainer, nextRace); // Mostrar carrera actual
+            }
+
+            // Mostrar próximas carreras
+            displayUpcomingRaces(upcomingDataContainer, races);
         } catch (error) {
             console.error('Error al obtener datos de la API:', error);
             dataContainer.textContent = 'Error: ' + error.message;
-            return; // Salir de la función si falla
+            upcomingDataContainer.textContent = 'Error: ' + error.message; // Mostrar error en próximas carreras
         }
 
-        // Obtener la fecha y hora actual en Madrid
-        const now = new Date().toLocaleString('en-US', { timeZone: 'Europe/Madrid' });
-        const today = new Date(now).toISOString().split('T')[0];
-
-        // Filtrar carreras por la fecha de hoy o la próxima carrera
-        const races = cachedRaceData.MRData.RaceTable.Races;
-        let nextRace = null;
-        for (let race of races) {
-            if (race.date === today || new Date(race.date) > new Date(today)) {
-                nextRace = race;
-                break;
-            }
-        }
-
-        // Comprobar si hay datos nuevos
-        if (JSON.stringify(nextRace) !== JSON.stringify(lastRaceData)) {
-            lastRaceData = nextRace; // Actualizar los datos almacenados
-
-            // Limpiar el contenedor antes de agregar nuevos datos
-            dataContainer.innerHTML = '';
-
-            // Insertar datos en el contenedor
-            if (nextRace) {
-                const dataBox = document.createElement('div');
-                dataBox.className = 'current-circuit';
-
-                // Mantener la información del circuito, ubicación y enlace a Wikipedia
-                dataBox.innerHTML = `
-                    <p class="race-name">${nextRace.raceName}</p>
-                    <div class="data-cell"><strong>Carrera Nº ${nextRace.round}</strong></div>
-                    <div class="details">
-                        <div class="data-cell">${nextRace.Circuit.circuitName}</div>
-                        <div class="data-cell">Ubicación: ${nextRace.Circuit.Location.locality}, ${nextRace.Circuit.Location.country}</div>
-                        <div class="data-cell"><a href="${nextRace.url}" target="_blank">Más información en Wikipedia</a></div>
-                    </div>
-                    <div class="show-more">Mostrar Horarios <strong>&#9660;</strong></div>
-                `;
-
-                // Crear una celda con todas las prácticas y sesiones
-                let carreraSessionsCell = `<div class="data-cell" style="border: 1px solid #006F62;"><strong>Carrera Nº ${nextRace.round}</strong><br>`;
-                const sessions = [
-                    { name: 'Libres 1', date: nextRace.FirstPractice?.date, time: nextRace.FirstPractice?.time },
-                    { name: 'Libres 2', date: nextRace.SecondPractice?.date, time: nextRace.SecondPractice?.time },
-                    { name: 'Libres 3', date: nextRace.ThirdPractice?.date, time: nextRace.ThirdPractice?.time },
-                    { name: 'Clasificación', date: nextRace.Qualifying.date, time: nextRace.Qualifying.time },
-                    { name: 'Sprint Clasificación', date: nextRace.SprintQualifying?.date, time: nextRace.SprintQualifying?.time },
-                    { name: 'Sprint', date: nextRace.Sprint?.date, time: nextRace.Sprint?.time },
-                    { name: 'Carrera', date: nextRace.date, time: nextRace.time }
-                ];
-
-                // Ordenar las sesiones por fecha y hora
-                sessions.sort((a, b) => new Date(`${a.date}T${a.time}`) - new Date(`${b.date}T${b.time}`));
-
-                sessions.forEach(session => {
-                    if (session.date && session.time) {
-                        const sessionTime = new Date(`${session.date}T${session.time}`);
-                        const madridSessionTime = sessionTime.toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
-                        const sessionDay = sessionTime.toLocaleDateString('es-ES', { weekday: 'long' });
-                        carreraSessionsCell += `${session.name}: ${sessionDay.charAt(0).toUpperCase() + sessionDay.slice(1)}, ${sessionTime.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })} a las ${madridSessionTime}<br>`;
-                    }
-                });
-
-                carreraSessionsCell += `</div>`;
-                dataBox.querySelector('.details').innerHTML += carreraSessionsCell;
-
-                dataContainer.appendChild(dataBox);
-
-                // Añadir evento de clic para desplegar/contraer detalles
-                dataBox.querySelector('.show-more').addEventListener('click', function() {
-                    dataBox.classList.toggle('show-details');
-                    this.innerHTML = dataBox.classList.contains('show-details') ? 'Ocultar Horarios <strong>&#9650;</strong>' : 'Mostrar Horarios <strong>&#9660;</strong>';
-                });
-            } else {
-                dataContainer.textContent = 'No hay carreras próximas.';
-            }
-        }
-        
         // Reintentar la carga después de 20 segundos si no hay datos o en caso de error
         setTimeout(fetchF1Data, 20000);
     }
 
-    // Llamar a la función al cargar la página
-    fetchF1Data();
-</script>
+    function displayCurrentRace(container, race) {
+        // Limpiar el contenedor antes de agregar nuevos datos
+        container.innerHTML = '';
 
-<!-- Próximas carreras -->
-<script>
-    let retryInterval = null; // Variable para almacenar el intervalo de reintentos
+        if (race) {
+            const dataBox = document.createElement('div');
+            dataBox.className = 'current-circuit';
 
-    async function fetchUpcomingF1Data(delay = 120000) { // Intervalo ajustado a 2 minutos
-        // Verificar si ya se han cargado los datos
-        if (cachedRaceData) {
-            displayRaces(cachedRaceData); // Muestra los datos en caché
-            return;
-        }
+            // Mantener la información del circuito, ubicación y enlace a Wikipedia
+            dataBox.innerHTML = `
+                <p class="race-name">${race.raceName}</p>
+                <div class="data-cell"><strong>Carrera Nº ${race.round}</strong></div>
+                <div class="details">
+                    <div class="data-cell">${race.Circuit.circuitName}</div>
+                    <div class="data-cell">Ubicación: ${race.Circuit.Location.locality}, ${race.Circuit.Location.country}</div>
+                    <div class="data-cell"><a href="${race.url}" target="_blank">Más información en Wikipedia</a></div>
+                </div>
+                <div class="show-more">Mostrar Horarios <strong>&#9660;</strong></div>
+            `;
 
-        try {
-            const targetUrl = 'https://api.jolpi.ca/ergast/f1/current.json';
-            const response = await fetch(targetUrl);
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
+            // Crear una celda con todas las prácticas y sesiones
+            let carreraSessionsCell = `<div class="data-cell" style="border: 1px solid #006F62;"><strong>Carrera Nº ${race.round}</strong><br>`;
+            const sessions = [
+                { name: 'Libres 1', date: race.FirstPractice?.date, time: race.FirstPractice?.time },
+                { name: 'Libres 2', date: race.SecondPractice?.date, time: race.SecondPractice?.time },
+                { name: 'Libres 3', date: race.ThirdPractice?.date, time: race.ThirdPractice?.time },
+                { name: 'Clasificación', date: race.Qualifying.date, time: race.Qualifying.time },
+                { name: 'Sprint Clasificación', date: race.SprintQualifying?.date, time: race.SprintQualifying?.time },
+                { name: 'Sprint', date: race.Sprint?.date, time: race.Sprint?.time },
+                { name: 'Carrera', date: race.date, time: race.time }
+            ];
 
-            const jsonData = await response.json();
-            cachedRaceData = jsonData; // Almacenar en caché
+            // Ordenar las sesiones por fecha y hora
+            sessions.sort((a, b) => new Date(`${a.date}T${a.time}`) - new Date(`${b.date}T${b.time}`));
 
-            // Mostrar carreras
-            displayRaces(jsonData);
-        } catch (error) {
-            console.error('Error al obtener los datos de F1:', error);
-            document.getElementById('upcomingDataContainer').textContent = 'Error al obtener datos de la API: ' + error.message;
+            sessions.forEach(session => {
+                if (session.date && session.time) {
+                    const sessionTime = new Date(`${session.date}T${session.time}`);
+                    const madridSessionTime = sessionTime.toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
+                    const sessionDay = sessionTime.toLocaleDateString('es-ES', { weekday: 'long' });
+                    carreraSessionsCell += `${session.name}: ${sessionDay.charAt(0).toUpperCase() + sessionDay.slice(1)}, ${sessionTime.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })} a las ${madridSessionTime}<br>`;
+                }
+            });
 
-            // Reintentar después del retraso si hay un error
-            setTimeout(() => fetchUpcomingF1Data(delay), delay);
+            carreraSessionsCell += `</div>`;
+            dataBox.querySelector('.details').innerHTML += carreraSessionsCell;
+
+            container.appendChild(dataBox);
+
+            // Añadir evento de clic para desplegar/contraer detalles
+            dataBox.querySelector('.show-more').addEventListener('click', function() {
+                dataBox.classList.toggle('show-details');
+                this.innerHTML = dataBox.classList.contains('show-details') ? 'Ocultar Horarios <strong>&#9650;</strong>' : 'Mostrar Horarios <strong>&#9660;</strong>';
+            });
+        } else {
+            container.textContent = 'No hay carreras actuales.';
         }
     }
 
-    function displayRaces(jsonData) {
+    function displayUpcomingRaces(container, races) {
         const today = new Date().toISOString().split('T')[0];
-        const races = jsonData.MRData.RaceTable.Races.filter(race => new Date(race.date) >= new Date(today));
-        const dataContainer = document.getElementById('upcomingDataContainer');
-        dataContainer.innerHTML = ''; // Limpiar contenedor
+        const upcomingRaces = races.filter(race => new Date(race.date) >= new Date(today));
+        container.innerHTML = ''; // Limpiar contenedor
 
-        races.forEach(race => {
+        upcomingRaces.forEach(race => {
             const dataBox = document.createElement('div');
             dataBox.className = 'upcoming-circuit-box';
 
@@ -1898,192 +2068,19 @@
                 <div class="upcoming-data-cell">Ubicación: ${race.Circuit.Location.locality}, ${race.Circuit.Location.country}</div>
             `;
 
-            dataContainer.appendChild(dataBox);
+            container.appendChild(dataBox);
         });
+
+        if (upcomingRaces.length === 0) {
+            container.textContent = 'No hay próximas carreras.';
+        }
     }
 
-    // Llamada inicial a la función con 2 minutos (120000 ms) entre reintentos
-    fetchUpcomingF1Data(120000);
+    // Llamar a la función al cargar la página
+    fetchF1Data();
 </script>
 
 
-  <!-- Clasificaciones -->
-    <script>
-        // Variables para almacenar datos
-        let qualifyingData = null;
-        let championshipData = null;
-        let constructorData = null;
-
-        // Función para crear una tabla
-        function createTable(id, header, columns) {
-            const tableContainer = document.createElement('div');
-            tableContainer.classList.add('table-container');
-            const table = document.createElement('table');
-            table.id = id;
-
-            const thead = document.createElement('thead');
-            const headerRow = document.createElement('tr');
-            const headerCell = document.createElement('th');
-            headerCell.colSpan = columns.length;
-            headerCell.textContent = header;
-            headerRow.appendChild(headerCell);
-            thead.appendChild(headerRow);
-
-            const columnRow = document.createElement('tr');
-            columns.forEach(col => {
-                const th = document.createElement('th');
-                th.textContent = col;
-                columnRow.appendChild(th);
-            });
-            thead.appendChild(columnRow);
-
-            table.appendChild(thead);
-            const tbody = document.createElement('tbody');
-            table.appendChild(tbody);
-
-            tableContainer.appendChild(table);
-            return tableContainer;
-        }
-
-        // Añadir las tablas al contenedor
-        const tablesContainer = document.getElementById('tables-container');
-        tablesContainer.appendChild(createTable('qualifying-table', 'Clasificación de la Última Carrera', ['Puesto', 'Piloto']));
-        tablesContainer.appendChild(createTable('championship-table', 'Clasificación del Campeonato', ['Puesto', 'Piloto', 'Puntos']));
-        tablesContainer.appendChild(createTable('constructor-table', 'Clasificación de Constructores', ['Puesto', 'Equipo', 'Puntos']));
-
-        // Retraso en milisegundos
-        const delay = 5000;
-
-        async function fetchWithRetry(url, useProxy = true) {
-            try {
-                const proxyUrl = 'https://api.allorigins.win/get?url=';
-                const fullUrl = useProxy ? proxyUrl + encodeURIComponent(url) : url;
-
-                const response = await fetch(fullUrl);
-                if (!response.ok) throw new Error('Network response was not ok');
-
-                const data = await response.json();
-                let jsonData;
-                try {
-                    jsonData = useProxy ? JSON.parse(data.contents) : data;
-                } catch (jsonError) {
-                    console.warn("Error al analizar JSON, reintentando sin proxy...");
-                    await new Promise(resolve => setTimeout(resolve, delay));
-                    return fetchWithRetry(url, false); // Intentar sin proxy
-                }
-
-                return jsonData;
-            } catch (error) {
-                console.error('Error fetching data:', error);
-                throw error; // Volver a lanzar el error para manejarlo en la función que llama
-            }
-        }
-
-        // Función datos clasificación carrera
-        async function fetchLastF1Qualifying() {
-            if (qualifyingData) { // Si ya se han obtenido los datos, usar esos
-                updateQualifyingTable(qualifyingData);
-                return;
-            }
-
-            try {
-                qualifyingData = await fetchWithRetry('https://api.jolpi.ca/ergast/f1/current/last/qualifying.json');
-                updateQualifyingTable(qualifyingData);
-            } catch (error) {
-                console.error('Error fetching last F1 qualifying:', error);
-                document.getElementById('qualifying-table').querySelector('tbody').textContent = 'Hubo un error al obtener la información de la última clasificación de F1.';
-            }
-        }
-
-        function updateQualifyingTable(data) {
-            const raceName = data.MRData.RaceTable.Races[0].raceName;
-            const qualifyingResults = data.MRData.RaceTable.Races[0].QualifyingResults;
-
-            // Mostrar el nombre del Gran Premio en la tabla de clasificación
-            document.getElementById('qualifying-table').rows[0].cells[0].textContent = raceName;
-
-            // Construir la tabla con los resultados de la clasificación
-            const tableBody = document.getElementById('qualifying-table').querySelector('tbody');
-            let html = '';
-            qualifyingResults.forEach(result => {
-                const driverName = `${result.Driver.givenName} ${result.Driver.familyName}`;
-                const position = result.position;
-                const isFernandoOrCarlos = driverName.includes('Fernando Alonso') || driverName.includes('Carlos Sainz');
-                html += `<tr${isFernandoOrCarlos ? ' class="highlight"' : ''}><td>${position}</td><td>${driverName}</td></tr>`;
-            });
-            tableBody.innerHTML = html;
-        }
-
-        // Función datos clasificación del campeonato
-        async function fetchChampionshipStandings() {
-            if (championshipData) { // Si ya se han obtenido los datos, usar esos
-                updateChampionshipTable(championshipData);
-                return;
-            }
-
-            try {
-                championshipData = await fetchWithRetry('https://api.jolpi.ca/ergast/f1/2024/driverstandings.json');
-                updateChampionshipTable(championshipData);
-            } catch (error) {
-                console.error('Error fetching championship standings:', error);
-                document.getElementById('championship-table').querySelector('tbody').textContent = 'Hubo un error al obtener la clasificación del campeonato de F1.';
-            }
-        }
-
-        function updateChampionshipTable(data) {
-            const standings = data.MRData.StandingsTable.StandingsLists[0].DriverStandings;
-
-            // Construir la tabla con los resultados del campeonato
-            const tableBody = document.getElementById('championship-table').querySelector('tbody');
-            let html = '';
-            standings.forEach(standing => {
-                const position = standing.position;
-                const driverName = `${standing.Driver.givenName} ${standing.Driver.familyName}`;
-                const points = standing.points;
-                html += `<tr><td>${position}</td><td>${driverName}</td><td>${points}</td></tr>`;
-            });
-            tableBody.innerHTML = html;
-        }
-
-        // Función para obtener datos de clasificación de constructores
-        async function fetchConstructorStandings() {
-            if (constructorData) { // Si ya se han obtenido los datos, usar esos
-                updateConstructorTable(constructorData);
-                return;
-            }
-
-            try {
-                constructorData = await fetchWithRetry('https://api.jolpi.ca/ergast/f1/2024/constructorstandings.json');
-                updateConstructorTable(constructorData);
-            } catch (error) {
-                console.error('Error fetching constructor standings:', error);
-                document.getElementById('constructor-table').querySelector('tbody').textContent = 'Hubo un error al obtener la clasificación de constructores de F1.';
-            }
-        }
-
-        function updateConstructorTable(data) {
-            const standings = data.MRData.StandingsTable.StandingsLists[0].ConstructorStandings;
-
-            const tableBody = document.getElementById('constructor-table').querySelector('tbody');
-            let html = '';
-            standings.forEach(standing => {
-                const position = standing.position;
-                const teamName = standing.Constructor.name;
-                const points = standing.points;
-                html += `<tr><td>${position}</td><td>${teamName}</td><td>${points}</td></tr>`;
-            });
-            tableBody.innerHTML = html;
-        }
-
-        // Llamadas a las funciones para cargar los datos
-        async function loadF1Data() {
-            await fetchLastF1Qualifying();
-            await fetchChampionshipStandings();
-            await fetchConstructorStandings();
-        }
-
-        loadF1Data(); // Cargar los datos al inicio
-    </script>
 
 
   <script>
