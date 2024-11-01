@@ -1736,47 +1736,28 @@
 </script>
 
  <!-- Horarios y datos carrera actual -->
- <script>
-    // Datos próxima carrera
+<script>
+    // Datos de la carrera actual
     let lastRaceData = null;
+    let cachedRaceData = null; // Variable para almacenar datos en caché
 
     // Función datos carrera actual
     async function fetchF1Data() {
         const dataContainer = document.getElementById('dataContainer');
-        const proxyUrl = 'https://api.allorigins.win/get?url=';
-        const targetUrl = encodeURIComponent('https://api.jolpi.ca/ergast/f1/current.json');
-        
-        let storedData = null;
+        const targetUrl = 'https://api.jolpi.ca/ergast/f1/current.json';
 
-        // Función interna para realizar la solicitud
-        const fetchData = async (url) => {
-            const response = await fetch(url);
+        try {
+            // Intentar obtener datos de la API directamente
+            const response = await fetch(targetUrl);
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
-            const data = await response.json();
-            return JSON.parse(data.contents);
-        };
-
-        try {
-            // Intentar obtener datos usando el proxy
-            const jsonData = await fetchData(proxyUrl + targetUrl);
-            storedData = jsonData;
+            const jsonData = await response.json();
+            cachedRaceData = jsonData; // Almacenar en caché
         } catch (error) {
-            console.warn('Error al usar el proxy, intentando directamente:', error);
-            try {
-                // Si falla, intentar obtener datos directamente de la API
-                const response = await fetch('https://api.jolpi.ca/ergast/f1/current.json');
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                const jsonData = await response.json();
-                storedData = jsonData;
-            } catch (error) {
-                console.error('Error al obtener datos:', error);
-                dataContainer.textContent = 'Error: ' + error.message;
-                return; // Salir de la función si ambos intentos fallan
-            }
+            console.error('Error al obtener datos de la API:', error);
+            dataContainer.textContent = 'Error: ' + error.message;
+            return; // Salir de la función si falla
         }
 
         // Obtener la fecha y hora actual en Madrid
@@ -1784,13 +1765,10 @@
         const today = new Date(now).toISOString().split('T')[0];
 
         // Filtrar carreras por la fecha de hoy o la próxima carrera
-        const races = storedData.MRData.RaceTable.Races;
+        const races = cachedRaceData.MRData.RaceTable.Races;
         let nextRace = null;
         for (let race of races) {
-            if (race.date === today) {
-                nextRace = race;
-                break;
-            } else if (new Date(race.date) > new Date(today)) {
+            if (race.date === today || new Date(race.date) > new Date(today)) {
                 nextRace = race;
                 break;
             }
@@ -1822,8 +1800,6 @@
 
                 // Crear una celda con todas las prácticas y sesiones
                 let carreraSessionsCell = `<div class="data-cell" style="border: 1px solid #006F62;"><strong>Carrera Nº ${nextRace.round}</strong><br>`;
-                let sprintSessionsCell = `<div class="data-cell" style="border: 1px solid lightblue;"><strong>Sprint</strong><br>`;
-
                 const sessions = [
                     { name: 'Libres 1', date: nextRace.FirstPractice?.date, time: nextRace.FirstPractice?.time },
                     { name: 'Libres 2', date: nextRace.SecondPractice?.date, time: nextRace.SecondPractice?.time },
@@ -1837,38 +1813,17 @@
                 // Ordenar las sesiones por fecha y hora
                 sessions.sort((a, b) => new Date(`${a.date}T${a.time}`) - new Date(`${b.date}T${b.time}`));
 
-                let upcomingSessions = false;
-                let hasSprintSessions = false;
-
-                for (let session of sessions) {
+                sessions.forEach(session => {
                     if (session.date && session.time) {
                         const sessionTime = new Date(`${session.date}T${session.time}`);
                         const madridSessionTime = sessionTime.toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
                         const sessionDay = sessionTime.toLocaleDateString('es-ES', { weekday: 'long' });
-
-                        if (sessionTime >= new Date(now)) {
-                            upcomingSessions = true;
-
-                            if (session.name === 'Sprint Clasificación' || session.name === 'Sprint') {
-                                sprintSessionsCell += `${session.name}: ${sessionDay.charAt(0).toUpperCase() + sessionDay.slice(1)}, ${sessionTime.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })} a las ${madridSessionTime}<br>`;
-                                hasSprintSessions = true;
-                            } else {
-                                carreraSessionsCell += `${session.name}: ${sessionDay.charAt(0).toUpperCase() + sessionDay.slice(1)}, ${sessionTime.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })} a las ${madridSessionTime}<br>`;
-                            }
-                        }
+                        carreraSessionsCell += `${session.name}: ${sessionDay.charAt(0).toUpperCase() + sessionDay.slice(1)}, ${sessionTime.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })} a las ${madridSessionTime}<br>`;
                     }
-                }
+                });
 
                 carreraSessionsCell += `</div>`;
-                sprintSessionsCell += `</div>`;
-
-                if (upcomingSessions) {
-                    dataBox.querySelector('.details').innerHTML += carreraSessionsCell;
-
-                    if (hasSprintSessions) {
-                        dataBox.querySelector('.details').innerHTML += sprintSessionsCell;
-                    }
-                }
+                dataBox.querySelector('.details').innerHTML += carreraSessionsCell;
 
                 dataContainer.appendChild(dataBox);
 
@@ -1883,22 +1838,18 @@
         }
         
         // Reintentar la carga después de 20 segundos si no hay datos o en caso de error
-        if (!storedData) {
-            setTimeout(fetchF1Data, 20000);
-        }
+        setTimeout(fetchF1Data, 20000);
     }
 
     // Llamar a la función al cargar la página
     fetchF1Data();
 </script>
 
-
- <!-- Próxima carreas -->
+<!-- Próximas carreras -->
 <script>
-    let cachedRaceData = null; // Variable global para almacenar datos en caché
     let retryInterval = null; // Variable para almacenar el intervalo de reintentos
 
-    async function fetchUpcomingF1Data(useProxy = true, delay = 20000) {
+    async function fetchUpcomingF1Data(delay = 120000) { // Intervalo ajustado a 2 minutos
         // Verificar si ya se han cargado los datos
         if (cachedRaceData) {
             displayRaces(cachedRaceData); // Muestra los datos en caché
@@ -1906,61 +1857,29 @@
         }
 
         try {
-            const proxyUrl = 'https://api.allorigins.win/get?url=';
             const targetUrl = 'https://api.jolpi.ca/ergast/f1/current.json';
-            const fullUrl = useProxy ? proxyUrl + encodeURIComponent(targetUrl) : targetUrl;
-
-            const response = await fetch(fullUrl);
+            const response = await fetch(targetUrl);
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
 
-            const data = await response.json();
-
-            // Comprobar si el contenido está en el formato JSON esperado
-            let jsonData;
-            try {
-                jsonData = useProxy ? JSON.parse(data.contents) : data;
-            } catch (jsonError) {
-                console.warn("Error al analizar JSON, reintentando sin proxy después del retraso...");
-                return scheduleRetry(false, delay); // Volver a intentar sin proxy después de un retraso
-            }
-
-            // Guardar los datos en caché
-            cachedRaceData = jsonData;
+            const jsonData = await response.json();
+            cachedRaceData = jsonData; // Almacenar en caché
 
             // Mostrar carreras
             displayRaces(jsonData);
         } catch (error) {
             console.error('Error al obtener los datos de F1:', error);
-            document.getElementById('upcomingDataContainer').textContent = 'Error OpenF1: ' + error.message;
+            document.getElementById('upcomingDataContainer').textContent = 'Error al obtener datos de la API: ' + error.message;
 
             // Reintentar después del retraso si hay un error
-            if (delay > 0) {
-                console.warn(`Reintentando después de ${delay / 1000} segundos...`);
-                return scheduleRetry(useProxy, delay);
-            }
+            setTimeout(() => fetchUpcomingF1Data(delay), delay);
         }
     }
 
-    function scheduleRetry(useProxy, delay) {
-        if (retryInterval) clearInterval(retryInterval); // Limpiar intervalo si existe
-        retryInterval = setInterval(() => {
-            // Intentar de nuevo si no hay datos en caché
-            if (!cachedRaceData) {
-                fetchUpcomingF1Data(useProxy, delay);
-            }
-        }, delay);
-    }
-
     function displayRaces(jsonData) {
-        // Obtener la fecha de hoy
         const today = new Date().toISOString().split('T')[0];
-
-        // Filtrar carreras futuras
         const races = jsonData.MRData.RaceTable.Races.filter(race => new Date(race.date) >= new Date(today));
-
-        // Insertar datos en el contenedor
         const dataContainer = document.getElementById('upcomingDataContainer');
         dataContainer.innerHTML = ''; // Limpiar contenedor
 
@@ -1968,11 +1887,8 @@
             const dataBox = document.createElement('div');
             dataBox.className = 'upcoming-circuit-box';
 
-            // Convertir la hora a la zona horaria de Madrid
             const raceTime = new Date(`${race.date}T${race.time}`);
             const madridTime = raceTime.toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
-
-            // Convertir la fecha al formato DD/MM/AAAA
             const raceDate = new Date(race.date).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
             dataBox.innerHTML = `
@@ -1986,10 +1902,9 @@
         });
     }
 
-    // Llamada inicial a la función con 20 segundos de retraso entre reintentos
-    fetchUpcomingF1Data(true, 20000);
+    // Llamada inicial a la función con 2 minutos (120000 ms) entre reintentos
+    fetchUpcomingF1Data(120000);
 </script>
-
 
 
   <!-- Clasificaciones -->
@@ -2180,7 +2095,7 @@
   </script>
   
     <!-- Meteorología tiempo -->
-     <script>
+    <script>
         // Variables para almacenar datos
         let weatherDataCache = null;
 
@@ -2196,14 +2111,16 @@
                 }
                 const data = await response.json();
                 const jsonData = JSON.parse(data.contents);
-                
-                // Guardar los datos en caché
-                weatherDataCache = jsonData;
 
                 const penultimoElemento = jsonData[jsonData.length - 1];
-                updateWeatherData(weatherDataDiv, penultimoElemento);
+
+                // Solo actualizar si los datos han cambiado
+                if (JSON.stringify(jsonData) !== JSON.stringify(weatherDataCache)) {
+                    // Guardar los datos en caché
+                    weatherDataCache = jsonData;
+                    updateWeatherData(weatherDataDiv, penultimoElemento);
+                }
             } catch (error) {
-                // Intentar sin proxy
                 console.warn('Intentando sin proxy...', error);
                 try {
                     const response = await fetch(targetUrl);
@@ -2211,13 +2128,16 @@
                         throw new Error('Error en la solicitud: ' + response.statusText);
                     }
                     const data = await response.json();
-                    // Guardar los datos en caché
-                    weatherDataCache = data;
-                    
+
                     const penultimoElemento = data[data.length - 1];
-                    updateWeatherData(weatherDataDiv, penultimoElemento);
+
+                    // Solo actualizar si los datos han cambiado
+                    if (JSON.stringify(data) !== JSON.stringify(weatherDataCache)) {
+                        // Guardar los datos en caché
+                        weatherDataCache = data;
+                        updateWeatherData(weatherDataDiv, penultimoElemento);
+                    }
                 } catch (error) {
-                    // Mostrar mensaje de error solo si no hay datos previos
                     if (!weatherDataDiv.hasChildNodes()) {
                         const errorDiv = document.createElement('div');
                         errorDiv.className = 'info-line';
@@ -2239,7 +2159,6 @@
                 "wind_speed": "Viento"
             };
 
-            // Crear un contenedor temporal para los nuevos datos
             const tempDiv = document.createElement('div');
 
             for (const [key, label] of Object.entries(keysToShow)) {
@@ -2289,9 +2208,9 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             fetchWeatherData(); // Cargar datos al inicio
-            
-            // Llamar a la API cada 10 segundos
-            setInterval(fetchWeatherData, 10000);
+
+            // Llamar a la API cada 2 minutos si hay datos nuevos
+            setInterval(fetchWeatherData, 120000);
         });
     </script>
     
