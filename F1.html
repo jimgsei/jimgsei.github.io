@@ -2195,7 +2195,6 @@ async function customUpdateDriverPosition(selectNumber, driverNumber) {
             const apiData = await response.text(); // Cambiar a text() para obtener respuesta sin parsear
 
             // Inspecciona la respuesta de la API
-            console.log(apiData); // Para verificar la respuesta real
 
             // Verifica si es la API de Ergast
             if (apiUrl === 'https://api.jolpi.ca/ergast/') {
