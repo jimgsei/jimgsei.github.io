@@ -1421,196 +1421,209 @@
     </script>
 
   <!-- Pilotos -->
-<script>
-    let customDriverCount = 0; // Inicializar sin pilotos por defecto
-    const customSelectedDrivers = new Set();
-    const customIntervals = {};
-    let customDriverData = JSON.parse(localStorage.getItem('customDriverData')) || {}; // Cargar datos de pilotos desde localStorage
+    <script>
+        let customDriverCount = 0; // Inicializar sin pilotos por defecto
+        const customSelectedDrivers = new Set();
+        const customIntervals = {};
+        let customDriverData = JSON.parse(localStorage.getItem('customDriverData')) || {}; // Cargar datos de pilotos desde localStorage
 
-    async function customFetchDrivers() {
-        const response = await fetch('https://api.openf1.org/v1/drivers?session_key=latest');
-        const drivers = await response.json();
-        for (let i = 1; i <= customDriverCount; i++) {
-            const driverSelect = document.getElementById(`custom-driver-select-${i}`);
-            if (driverSelect) {
-                const selectedValue = driverSelect.value;
-                driverSelect.innerHTML = '<option value="">Selecciona un piloto</option>'; // Reset options
-                drivers.forEach(driver => {
-                    const option = document.createElement('option');
-                    option.value = driver.driver_number;
-                    option.textContent = driver.full_name;
-                    option.dataset.headshotUrl = driver.headshot_url;
-                    driverSelect.appendChild(option);
-                });
-                driverSelect.value = selectedValue; // Mantener el valor seleccionado
+        async function customFetchDrivers() {
+            const response = await fetch('https://api.openf1.org/v1/drivers?session_key=latest');
+            const drivers = await response.json();
+            for (let i = 1; i <= customDriverCount; i++) {
+                const driverSelect = document.getElementById(`custom-driver-select-${i}`);
+                if (driverSelect) {
+                    const selectedValue = driverSelect.value;
+                    driverSelect.innerHTML = '<option value="">Selecciona un piloto</option>'; // Reset options
+                    drivers.forEach(driver => {
+                        const option = document.createElement('option');
+                        option.value = driver.driver_number;
+                        option.textContent = driver.full_name;
+                        option.dataset.headshotUrl = driver.headshot_url;
+                        driverSelect.appendChild(option);
+                    });
+                    driverSelect.value = selectedValue; // Mantener el valor seleccionado
+                }
             }
-        }
-        // Cargar datos de posición para los pilotos almacenados
-        Object.keys(customDriverData).forEach(key => {
-            const driverNumber = customDriverData[key].driverNumber;
-            const driverSelect = document.getElementById(`custom-driver-select-${key}`);
-            if (driverSelect) {
-                driverSelect.value = driverNumber;
-                customSelectDriver(key);
-            }
-        });
-    }
-
-    async function customSelectDriver(selectNumber) {
-        const driverSelect = document.getElementById(`custom-driver-select-${selectNumber}`);
-        if (!driverSelect) return; // Verificar si el elemento existe
-
-        const selectedOption = driverSelect.options[driverSelect.selectedIndex];
-        const driverImage = document.getElementById(`custom-driver-image-${selectNumber}`);
-        const positionInfo = document.getElementById(`custom-position-info-${selectNumber}`);
-
-        // Limpiar información anterior
-        if (driverImage) driverImage.style.display = 'none';
-        if (positionInfo) positionInfo.textContent = '';
-
-        // Limpiar intervalos anteriores
-        if (customIntervals[selectNumber]) {
-            clearInterval(customIntervals[selectNumber]);
+            // Cargar datos de posición para los pilotos almacenados
+            Object.keys(customDriverData).forEach(key => {
+                const driverNumber = customDriverData[key].driverNumber;
+                const driverSelect = document.getElementById(`custom-driver-select-${key}`);
+                if (driverSelect) {
+                    driverSelect.value = driverNumber;
+                    customSelectDriver(key);
+                }
+            });
         }
 
-        if (selectedOption && selectedOption.value) {
-            if (driverImage) {
-                driverImage.src = selectedOption.dataset.headshotUrl;
-                driverImage.style.display = 'block';
-            }
-            customSelectedDrivers.add(selectedOption.value);
-            customUpdateDriverPosition(selectNumber, selectedOption.value);
-            customIntervals[selectNumber] = setInterval(() => customUpdateDriverPosition(selectNumber, selectedOption.value), 3000);
+        async function customSelectDriver(selectNumber) {
+            const driverSelect = document.getElementById(`custom-driver-select-${selectNumber}`);
+            if (!driverSelect) return; // Verificar si el elemento existe
 
-            // Almacenar datos del piloto
-            customDriverData[selectNumber] = {
-                id: `custom-driver-cell-${selectNumber}`,
-                driverNumber: selectedOption.value
-            };
-            localStorage.setItem('customDriverData', JSON.stringify(customDriverData));            
-        } else {
-            customSelectedDrivers.delete(selectedOption.value);
+            const selectedOption = driverSelect.options[driverSelect.selectedIndex];
+            const driverImage = document.getElementById(`custom-driver-image-${selectNumber}`);
+            const positionInfo = document.getElementById(`custom-position-info-${selectNumber}`);
+
+            // Limpiar información anterior
+            if (driverImage) driverImage.style.display = 'none';
+            if (positionInfo) positionInfo.textContent = '';
+
+            // Limpiar intervalos anteriores
+            if (customIntervals[selectNumber]) {
+                clearInterval(customIntervals[selectNumber]);
+            }
+
+            if (selectedOption && selectedOption.value) {
+                if (driverImage) {
+                    driverImage.src = selectedOption.dataset.headshotUrl;
+                    driverImage.style.display = 'block';
+                }
+                customSelectedDrivers.add(selectedOption.value);
+                customUpdateDriverPosition(selectNumber, selectedOption.value);
+                customIntervals[selectNumber] = setInterval(() => customUpdateDriverPosition(selectNumber, selectedOption.value), 25000); // Cambiado a 25 segundos
+
+                // Almacenar datos del piloto
+                customDriverData[selectNumber] = {
+                    id: `custom-driver-cell-${selectNumber}`,
+                    driverNumber: selectedOption.value
+                };
+                localStorage.setItem('customDriverData', JSON.stringify(customDriverData));            
+            } else {
+                customSelectedDrivers.delete(selectedOption.value);
+            }
         }
-    }
 
 async function customUpdateDriverPosition(selectNumber, driverNumber) {
-    const proxyUrl = 'https://api.allorigins.win/get?url=';
+    const apiURL = `https://api.openf1.org/v1/position?meeting_key=latest&driver_number=${driverNumber}`;
+    const positionInfo = document.getElementById(`custom-position-info-${selectNumber}`);
 
     try {
-        // Intentar obtener la posición del conductor sin usar un proxy
-        const positionResponse = await fetch(`https://api.openf1.org/v1/position?meeting_key=latest&driver_number=${driverNumber}&session_key=latest`);
-        const positionData = await positionResponse.json();
-        const positions = JSON.parse(positionData.contents);
-        const latestPosition = positions.length ? positions[positions.length - 1] : {};
+        const response = await fetch(apiURL);
 
-        // Actualizar la interfaz de usuario
-        const positionInfo = document.getElementById(`custom-position-info-${selectNumber}`);
-        if (positionInfo && latestPosition.position) {
-            positionInfo.textContent = `Posición: ${latestPosition.position}`;
+        if (response.status === 429) {
+            console.error('Too Many Requests - slowing down requests.');
+            // Esperar un tiempo antes de intentar de nuevo
+            setTimeout(() => {
+                customUpdateDriverPosition(selectNumber, driverNumber); // Retry after a delay
+            }, 10000); // Esperar 10 segundos antes de reintentar
+            return;
         }
 
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const dataArray = await response.json();
+
+        if (!Array.isArray(dataArray) || dataArray.length === 0) {
+            throw new Error('No contents found in response.');
+        }
+
+        const latestData = dataArray[dataArray.length - 1];
+
+        // Verificar que el objeto tiene las propiedades 'position' y 'date'
+        if (!latestData.position || !latestData.date) {
+            throw new Error('Position or date data not found in the latest record.');
+        }
+
+        // Actualizar el DOM con la posición y la fecha
+        const dateObj = new Date(latestData.date);
+        const formattedDate = new Intl.DateTimeFormat('es-ES', {
+            day: '2-digit',
+            month: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hourCycle: 'h23',
+            timeZone: 'Europe/Madrid'
+        }).format(dateObj);
+
+        positionInfo.innerHTML = `Posición actual: ${latestData.position}<br>Fecha: ${formattedDate}`;
+        
     } catch (error) {
-        console.error('Error fetching driver position data without proxy, trying with proxy:', error);
-
-        try {
-            // Si falla, intentar de nuevo usando un proxy
-            const positionResponse = await fetch(proxyUrl + encodeURIComponent(`https://api.openf1.org/v1/position?meeting_key=latest&driver_number=${driverNumber}&session_key=latest`));
-            const positionData = await positionResponse.json();
-            const positions = JSON.parse(positionData.contents);
-            const latestPosition = positions.length ? positions[positions.length - 1] : {};
-
-            // Actualizar la interfaz de usuario
-            const positionInfo = document.getElementById(`custom-position-info-${selectNumber}`);
-            if (positionInfo && latestPosition.position) {
-                positionInfo.textContent = `Posición: ${latestPosition.position}`;
-            }
-
-        } catch (error) {
-            console.error('Error fetching driver position data with proxy:', error);
-        }
+        console.error('Error fetching driver position data:', error);
+        positionInfo.innerHTML = `Error al obtener la posición: ${error.message}`;
     }
 }
 
-    function customAddDriver() {
-        customDriverCount++;
-        const driverSelectors = document.getElementById('custom-driver-selectors');
-        const newCell = document.createElement('div');
-        newCell.className = 'custom-driver-cell';
-        newCell.id = `custom-driver-cell-${customDriverCount}`;
-        newCell.innerHTML = `
-            <img id="custom-driver-image-${customDriverCount}" src="" alt="Imagen del piloto" onerror="this.style.display='none'">
-            <select id="custom-driver-select-${customDriverCount}" class="custom-select" onchange="customSelectDriver(${customDriverCount})">
-                <option value="">Selecciona un piloto</option>
-            </select>
-            <div id="custom-position-info-${customDriverCount}" class="custom-info"></div>
-            <div class="custom-delete-button" onclick="customDeleteDriver(${customDriverCount})">×</div>
-        `;
-        driverSelectors.appendChild(newCell);
-        customFetchDrivers();
-    }
 
-    function customDeleteDriver(selectNumber) {
-        const driverCell = document.getElementById(`custom-driver-cell-${selectNumber}`);
-        if (driverCell) {
-            driverCell.remove(); // Eliminar la celda del DOM
-            clearInterval(customIntervals[selectNumber]);
-            delete customIntervals[selectNumber];
-            delete customDriverData[selectNumber];
-
-            // Reorganizar las celdas y los datos
-            const newCustomDriverData = {};
-            let newCustomDriverCount = 0;
-            document.querySelectorAll('.custom-driver-cell').forEach((cell, index) => {
-                newCustomDriverCount++;
-                cell.id = `custom-driver-cell-${newCustomDriverCount}`;
-                cell.querySelector('img').id = `custom-driver-image-${newCustomDriverCount}`;
-                const select = cell.querySelector('select');
-                select.id = `custom-driver-select-${newCustomDriverCount}`;
-                select.setAttribute('onchange', `customSelectDriver(${newCustomDriverCount})`);
-                newCustomDriverData[newCustomDriverCount] = {
-                    id: `custom-driver-cell-${newCustomDriverCount}`,
-                    driverNumber: select.value
-                };
-            });
-            customDriverData = newCustomDriverData;
-            customDriverCount = newCustomDriverCount;
-            localStorage.setItem('customDriverData', JSON.stringify(customDriverData));
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        // Cargar pilotos almacenados en localStorage
-        if (Object.keys(customDriverData).length === 0) {
-            // Si no hay datos en localStorage, cargar pilotos 14 y 55 por defecto
-            customDriverData = {
-                1: { id: 'custom-driver-cell-1', driverNumber: '14' },
-                2: { id: 'custom-driver-cell-2', driverNumber: '55' }
-            };
-            localStorage.setItem('customDriverData', JSON.stringify(customDriverData));
-        }
-        Object.keys(customDriverData).forEach(key => {
+        function customAddDriver() {
             customDriverCount++;
             const driverSelectors = document.getElementById('custom-driver-selectors');
             const newCell = document.createElement('div');
             newCell.className = 'custom-driver-cell';
-            newCell.id = `custom-driver-cell-${key}`;
+            newCell.id = `custom-driver-cell-${customDriverCount}`;
             newCell.innerHTML = `
-                <img id="custom-driver-image-${key}" src="" alt="Imagen del piloto" onerror="this.style.display='none'">
-                <select id="custom-driver-select-${key}" class="custom-select" onchange="customSelectDriver(${key})">
+                <img id="custom-driver-image-${customDriverCount}" src="" alt="Imagen del piloto" onerror="this.style.display='none'">
+                <select id="custom-driver-select-${customDriverCount}" class="custom-select" onchange="customSelectDriver(${customDriverCount})">
                     <option value="">Selecciona un piloto</option>
                 </select>
-                <div id="custom-position-info-${key}" class="custom-info"></div>
-                <div class="custom-delete-button" onclick="customDeleteDriver(${key})">×</div>
+                <div id="custom-position-info-${customDriverCount}" class="custom-info"></div>
+                <div class="custom-delete-button" onclick="customDeleteDriver(${customDriverCount})">×</div>
             `;
             driverSelectors.appendChild(newCell);
-        });
-        customFetchDrivers().then(() => {
+            customFetchDrivers();
+        }
+
+        function customDeleteDriver(selectNumber) {
+            const driverCell = document.getElementById(`custom-driver-cell-${selectNumber}`);
+            if (driverCell) {
+                driverCell.remove(); // Eliminar la celda del DOM
+                clearInterval(customIntervals[selectNumber]);
+                delete customIntervals[selectNumber];
+                delete customDriverData[selectNumber];
+
+                // Reorganizar las celdas y los datos
+                const newCustomDriverData = {};
+                let newCustomDriverCount = 0;
+                document.querySelectorAll('.custom-driver-cell').forEach((cell, index) => {
+                    newCustomDriverCount++;
+                    cell.id = `custom-driver-cell-${newCustomDriverCount}`;
+                    cell.querySelector('img').id = `custom-driver-image-${newCustomDriverCount}`;
+                    const select = cell.querySelector('select');
+                    select.id = `custom-driver-select-${newCustomDriverCount}`;
+                    select.setAttribute('onchange', `customSelectDriver(${newCustomDriverCount})`);
+                    newCustomDriverData[newCustomDriverCount] = {
+                        id: `custom-driver-cell-${newCustomDriverCount}`,
+                        driverNumber: select.value
+                    };
+                });
+                customDriverData = newCustomDriverData;
+                customDriverCount = newCustomDriverCount;
+                localStorage.setItem('customDriverData', JSON.stringify(customDriverData));
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Cargar pilotos almacenados en localStorage
+            if (Object.keys(customDriverData).length === 0) {
+                // Si no hay datos en localStorage, cargar pilotos 14 y 55 por defecto
+                customDriverData = {
+                    1: { id: 'custom-driver-cell-1', driverNumber: '14' },
+                    2: { id: 'custom-driver-cell-2', driverNumber: '55' }
+                };
+                localStorage.setItem('customDriverData', JSON.stringify(customDriverData));
+            }
             Object.keys(customDriverData).forEach(key => {
-                customSelectDriver(key);
+                customDriverCount++;
+                const driverSelectors = document.getElementById('custom-driver-selectors');
+                const newCell = document.createElement('div');
+                newCell.className = 'custom-driver-cell';
+                newCell.id = `custom-driver-cell-${key}`;
+                newCell.innerHTML = `
+                    <img id="custom-driver-image-${key}" src="" alt="Imagen del piloto" onerror="this.style.display='none'">
+                    <select id="custom-driver-select-${key}" class="custom-select" onchange="customSelectDriver(${key})">
+                        <option value="">Selecciona un piloto</option>
+                    </select>
+                    <div id="custom-position-info-${key}" class="custom-info"></div>
+                    <div class="custom-delete-button" onclick="customDeleteDriver(${key})">×</div>
+                `;
+                driverSelectors.appendChild(newCell);
             });
+            customFetchDrivers();
         });
-    });
-</script>
+    </script>
+
 
 
 
@@ -1838,7 +1851,6 @@ async function customUpdateDriverPosition(selectNumber, driverNumber) {
 
         // Verificar si ya tenemos datos válidos almacenados y no realizar más solicitudes
         if (lastRaceData) {
-            console.log('Datos de carrera ya almacenados en caché, omitiendo solicitud adicional.');
             return; // Detener la función si ya se tienen datos
         }
 
@@ -2051,124 +2063,125 @@ async function customUpdateDriverPosition(selectNumber, driverNumber) {
   </script>
   
     <!-- Meteorología tiempo -->
-    <script>
-        // Variables para almacenar datos
-        let weatherDataCache = null;
+<script>
+    // Variables para almacenar datos
+    let weatherDataCache = null;
 
-        async function fetchWeatherData() {
-            const weatherDataDiv = document.getElementById('weatherData');
+    async function fetchWeatherData() {
+        const weatherDataDiv = document.getElementById('weatherData');
+        const targetUrl = 'https://api.openf1.org/v1/weather?meeting_key=latest';
+
+        try {
+            // Intentar obtener datos directamente de la API
+            const response = await fetch(targetUrl, { mode: 'cors' });
+            if (!response.ok) {
+                throw new Error('Error en la solicitud: ' + response.statusText);
+            }
+            const data = await response.json();
+            const penultimoElemento = data[data.length - 1];
+
+            // Solo actualizar si los datos han cambiado
+            if (JSON.stringify(data) !== JSON.stringify(weatherDataCache)) {
+                weatherDataCache = data;
+                updateWeatherData(weatherDataDiv, penultimoElemento);
+            }
+        } catch (error) {
+            console.warn('Error al intentar obtener datos directamente, usando proxy...', error);
             const proxyUrl = 'https://api.allorigins.win/get?url=';
-            const targetUrl = 'https://api.openf1.org/v1/weather?meeting_key=latest';
 
             try {
-                const response = await fetch(proxyUrl + encodeURIComponent(targetUrl));
+                // Intentar obtener datos usando un proxy
+                const response = await fetch(proxyUrl + encodeURIComponent(targetUrl), { mode: 'cors' });
                 if (!response.ok) {
                     throw new Error('Error en la solicitud: ' + response.statusText);
                 }
                 const data = await response.json();
                 const jsonData = JSON.parse(data.contents);
-
                 const penultimoElemento = jsonData[jsonData.length - 1];
 
                 // Solo actualizar si los datos han cambiado
                 if (JSON.stringify(jsonData) !== JSON.stringify(weatherDataCache)) {
-                    // Guardar los datos en caché
                     weatherDataCache = jsonData;
                     updateWeatherData(weatherDataDiv, penultimoElemento);
                 }
             } catch (error) {
-                console.warn('Intentando sin proxy...', error);
-                try {
-                    const response = await fetch(targetUrl);
-                    if (!response.ok) {
-                        throw new Error('Error en la solicitud: ' + response.statusText);
-                    }
-                    const data = await response.json();
-
-                    const penultimoElemento = data[data.length - 1];
-
-                    // Solo actualizar si los datos han cambiado
-                    if (JSON.stringify(data) !== JSON.stringify(weatherDataCache)) {
-                        // Guardar los datos en caché
-                        weatherDataCache = data;
-                        updateWeatherData(weatherDataDiv, penultimoElemento);
-                    }
-                } catch (error) {
-                    if (!weatherDataDiv.hasChildNodes()) {
-                        const errorDiv = document.createElement('div');
-                        errorDiv.className = 'info-line';
-                        errorDiv.innerHTML = `<span>Error al obtener los datos: ${error.message}</span>`;
-                        weatherDataDiv.appendChild(errorDiv);
-                    }
+                // Manejar errores de la solicitud del proxy
+                if (!weatherDataDiv.hasChildNodes()) {
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'info-line';
+                    errorDiv.innerHTML = `<span>Error al obtener los datos: ${error.message}</span>`;
+                    weatherDataDiv.appendChild(errorDiv);
                 }
             }
         }
+    }
 
-        function updateWeatherData(weatherDataDiv, penultimoElemento) {
-            const keysToShow = {
-                "air_temperature": "Temp Aire",
-                "track_temperature": "Temp Pista",
-                "humidity": "Humedad",
-                "pressure": "Presión Atm",
-                "humidity_percentage": "Humedad",
-                "rainfall": "Lluvia",
-                "wind_speed": "Viento"
-            };
+    function updateWeatherData(weatherDataDiv, penultimoElemento) {
+        const keysToShow = {
+            "air_temperature": "Temp Aire",
+            "track_temperature": "Temp Pista",
+            "humidity": "Humedad",
+            "pressure": "Presión Atm",
+            "humidity_percentage": "Humedad",
+            "rainfall": "Lluvia",
+            "wind_speed": "Viento"
+        };
 
-            const tempDiv = document.createElement('div');
+        const tempDiv = document.createElement('div');
 
-            for (const [key, label] of Object.entries(keysToShow)) {
-                if (penultimoElemento[key] !== undefined) {
-                    const infoLine = document.createElement('div');
-                    infoLine.className = 'info-line';
-                    const labelSpan = document.createElement('span');
-                    const valueSpan = document.createElement('span');
-                    labelSpan.textContent = label;
-                    valueSpan.className = 'value';
+        for (const [key, label] of Object.entries(keysToShow)) {
+            if (penultimoElemento[key] !== undefined) {
+                const infoLine = document.createElement('div');
+                infoLine.className = 'info-line';
+                const labelSpan = document.createElement('span');
+                const valueSpan = document.createElement('span');
+                labelSpan.textContent = label;
+                valueSpan.className = 'value';
 
-                    // Formatear valores según el tipo de dato
-                    if (key === "track_temperature" || key === "air_temperature") {
-                        valueSpan.textContent = `${penultimoElemento[key]} ºC`;
-                    } else if (key === "rainfall") {
-                        valueSpan.textContent = `${penultimoElemento[key]} L`;
-                    } else if (key === "wind_speed") {
-                        valueSpan.textContent = `${penultimoElemento[key]} m/s`;
-                    } else if (key === "humidity" || key === "humidity_percentage") {
-                        valueSpan.textContent = `${penultimoElemento[key]} %`;
-                    } else if (key === "pressure") {
-                        valueSpan.textContent = `${penultimoElemento[key]} mbar`;
-                    } else {
-                        valueSpan.textContent = penultimoElemento[key];
-                    }
-                    infoLine.appendChild(labelSpan);
-                    infoLine.appendChild(valueSpan);
-                    tempDiv.appendChild(infoLine);
+                // Formatear valores según el tipo de dato
+                if (key === "track_temperature" || key === "air_temperature") {
+                    valueSpan.textContent = `${penultimoElemento[key]} ºC`;
+                } else if (key === "rainfall") {
+                    valueSpan.textContent = `${penultimoElemento[key]} L`;
+                } else if (key === "wind_speed") {
+                    valueSpan.textContent = `${penultimoElemento[key]} m/s`;
+                } else if (key === "humidity" || key === "humidity_percentage") {
+                    valueSpan.textContent = `${penultimoElemento[key]} %`;
+                } else if (key === "pressure") {
+                    valueSpan.textContent = `${penultimoElemento[key]} mbar`;
+                } else {
+                    valueSpan.textContent = penultimoElemento[key];
                 }
-            }
-
-            // Reemplazar el contenido solo si la llamada fue exitosa
-            weatherDataDiv.innerHTML = tempDiv.innerHTML;
-        }
-
-        function toggleWeatherData() {
-            const weatherDataDiv = document.getElementById('weatherData');
-            const button = document.querySelector('.show-weather-btn');
-            if (weatherDataDiv.style.display === 'none' || weatherDataDiv.style.display === '') {
-                weatherDataDiv.style.display = 'block';
-                button.textContent = 'Ocultar Meteorología ▲';
-            } else {
-                weatherDataDiv.style.display = 'none';
-                button.textContent = 'Mostrar Meteorología ▼';
+                infoLine.appendChild(labelSpan);
+                infoLine.appendChild(valueSpan);
+                tempDiv.appendChild(infoLine);
             }
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            fetchWeatherData(); // Cargar datos al inicio
+        // Reemplazar el contenido solo si la llamada fue exitosa
+        weatherDataDiv.innerHTML = tempDiv.innerHTML;
+    }
 
-            // Llamar a la API cada 2 minutos si hay datos nuevos
-            setInterval(fetchWeatherData, 120000);
-        });
-    </script>
+    function toggleWeatherData() {
+        const weatherDataDiv = document.getElementById('weatherData');
+        const button = document.querySelector('.show-weather-btn');
+        if (weatherDataDiv.style.display === 'none' || weatherDataDiv.style.display === '') {
+            weatherDataDiv.style.display = 'block';
+            button.textContent = 'Ocultar Meteorología ▲';
+        } else {
+            weatherDataDiv.style.display = 'none';
+            button.textContent = 'Mostrar Meteorología ▼';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        fetchWeatherData(); // Cargar datos al inicio
+
+        // Llamar a la API cada 2 minutos si hay datos nuevos
+        setInterval(fetchWeatherData, 120000);
+    });
+</script>
+
     
 	
 
