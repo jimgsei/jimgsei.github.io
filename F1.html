@@ -2184,92 +2184,73 @@ async function customUpdateDriverPosition(selectNumber, driverNumber) {
 
 
  <!-- Status API -->    
- <script>
-    // Función para comprobar el estado de la API
-    async function checkApiStatus(apiUrl, elementId, expectedResponse) {
-        const proxyUrl = 'https://api.allorigins.win/get?url=';
-        const statusDiv = document.getElementById(elementId);
-
-        try {
-            // Intentar primero sin proxy
-            const response = await fetch(apiUrl);
-            if (!response.ok) {
-                throw new Error(`Network response was not ok: ${response.statusText}`);
-            }
-            const apiData = await response.json();
-
-            // Inspecciona la respuesta de la API
-            console.log(apiData); // Para verificar la respuesta real
-
-            // Verifica si la respuesta es JSON
-            if (apiData.status === 'OK') {
-                statusDiv.innerHTML = `<span>✔️</span>`;
-            } else {
-                statusDiv.innerHTML = `<span>❌</span>`;
-            }
-        } catch (error) {
-            console.warn('Intentando con proxy...', error);
+  <script>
+        // Función para comprobar el estado de la API
+        async function checkApiStatus(apiUrl, expectedResponse) {
             try {
-                // Ahora intenta con proxy si la solicitud sin proxy falla
-                const response = await fetch(proxyUrl + encodeURIComponent(apiUrl));
+                const response = await fetch(apiUrl);
                 if (!response.ok) {
                     throw new Error(`Network response was not ok: ${response.statusText}`);
                 }
-                const data = await response.json();
-                const apiData = JSON.parse(data.contents);
+                const apiData = await response.text(); // Cambiar a text() para obtener respuesta sin parsear
 
                 // Inspecciona la respuesta de la API
                 console.log(apiData); // Para verificar la respuesta real
 
                 // Verifica si la respuesta es JSON
-                if (apiData.status === 'OK') {
-                    statusDiv.innerHTML = `<span>✔️</span>`;
-                } else {
-                    statusDiv.innerHTML = `<span>❌</span>`;
+                try {
+                    const parsedData = JSON.parse(apiData);
+                    // Ajusta según la estructura de respuesta de la API
+                    return parsedData.status === 'OK' ? '✔️' : '❌';
+                } catch (e) {
+                    // Si no es un JSON válido, comprueba si incluye el mensaje esperado
+                    return apiData.includes(expectedResponse) ? '✔️' : '❌';
                 }
             } catch (error) {
                 console.error('Error al verificar el estado de la API:', error);
-                statusDiv.innerHTML = `<span>❌</span>`;
+                return '❌'; // Indica que hubo un error
             }
         }
-    }
 
-    // Función para crear la tabla
-    function createTable() {
-        const tableHTML = `
-            <table>
-                <thead>
-                    <tr>
-                        <th>API</th>
-                        <th>Estado</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><a href="https://api.jolpi.ca/ergast/" target="_blank">Ergast</a></td>
-                        <td id="apiStatus1"></td>
-                    </tr>
-                    <tr>
-                        <td><a href="https://openf1.org/" target="_blank">OpenF1</a></td>
-                        <td id="apiStatus2"></td>
-                    </tr>
-                </tbody>
-            </table>
-        `;
-        document.getElementById('tableContainer').innerHTML = tableHTML;
-    }
+        // Función para crear la tabla
+        function createTable() {
+            const tableHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>API</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><a href="https://api.jolpi.ca/ergast/" target="_blank">Ergast</a></td>
+                            <td id="apiStatus1"></td>
+                        </tr>
+                        <tr>
+                            <td><a href="https://openf1.org/" target="_blank">OpenF1</a></td>
+                            <td id="apiStatus2"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            `;
+            document.getElementById('tableContainer').innerHTML = tableHTML;
+        }
 
-    // Función para actualizar los estados de las APIs
-    function updateStatuses() {
-        checkApiStatus('https://api.jolpi.ca/ergast/', 'apiStatus1', 'OK');
-        checkApiStatus('https://api.openf1.org/', 'apiStatus2', 'Welcome to OpenF1!');
-    }
+        // Función para actualizar los estados de las APIs
+        async function updateStatuses() {
+            const ergastStatus = await checkApiStatus('https://api.jolpi.ca/ergast/', 'OK');
+            document.getElementById('apiStatus1').innerHTML = ergastStatus;
 
-    // Inicializar la tabla y los estados
-    createTable();
-    updateStatuses();
-    setInterval(updateStatuses, 30000); // Actualiza cada 30 segundos
-</script>
+            const openF1Status = await checkApiStatus('https://api.openf1.org/', 'Welcome to OpenF1!');
+            document.getElementById('apiStatus2').innerHTML = openF1Status;
+        }
+
+        // Inicializar la tabla y los estados
+        createTable();
+        updateStatuses();
+        setInterval(updateStatuses, 30000); // Actualiza cada 30 segundos
+    </script>
 
 	
 
