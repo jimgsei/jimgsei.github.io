@@ -1538,7 +1538,7 @@ async function customUpdateDriverPosition(selectNumber, driverNumber) {
             timeZone: 'Europe/Madrid'
         }).format(dateObj);
 
-        positionInfo.innerHTML = `Posición actual: ${latestData.position}<br> ${formattedDate.replace(',', ' -')}`;
+        positionInfo.innerHTML = `Posición: ${latestData.position}<br> ${formattedDate.replace(',', ' -')}`;
         
     } catch (error) {
         console.error('Error fetching driver position data:', error);
