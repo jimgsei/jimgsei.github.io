@@ -1445,7 +1445,7 @@
                 driverSelect.value = selectedValue; // Mantener el valor seleccionado
             }
         }
-        // Cargar datos de posición y fecha para los pilotos almacenados
+        // Cargar datos de posición para los pilotos almacenados
         Object.keys(customDriverData).forEach(key => {
             const driverNumber = customDriverData[key].driverNumber;
             const driverSelect = document.getElementById(`custom-driver-select-${key}`);
@@ -1463,23 +1463,10 @@
         const selectedOption = driverSelect.options[driverSelect.selectedIndex];
         const driverImage = document.getElementById(`custom-driver-image-${selectNumber}`);
         const positionInfo = document.getElementById(`custom-position-info-${selectNumber}`);
-        const dateInfo = document.getElementById(`custom-date-info-${selectNumber}`);
-        const gapToLeaderInfo = document.getElementById(`custom-gap-to-leader-info-${selectNumber}`);
-        const intervalInfo = document.getElementById(`custom-interval-info-${selectNumber}`);
-        const pitStopInfo = document.getElementById(`custom-pitstop-info-${selectNumber}`);
-        const lapNumberInfo = document.getElementById(`custom-lap-number-info-${selectNumber}`);
-        const pitDurationInfo = document.getElementById(`custom-pit-duration-info-${selectNumber}`);
-        const showMoreButton = document.getElementById(`custom-show-more-button-${selectNumber}`);
 
         // Limpiar información anterior
         if (driverImage) driverImage.style.display = 'none';
         if (positionInfo) positionInfo.textContent = '';
-        if (dateInfo) dateInfo.textContent = '';
-        if (gapToLeaderInfo) gapToLeaderInfo.textContent = '';
-        if (intervalInfo) intervalInfo.textContent = '';
-        if (pitStopInfo) pitStopInfo.textContent = '';
-        if (lapNumberInfo) lapNumberInfo.textContent = '';
-        if (pitDurationInfo) pitDurationInfo.textContent = '';
 
         // Limpiar intervalos anteriores
         if (customIntervals[selectNumber]) {
@@ -1493,7 +1480,7 @@
             }
             customSelectedDrivers.add(selectedOption.value);
             customUpdateDriverPosition(selectNumber, selectedOption.value);
-            customIntervals[selectNumber] = setInterval(() => customUpdateDriverPosition(selectNumber, selectedOption.value), 5000);
+            customIntervals[selectNumber] = setInterval(() => customUpdateDriverPosition(selectNumber, selectedOption.value), 3000);
 
             // Almacenar datos del piloto
             customDriverData[selectNumber] = {
@@ -1504,91 +1491,45 @@
         } else {
             customSelectedDrivers.delete(selectedOption.value);
         }
-
-        // Añadir botón para expandir información si no existe
-        if (!showMoreButton) {
-            const newShowMoreButton = document.createElement('div');
-            newShowMoreButton.className = 'custom-show-more-button';
-            newShowMoreButton.id = `custom-show-more-button-${selectNumber}`;
-            newShowMoreButton.textContent = 'Mostrar más';
-            newShowMoreButton.onclick = () => {
-    const driverCell = document.querySelector(`#custom-driver-cell-${selectNumber}`);
-    const hiddenInfo = driverCell.querySelectorAll('.custom-hidden-info');
-
-    // Comprobar si está oculto
-    let isHidden = hiddenInfo[0].style.display === 'none' || hiddenInfo[0].style.display === '';
-
-    hiddenInfo.forEach(info => {
-        if (isHidden) {
-            info.style.display = 'block'; // Mostrar información oculta
-            driverCell.classList.add('expanded'); // Agregar clase expandida
-            // Ajustar la altura solo de esta celda
-            driverCell.style.height = 'auto'; // Asegurarse de que puede expandirse
-        } else {
-            info.style.display = 'none'; // Ocultar información
-            driverCell.classList.remove('expanded'); // Quitar clase expandida
-            driverCell.style.height = ''; // Resetear altura
-        }
-    });
-
-    // Cambiar texto del botón
-    newShowMoreButton.textContent = isHidden ? 'Mostrar menos' : 'Mostrar más';
-};
-
-            const driverCell = document.getElementById(`custom-driver-cell-${selectNumber}`);
-            driverCell.appendChild(newShowMoreButton);
-        }
     }
 
-        async function customUpdateDriverPosition(selectNumber, driverNumber) {
-            const proxyUrl = 'https://api.allorigins.win/get?url=';
+async function customUpdateDriverPosition(selectNumber, driverNumber) {
+    const proxyUrl = 'https://api.allorigins.win/get?url=';
 
-            try {
-                // Obtener intervalo del conductor
-                const intervalResponse = await fetch(proxyUrl + encodeURIComponent(`https://api.openf1.org/v1/intervals?session_key=latest&driver_number=${driverNumber}`));
-                const intervalData = await intervalResponse.json();
-                const intervals = JSON.parse(intervalData.contents); // Parsear el contenido JSON
-                const latestInterval = intervals.reduce((latest, current) => new Date(latest.date) > new Date(current.date) ? latest : current, {});
+    try {
+        // Intentar obtener la posición del conductor sin usar un proxy
+        const positionResponse = await fetch(`https://api.openf1.org/v1/position?meeting_key=latest&driver_number=${driverNumber}&session_key=latest`);
+        const positionData = await positionResponse.json();
+        const positions = JSON.parse(positionData.contents);
+        const latestPosition = positions.length ? positions[positions.length - 1] : {};
 
-                // Obtener posición del conductor
-                const positionResponse = await fetch(proxyUrl + encodeURIComponent(`https://api.openf1.org/v1/position?meeting_key=latest&driver_number=${driverNumber}&session_key=latest`));
-                const positionData = await positionResponse.json();
-                const positions = JSON.parse(positionData.contents);
-                const latestPosition = positions.length ? positions[positions.length - 1] : {};
-
-                // Obtener datos de paradas en boxes del conductor
-                const pitResponse = await fetch(proxyUrl + encodeURIComponent(`https://api.openf1.org/v1/pit?session_key=latest&driver_number=${driverNumber}`));
-                const pitData = await pitResponse.json();
-                const pitstops = JSON.parse(pitData.contents);
-                const latestPitstop = pitstops.length ? pitstops.reduce((latest, current) => new Date(latest.date) > new Date(current.date) ? latest : current, {}) : {};
-
-                // Actualizar la interfaz de usuario
-                const positionInfo = document.getElementById(`custom-position-info-${selectNumber}`);
-                const dateInfo = document.getElementById(`custom-date-info-${selectNumber}`);
-                const gapToLeaderInfo = document.getElementById(`custom-gap-to-leader-info-${selectNumber}`);
-                const intervalInfo = document.getElementById(`custom-interval-info-${selectNumber}`);
-                const pitStopInfo = document.getElementById(`custom-pitstop-info-${selectNumber}`);
-
-                if (positionInfo && latestPosition.position) {
-                    positionInfo.textContent = `Posición: ${latestPosition.position}`;
-                }
-                if (dateInfo && latestPosition.date) {
-                    dateInfo.textContent = `Fecha: ${new Date(latestPosition.date).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: '2-digit' })}, ${new Date(latestPosition.date).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`;
-                }
-                if (gapToLeaderInfo && latestInterval.gap_to_leader) {
-                    gapToLeaderInfo.innerHTML = `<b>Diferencia Tiemp.:</b> ${latestInterval.gap_to_leader}`;
-                }
-                if (intervalInfo && latestInterval.gap_to_leader && latestInterval.interval) {
-                    intervalInfo.textContent = `P. líder: ${latestInterval.gap_to_leader} P. delante: ${latestInterval.interval}`;
-                }
-                if (pitStopInfo && latestPitstop.lap_number && latestPitstop.pit_duration) {
-                    pitStopInfo.innerHTML = `<b>Box V.:</b> ${latestPitstop.lap_number} <b>D.:</b> ${latestPitstop.pit_duration} s`;
-                }
-
-            } catch (error) {
-                console.error('Error fetching driver position data:', error);
-            }
+        // Actualizar la interfaz de usuario
+        const positionInfo = document.getElementById(`custom-position-info-${selectNumber}`);
+        if (positionInfo && latestPosition.position) {
+            positionInfo.textContent = `Posición: ${latestPosition.position}`;
         }
+
+    } catch (error) {
+        console.error('Error fetching driver position data without proxy, trying with proxy:', error);
+
+        try {
+            // Si falla, intentar de nuevo usando un proxy
+            const positionResponse = await fetch(proxyUrl + encodeURIComponent(`https://api.openf1.org/v1/position?meeting_key=latest&driver_number=${driverNumber}&session_key=latest`));
+            const positionData = await positionResponse.json();
+            const positions = JSON.parse(positionData.contents);
+            const latestPosition = positions.length ? positions[positions.length - 1] : {};
+
+            // Actualizar la interfaz de usuario
+            const positionInfo = document.getElementById(`custom-position-info-${selectNumber}`);
+            if (positionInfo && latestPosition.position) {
+                positionInfo.textContent = `Posición: ${latestPosition.position}`;
+            }
+
+        } catch (error) {
+            console.error('Error fetching driver position data with proxy:', error);
+        }
+    }
+}
 
     function customAddDriver() {
         customDriverCount++;
@@ -1602,12 +1543,6 @@
                 <option value="">Selecciona un piloto</option>
             </select>
             <div id="custom-position-info-${customDriverCount}" class="custom-info"></div>
-            <div id="custom-date-info-${customDriverCount}" class="custom-info custom-date"></div>
-            <div id="custom-gap-to-leader-info-${customDriverCount}" class="custom-info custom-hidden-info"></div>
-            <div id="custom-interval-info-${customDriverCount}" class="custom-info custom-hidden-info"></div>
-            <div id="custom-pitstop-info-${customDriverCount}" class="custom-info custom-hidden-info"></div>
-            <div id="custom-lap-number-info-${customDriverCount}" class="custom-info custom-hidden-info"></div>
-            <div id="custom-pit-duration-info-${customDriverCount}" class="custom-info custom-hidden-info"></div>
             <div class="custom-delete-button" onclick="customDeleteDriver(${customDriverCount})">×</div>
         `;
         driverSelectors.appendChild(newCell);
@@ -1632,7 +1567,6 @@
                 const select = cell.querySelector('select');
                 select.id = `custom-driver-select-${newCustomDriverCount}`;
                 select.setAttribute('onchange', `customSelectDriver(${newCustomDriverCount})`);
-                cell.querySelector('.custom-delete-button').setAttribute('onclick', `customDeleteDriver(${newCustomDriverCount})`);
                 newCustomDriverData[newCustomDriverCount] = {
                     id: `custom-driver-cell-${newCustomDriverCount}`,
                     driverNumber: select.value
@@ -1641,58 +1575,7 @@
             customDriverData = newCustomDriverData;
             customDriverCount = newCustomDriverCount;
             localStorage.setItem('customDriverData', JSON.stringify(customDriverData));
-
-            // Recargar el contenedor de selección de pilotos
-            const driverContainer = document.querySelector('.custom-pilot-container');
-            driverContainer.innerHTML = `
-                <h1>Seleccionar Piloto</h1>
-                <div id="custom-driver-selectors"></div>
-                <div id="custom-add-driver-button" class="custom-add-driver-button" onclick="customAddDriver()">+</div>
-            `;
-            customDriverCount = 0; // Reiniciar el contador de pilotos
-            Object.keys(customDriverData).forEach(key => {
-                customDriverCount++;
-                const driverSelectors = document.getElementById('custom-driver-selectors');
-                const newCell = document.createElement('div');
-                newCell.className = 'custom-driver-cell';
-                newCell.id = `custom-driver-cell-${key}`;
-                newCell.innerHTML = `
-                    <img id="custom-driver-image-${key}" src="" alt="Imagen del piloto" onerror="this.style.display='none'">
-                    <select id="custom-driver-select-${key}" class="custom-select" onchange="customSelectDriver(${key})">
-                        <option value="">Selecciona un piloto</option>
-                    </select>
-                    <div id="custom-position-info-${key}" class="custom-info"></div>
-                    <div id="custom-date-info-${key}" class="custom-info custom-date"></div>
-                    <div id="custom-gap-to-leader-info-${key}" class="custom-info custom-hidden-info"></div>
-                    <div id="custom-interval-info-${key}" class="custom-info custom-hidden-info"></div>
-                    <div id="custom-pitstop-info-${key}" class="custom-info custom-hidden-info"></div>
-                    <div id="custom-lap-number-info-${key}" class="custom-info custom-hidden-info"></div>
-                    <div id="custom-pit-duration-info-${key}" class="custom-info custom-hidden-info"></div>
-                    <div class="custom-delete-button" onclick="customDeleteDriver(${key})">×</div>
-                `;
-                driverSelectors.appendChild(newCell);
-            });
-            customFetchDrivers().then(() => {
-                Object.keys(customDriverData).forEach(key => {
-                    customSelectDriver(key);
-                });
-            });
         }
-    }
-
-    function adjustCellHeights() {
-        const cells = document.querySelectorAll('.custom-driver-cell');
-        let maxHeight = 0;
-        cells.forEach(cell => {
-            cell.style.height = 'auto'; // Reset height to auto to get the actual height
-            const cellHeight = cell.offsetHeight;
-            if (cellHeight > maxHeight) {
-                maxHeight = cellHeight;
-            }
-        });
-        cells.forEach(cell => {
-            cell.style.height = `${maxHeight}px`; // Set all cells to the maximum height
-        });
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -1717,12 +1600,6 @@
                     <option value="">Selecciona un piloto</option>
                 </select>
                 <div id="custom-position-info-${key}" class="custom-info"></div>
-                <div id="custom-date-info-${key}" class="custom-info custom-date"></div>
-                <div id="custom-gap-to-leader-info-${key}" class="custom-info custom-hidden-info"></div>
-                <div id="custom-interval-info-${key}" class="custom-info custom-hidden-info"></div>
-                <div id="custom-pitstop-info-${key}" class="custom-info custom-hidden-info"></div>
-                <div id="custom-lap-number-info-${key}" class="custom-info custom-hidden-info"></div>
-                <div id="custom-pit-duration-info-${key}" class="custom-info custom-hidden-info"></div>
                 <div class="custom-delete-button" onclick="customDeleteDriver(${key})">×</div>
             `;
             driverSelectors.appendChild(newCell);
@@ -1735,7 +1612,9 @@
     });
 </script>
 
- 
+
+
+
 
 
 <!-- Clasificaciones -->
@@ -2292,83 +2171,6 @@
     </script>
     
 	
-   <script>
-        // Función para comprobar el estado de la API
-        async function checkApiStatus(apiUrl, elementId, expectedResponse) {
-            const proxyUrl = 'https://api.allorigins.win/get?url=';
-            try {
-                const response = await fetch(proxyUrl + encodeURIComponent(apiUrl));
-                if (!response.ok) {
-                    throw new Error(`Network response was not ok: ${response.statusText}`);
-                }
-                const data = await response.json();
-                const apiData = data.contents;
-
-                // Inspecciona la respuesta de la API
-                console.log(apiData); // Para verificar la respuesta real
-
-                const statusDiv = document.getElementById(elementId);
-
-                // Verifica si la respuesta es JSON
-                try {
-                    const parsedData = JSON.parse(apiData);
-                    // Ajusta según la estructura de respuesta de la API
-                    if (parsedData.status === 'OK') {
-                        statusDiv.innerHTML = `<span>✔️</span>`;
-                    } else {
-                        statusDiv.innerHTML = `<span>❌</span>`;
-                    }
-                } catch (e) {
-                    // Si no es un JSON válido, comprueba si incluye el mensaje esperado
-                    if (apiData.includes(expectedResponse)) {
-                        statusDiv.innerHTML = `<span>✔️</span>`;
-                    } else {
-                        statusDiv.innerHTML = `<span>❌</span>`;
-                    }
-                }
-            } catch (error) {
-                console.error('Error al verificar el estado de la API:', error);
-                const statusDiv = document.getElementById(elementId);
-                statusDiv.innerHTML = `<span>❌</span>`;
-            }
-        }
-
-        // Función para crear la tabla
-        function createTable() {
-            const tableHTML = `
-                <table>
-                    <thead>
-                        <tr>
-                            <th>API</th>
-                            <th>Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><a href="https://api.jolpi.ca/ergast/" target="_blank">Ergast</a></td>
-                            <td id="apiStatus1"></td>
-                        </tr>
-                        <tr>
-                            <td><a href="https://openf1.org/" target="_blank">OpenF1</a></td>
-                            <td id="apiStatus2"></td>
-                        </tr>
-                    </tbody>
-                </table>
-            `;
-            document.getElementById('tableContainer').innerHTML = tableHTML;
-        }
-
-        // Función para actualizar los estados de las APIs
-        function updateStatuses() {
-            checkApiStatus('https://api.jolpi.ca/ergast/', 'apiStatus1', 'OK');
-            checkApiStatus('https://api.openf1.org/', 'apiStatus2', 'Welcome to OpenF1!');
-        }
-
-        // Inicializar la tabla y los estados
-        createTable();
-        updateStatuses();
-        setInterval(updateStatuses, 10000); // Actualiza cada 10 segundos
-    </script>
 
 
   <!-- Control de carreras -->
