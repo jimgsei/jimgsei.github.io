@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Fullscreen HLS Player</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body, html {
       margin: 0;
@@ -15,15 +16,15 @@
       align-items: center;
     }
     video {
-      width: 100%;
-      height: 100%;
+      width: 100vw;
+      height: 100vh;
       object-fit: cover;
     }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
 <body>
-  <video id="video" controls autoplay></video>
+  <video id="video" controls autoplay playsinline></video>
   <script>
     const video = document.getElementById('video');
 
@@ -33,7 +34,7 @@
       hls.attachMedia(video);
       hls.on(Hls.Events.MANIFEST_PARSED, function() {
         video.play();
-        video.requestFullscreen();  // Solicita pantalla completa al iniciar
+        video.requestFullscreen();
       });
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
       video.src = 'https://iezmzlrgtn5pgme.ngolpdkyoctjcddxshli469r.org/sunshine/ttVa45D5zqhcBkrYvA6EZYhhgYsUGLGZdFwakVUeJFtRmQFhZa2bhvkHGAinOnVc9YCftpNW73rWKWQ1nILn5Zc6CZVJgALfPzlFCw-pT5idkwyFMtBX2PxgFw4JGSHRTILbbAhf0Fno6rqkFpugerwxWfhB6_Mlb6zEmarijdA/hls/index.m3u8';
