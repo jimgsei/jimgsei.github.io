@@ -2,16 +2,17 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>HLS Fullscreen Player</title>
+  <title>Fullscreen HLS Player</title>
   <style>
     body, html {
       margin: 0;
       padding: 0;
       height: 100%;
+      background-color: black;
+      overflow: hidden;
       display: flex;
       justify-content: center;
       align-items: center;
-      background-color: black;
     }
     video {
       width: 100%;
@@ -24,21 +25,23 @@
 <body>
   <video id="video" controls autoplay></video>
   <script>
+    const video = document.getElementById('video');
+
     if (Hls.isSupported()) {
-      const video = document.getElementById('video');
       const hls = new Hls();
       hls.loadSource('https://iezmzlrgtn5pgme.ngolpdkyoctjcddxshli469r.org/sunshine/ttVa45D5zqhcBkrYvA6EZYhhgYsUGLGZdFwakVUeJFtRmQFhZa2bhvkHGAinOnVc9YCftpNW73rWKWQ1nILn5Zc6CZVJgALfPzlFCw-pT5idkwyFMtBX2PxgFw4JGSHRTILbbAhf0Fno6rqkFpugerwxWfhB6_Mlb6zEmarijdA/hls/index.m3u8');
       hls.attachMedia(video);
       hls.on(Hls.Events.MANIFEST_PARSED, function() {
         video.play();
+        video.requestFullscreen();  // Solicita pantalla completa al iniciar
       });
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
       video.src = 'https://iezmzlrgtn5pgme.ngolpdkyoctjcddxshli469r.org/sunshine/ttVa45D5zqhcBkrYvA6EZYhhgYsUGLGZdFwakVUeJFtRmQFhZa2bhvkHGAinOnVc9YCftpNW73rWKWQ1nILn5Zc6CZVJgALfPzlFCw-pT5idkwyFMtBX2PxgFw4JGSHRTILbbAhf0Fno6rqkFpugerwxWfhB6_Mlb6zEmarijdA/hls/index.m3u8';
       video.addEventListener('loadedmetadata', function() {
         video.play();
+        video.requestFullscreen();
       });
     }
   </script>
 </body>
 </html>
-
