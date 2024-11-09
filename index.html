@@ -89,7 +89,7 @@
 <body>
   <div id="particles-js"></div>
   <div class="contenedor">
-    <h1>F1 - Fútbol - Caza</h1>
+    <h1>TV - F1 - Caza - Fútbol</h1>
     <div class="botones">
       <div class="dropdown-container">
         <a href="#" class="boton" id="dazn-f1-button">Dazn F1</a>
@@ -116,12 +116,20 @@
           <a href="https://en.gdplayertv.to/live-tv/dazn-laliga/?embed=1">Liga TV</a>
         </div>
       </div>
-      <!-- Nuevo botón Caza y Pesca -->
+      <!-- Botón Caza y Pesca -->
       <div class="dropdown-container">
         <a href="#" class="boton" id="caza-button">Caza y Pesca</a>
         <div class="dropdown" id="caza-dropdown">
           <a href="CAZA.html">Caza 1</a>
           <a href="caza.html">Caza 2</a>
+        </div>
+      </div>
+      <!-- Botón TV -->
+      <div class="dropdown-container">
+        <a href="#" class="boton" id="tv-button">TV</a>
+        <div class="dropdown" id="tv-dropdown">
+          <a href="https://oha.to/">Opción 1</a>
+          <a href="https://huhu.to/">Opción 2</a>
         </div>
       </div>
     </div>
@@ -162,11 +170,17 @@
       dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
     });
 
-    // Nuevo código para el dropdown Caza y Pesca
     document.getElementById('caza-button').addEventListener('click', function(event) {
       event.preventDefault();
       closeAllDropdowns();
       var dropdown = document.getElementById('caza-dropdown');
+      dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+    });
+
+    document.getElementById('tv-button').addEventListener('click', function(event) {
+      event.preventDefault();
+      closeAllDropdowns();
+      var dropdown = document.getElementById('tv-dropdown');
       dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
     });
 
