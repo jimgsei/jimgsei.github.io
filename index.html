@@ -83,6 +83,128 @@
       left: 0;
       z-index: 0;
     }
+	/* Centramos los submenús */
+@media (max-width: 768px) {
+  /* Los submenús deben estar centrados sobre el botón */
+  .dropdown {
+    position: absolute;
+    width: 250px; /* Ancho fijo de los submenús */
+    left: 50%; /* Centrado horizontalmente */
+    transform: translateX(-50%); /* Alineación perfecta en el centro */
+    margin-top: 10px; /* Espacio entre el menú y el submenú */
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2); /* Sombra sutil para darle elegancia */
+    border-radius: 8px; /* Bordes redondeados */
+    background-color: rgba(0, 0, 0, 0.8); /* Fondo oscuro para submenú */
+    display: none; /* Inicialmente los submenús están ocultos */
+  }
+
+  /* Los submenús mantienen los mismos estilos que antes */
+  .dropdown a {
+    padding: 12px 20px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2); /* Borde sutil entre los elementos */
+  }
+
+  .dropdown a:hover {
+    background-color: rgba(50, 50, 50, 0.9);
+    cursor: pointer;
+  }
+
+  /* Los botones deben ocupar un ancho fijo */
+  .boton {
+    display: block;
+    width: 250px; /* Fijo, no ocupar todo el ancho */
+    margin: 10px auto; /* Centramos los botones */
+    text-align: center;
+    padding: 12px 20px;
+    border-radius: 8px;
+    background-color: rgba(0, 0, 0, 0.7); /* Fondo oscuro */
+    transition: background-color 0.3s ease;
+  }
+
+  .boton:hover {
+    background-color: rgba(50, 50, 50, 0.9);
+  }
+
+  /* Cambiar el comportamiento del hover para mostrar submenús */
+  .dropdown-container:hover .dropdown {
+    display: block;
+  }
+
+  /* Para evitar que los submenús se desborden, hacemos que tengan scroll si son muy largos */
+  .dropdown {
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+
+  /* Aseguramos que la altura y el comportamiento de los menús sean consistentes */
+  .dropdown-container {
+    position: relative;
+    width: 250px;
+  }
+}
+/* Submenús con desplazamiento si son muy largos */
+@media (max-width: 768px) {
+  .dropdown {
+    position: absolute;
+    width: 250px; /* Ancho fijo de los submenús */
+    left: 50%; /* Centrado horizontalmente */
+    transform: translateX(-50%); /* Alineación perfecta en el centro */
+    margin-top: 10px; /* Espacio entre el menú y el submenú */
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2); /* Sombra sutil para darle elegancia */
+    border-radius: 8px; /* Bordes redondeados */
+    background-color: rgba(0, 0, 0, 0.8); /* Fondo oscuro para submenú */
+    display: none; /* Inicialmente los submenús están ocultos */
+    max-height: 80vh; /* Limitar la altura máxima del submenú */
+    overflow-y: auto; /* Permitir desplazamiento vertical si el contenido es largo */
+  }
+
+  /* Los submenús mantienen los mismos estilos que antes */
+  .dropdown a {
+    padding: 12px 20px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2); /* Borde sutil entre los elementos */
+  }
+
+  .dropdown a:hover {
+    background-color: rgba(50, 50, 50, 0.9);
+    cursor: pointer;
+  }
+
+  /* Los botones deben ocupar un ancho fijo */
+  .boton {
+    display: block;
+    width: 250px; /* Fijo, no ocupar todo el ancho */
+    margin: 10px auto; /* Centramos los botones */
+    text-align: center;
+    padding: 12px 20px;
+    border-radius: 8px;
+    background-color: rgba(0, 0, 0, 0.7); /* Fondo oscuro */
+    transition: background-color 0.3s ease;
+  }
+
+  .boton:hover {
+    background-color: rgba(50, 50, 50, 0.9);
+  }
+
+  /* Cambiar el comportamiento del hover para mostrar submenús */
+  .dropdown-container:hover .dropdown {
+    display: block;
+  }
+
+  /* Para evitar que los submenús se desborden, hacemos que tengan scroll si son muy largos */
+  .dropdown {
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+
+  /* Aseguramos que la altura y el comportamiento de los menús sean consistentes */
+  .dropdown-container {
+    position: relative;
+    width: 250px;
+  }
+}
+
   </style>
 </head>
 <link rel="icon" href="UP.ico" type="image/x-icon">
