@@ -26,6 +26,7 @@
       box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
       animation: fadeIn 2s ease-in-out;
       z-index: 1;
+	  margin-bottom: 30px;
     }
     .botones {
       margin: 20px 0;
@@ -96,7 +97,7 @@
     @media (max-width: 768px) {
 	  .dropdown-container {
 		position: relative;
-		width: 100%; /* Aseguramos que el contenedor de dropdown tenga un ancho adecuado */
+		width: 80%; /* Aseguramos que el contenedor de dropdown tenga un ancho adecuado */
 	  }
       .dropdown {
         position: absolute;
@@ -108,13 +109,13 @@
         border-radius: 8px;
         background-color: rgba(0, 0, 0, 0.8);
         display: none; /* Submenú oculto por defecto */
-        max-height: 50vh;  /* Eliminar la restricción de altura */
+        max-height: auto;  /* Eliminar la restricción de altura */
         overflow-y: auto; /* Permitir scroll */
       }
 
       .dropdown a {
-        padding: 12px 20px;
-        text-align: left;
+        padding: 8px 10px;
+        text-align: center;
         border-bottom: 1px solid rgba(255, 255, 255, 0.2);
       }
 
@@ -162,7 +163,7 @@
 <body>
   <div id="particles-js"></div>
   <div class="contenedor">
-    <h1>TV - F1 - Caza - Fútbol</h1>
+    <h1>Webs</h1>
     <div class="botones">
       <div class="dropdown-container">
         <a href="#" class="boton" id="dazn-f1-button">Dazn F1</a>
