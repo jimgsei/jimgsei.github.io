@@ -135,14 +135,17 @@
             }
             .button {
                 margin: 10px 0;
-                width: 100%;
+                width: 50%;
             }
             .submenu {
                 position: relative;
                 margin-top: 5px;
-                width: 100%;
+                width: auto;  /* El ancho es ahora auto para ajustarse al contenido */
+                max-width: 50%; /* Controla la anchura máxima para hacerlo más estrecho */
                 padding: 5px 10px;
                 display: none;
+                margin-left: auto; /* Centra el submenú */
+                margin-right: auto; /* Centra el submenú */
             }
         }
 
