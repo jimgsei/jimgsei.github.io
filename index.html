@@ -6,299 +6,237 @@
   <title>Jimgsey</title>
   <link rel="stylesheet" href="styles.css">
  <style>
-    /* Estilos generales */
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background-color: #000;
-      color: white;
-      overflow: hidden;
-    }
-    .contenedor {
-      text-align: center;
-      background: rgba(255, 255, 255, 0.1);
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
-      animation: fadeIn 2s ease-in-out;
-      z-index: 1;
-	  margin-bottom: 30px;
-    }
-    .botones {
-      margin: 20px 0;
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-    .boton {
-      display: inline-block;
-      margin: 10px;
-      padding: 10px 20px;
-      text-decoration: none;
-      color: white;
-      background-color: rgba(0, 0, 0, 0.7);
-      border-radius: 5px;
-      transition: background-color 0.3s;
-    }
-    .boton:hover {
-      background-color: rgba(50, 50, 50, 0.7);
-    }
-    .dropdown {
-      display: none;
-      position: absolute;
-      background-color: rgba(0, 0, 0, 0.7);
-      box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-      z-index: 1;
-      border-radius: 5px;
-      max-height: 70vh; /* Altura máxima en móviles */
-      overflow-y: auto; /* Permitir scroll */
-      width: 250px;
-    }
-    .dropdown a {
-      color: white;
-      padding: 8px 16px;
-      text-decoration: none;
-      display: block;
-      border-radius: 5px;
-    }
-    .dropdown a:hover {
-      background-color: rgba(50, 50, 50, 0.7);
-    }
-    .creditos {
-      margin-top: 20px;
-    }
-    .creditos img {
-      width: 30px;
-      vertical-align: middle;
-      filter: invert(1);
-    }
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #000;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: rgba(128, 128, 128, 0.1);
+            border-radius: 10px;
+            width: 90%;
+            max-width: 700px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.7);
+            text-align: center;
+        }
+        .title {
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .button {
+            background-color: transparent;
+            color: #fff;
+            border: 1px solid #aaa; /* Borde blanco fino */
+            padding: 10px;
+            font-size: 1em;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            text-align: center;
+        }
+        .button:hover {
+            border: 1px solid #fff;
+        }
+        .button.active {
+            border: 1px solid #fff;
+            box-shadow: 0 0 15px 3px rgba(255, 255, 255, 0.6);
+        }
+        .submenu {
+            display: none;
+            background-color: rgba(128, 128, 128, 0.9);
+            border-radius: 5px;
+            padding: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            text-align: left;
+            margin-top: 5px;
+            width: fit-content;
+        }
+        .submenu a {
+            color: #fff;
+            text-decoration: none;
+            display: block;
+            padding: 5px 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            background-color: #555;
+            transition: background-color 0.3s ease;
+            text-align: center;
+        }
+        .submenu a:hover {
+            background-color: #777;
+        }
+        .credits {
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #ddd;
+        }
+		.creditos {
+          margin-top: 20px;
+        }
+		.creditos img {
+		  width: 30px;
+		  vertical-align: middle;
+		  filter: invert(1);
+        }
 
-    /* Animación fadeIn */
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
+        /* Animación fadeIn */
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
 
-    /* Fondo de partículas */
-    #particles-js {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      top: 0;
-      left: 0;
-      z-index: 0;
-    }
+        /* Fondo de partículas */
+        #particles-js {
+         position: absolute;
+         width: 100%;
+         height: 100%;
+         top: 0;
+         left: 0;
+         z-index: 0;
+        }
 
-    /* Estilos para pantallas pequeñas */
-    @media (max-width: 768px) {
-	  .dropdown-container {
-		position: relative;
-		width: 80%; /* Aseguramos que el contenedor de dropdown tenga un ancho adecuado */
-	  }
-      .dropdown {
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
-        top: 0; /* Aseguramos que el submenú esté bien posicionado */
-        margin-top: 10px;
-        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
-        border-radius: 8px;
-        background-color: rgba(0, 0, 0, 0.8);
-        display: none; /* Submenú oculto por defecto */
-        max-height: auto;  /* Eliminar la restricción de altura */
-        overflow-y: auto; /* Permitir scroll */
-      }
+        /* Estilos para pantallas grandes */
+        @media (min-width: 601px) {
+            .button-group {
+                flex-direction: row;
+                justify-content: center;
+            }
+            .button {
+                flex: 1;
+                margin: 5px;
+                text-align: center;
+            }
+            .submenu {
+                position: relative;
+                text-align: left;
+                margin-top: 5px;
+                width: fit-content;
+                padding: 5px 15px;
+                display: none;
+            }
+        }
 
-      .dropdown a {
-        padding: 8px 10px;
-        text-align: center;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-      }
+        /* Estilos para pantallas pequeñas (móviles) */
+        @media (max-width: 600px) {
+            .button-group {
+                flex-direction: column;
+            }
+            .button {
+                margin: 10px 0;
+                width: 100%;
+            }
+            .submenu {
+                position: relative;
+                margin-top: 5px;
+                width: 100%;
+                padding: 5px 10px;
+                display: none;
+            }
+        }
 
-      .dropdown a:hover {
-        background-color: rgba(50, 50, 50, 0.9);
-        cursor: pointer;
-      }
-
-      .boton {
-        display: block;
-        width: 250px;
-        margin: 10px auto;
-        text-align: center;
-        padding: 12px 20px;
-        border-radius: 8px;
-        background-color: rgba(0, 0, 0, 0.7);
-        transition: background-color 0.3s ease;
-      }
-
-      .boton:hover {
-        background-color: rgba(50, 50, 50, 0.9);
-      }
-
-      .dropdown-container {
-        position: relative;
-        width: 250px;
-      }
-	  .dropdown-container:hover .dropdown {
-        display: block;
-      }
-
-      /* Mostrar el submenú cuando se haga hover o clic sobre el contenedor */
-      .dropdown-container:hover .dropdown {
-        display: block;
-      }
-
-      /* Aseguramos que los submenús sean visibles y desplazables */
-      .dropdown-container:focus-within .dropdown {
-        display: block;
-      }
-	   /* CENTRADO DE LOS BOTONES */
-      .botones {
-        display: flex; /* Activa el modelo flexbox */
-        justify-content: center; /* Centra los botones horizontalmente */
-        flex-wrap: wrap; /* Permite que los botones se acomoden en varias líneas si es necesario */
-        width: 100%; /* Asegura que ocupe todo el espacio disponible */
-      }
-    }
-  </style>
+    </style>
 </head>
 <link rel="icon" href="UP.ico" type="image/x-icon">
 <body>
   <div id="particles-js"></div>
-  <div class="contenedor">
-    <h1>Webs</h1>
-    <div class="botones">
-      <div class="dropdown-container">
-        <a href="#" class="boton" id="dazn-f1-button">Dazn F1</a>
-        <div class="dropdown" id="dazn-f1-dropdown">
-          <a href="F1.html">Dazn + Web Datos</a>
-          <a href="https://gg.dazcfutbolios.net/">F1 Externo</a>
-          <a href="https://dazcfutboltv1.com/">Deportes Externo</a>
-          <a href="https://deportestvhdplus.com/">F1 Iphone</a>
-          <a href="https://williamyaps.github.io/tv/channel/myfreeview/tv-alhijrah/daznf1.html?player_mute=off&#39">F1 Externo 2</a>
-          <a href="https://vk.com/video/@f1paratodos">F1 Subidos</a>
+    <div class="container">
+        <div class="title">Webs</div>
+        <div class="button-group">
+            <div>
+                <button class="button" onclick="toggleMenu('menuF1', this)">F1</button>
+                <div id="menuF1" class="submenu">
+                 <a href="F1.html">Dazn + Web Datos</a>
+                 <a href="https://gg.dazcfutbolios.net/">F1 Externo</a>
+                 <a href="https://dazcfutboltv1.com/">Deportes Externo</a>
+                 <a href="https://deportestvhdplus.com/">F1 Iphone</a>
+                 <a href="https://williamyaps.github.io/tv/channel/myfreeview/tv-alhijrah/daznf1.html?player_mute=off&#39">F1 Externo 2</a>
+                 <a href="https://vk.com/video/@f1paratodos">F1 Subidos</a>
+                </div>
+            </div>
+            <div>
+                <button class="button" onclick="toggleMenu('menuLiga', this)">Liga</button>
+                <div id="menuLiga" class="submenu">
+	      	      <a href="LIGA.html">La Liga</a>
+				  <a href="https://williamyaps.github.io/tv/channel/myfreeview/dfc/rtve.html?player_mute=off&#39">Liga TV</a>
+				  <a href="ligaTV.html">Liga</a>
+				  <a href="https://gg.dazcfutbolios.net/">Deportes Externo</a>
+				  <a href="https://dazcfutboltv1.com/">Deportes Externo 2</a>
+				  <a href="https://en.gdplayertv.to/live-tv/dazn-laliga/?embed=1">Liga TV</a>
+				  <a href="https://dazcfutboltv.com/">La Liga Externo</a>
+				  <a href="https://rr.dazcfutbolios.xyz/">La Liga Iphone</a>
+                </div>
+            </div>
+            <div>
+                <button class="button" onclick="toggleMenu('menuTV', this)">TV</button>
+                <div id="menuTV" class="submenu">
+	              <a href="la1.html">La 1 HD</a>
+	              <a href="https://nebunexa.co/clappr/?id=ANTENA3">Antena 3 HD</a>
+	              <a href="https://nebunexa.co/clappr/?id=CUATRO">Cuatro HD</a>
+	              <a href="https://nebunexa.co/clappr/?id=TELECINCO">Tele 5 HD</a>
+	              <a href="https://nebunexa.co/clappr/?id=LASEXTA">La Sexta HD</a>
+	              <a href="https://gavog.com/es/">Varios canales</a>
+	              <a href="https://oha.to/">Opción 1</a>
+	              <a href="https://huhu.to/">Opción 2</a>
+	              <a href="https://vavoo.to/">Opción 3</a>
+	              <a href="https://kool.to">Opción 4</a>
+                </div>
+            </div>
+            <div>
+                <button class="button" onclick="toggleMenu('menuCaza', this)">Caza</button>
+                <div id="menuCaza" class="submenu">
+                 <a href="CAZA.html">Caza 1</a>
+                 <a href="caza.html">Caza 2</a>
+                 <a href="caza1.html">Caza 3</a>
+                </div>
+            </div>
+            <div>
+                <button class="button" onclick="toggleMenu('menuVerTV', this)">Ver en TV</button>
+                <div id="menuVerTV" class="submenu">
+                    <a href="#">Watch F1</a>
+                    <a href="#">Watch Liga</a>
+                    <a href="#">Watch Movies</a>
+                </div>
+            </div>
         </div>
-      </div>
-      <div class="dropdown-container">
-        <a href="#" class="boton" id="f1tv-button">Para TV</a>
-        <div class="dropdown" id="f1tv-dropdown">
-          <a href="daz.html">F1 Opción 1</a>
-          <a href="dazn.html">F1 Opción 2</a>
-          <a href="dazn1.html">F1 Opción 3</a>
-          <a href="https://williamyaps.github.io/tv/channel/myfreeview/tv-alhijrah/daznf1.html?player_mute=off&#39">F1 Opción 4</a>
-          <a href="ligaTV.html">Liga</a>
-        </div>
-      </div>
-      <div class="dropdown-container">
-        <a href="#" class="boton" id="liga-button">La Liga</a>
-        <div class="dropdown" id="liga-dropdown">	     
-	  <a href="LIGA.html">La Liga</a>
-          <a href="https://williamyaps.github.io/tv/channel/myfreeview/dfc/rtve.html?player_mute=off&#39">Liga TV</a>
-          <a href="ligaTV.html">Liga</a>
-          <a href="https://gg.dazcfutbolios.net/">Deportes Externo</a>
-          <a href="https://dazcfutboltv1.com/">Deportes Externo 2</a>
-	  <a href="https://en.gdplayertv.to/live-tv/dazn-laliga/?embed=1">Liga TV</a>
-          <a href="https://dazcfutboltv.com/">La Liga Externo</a>
-          <a href="https://rr.dazcfutbolios.xyz/">La Liga Iphone</a>
-        </div>
-      </div>
-      <!-- Botón TV -->
-      <div class="dropdown-container">
-        <a href="#" class="boton" id="tv-button">TV</a>
-        <div class="dropdown" id="tv-dropdown">
-	  <a href="la1.html">La 1 HD</a>
-	  <a href="https://nebunexa.co/clappr/?id=ANTENA3">Antena 3 HD</a>
-	  <a href="https://nebunexa.co/clappr/?id=CUATRO">Cuatro HD</a>
-	  <a href="https://nebunexa.co/clappr/?id=TELECINCO">Tele 5 HD</a>
-	  <a href="https://nebunexa.co/clappr/?id=LASEXTA">La Sexta HD</a>
-	  <a href="https://gavog.com/es/">Varios canales</a>
-          <a href="https://oha.to/">Opción 1</a>
-          <a href="https://huhu.to/">Opción 2</a>
-          <a href="https://vavoo.to/">Opción 3</a>
-          <a href="https://kool.to">Opción 4</a>
-        </div>
-      </div>
-	  <!-- Botón Caza y Pesca -->
-      <div class="dropdown-container">
-        <a href="#" class="boton" id="caza-button">Caza y Pesca</a>
-        <div class="dropdown" id="caza-dropdown">
-          <a href="CAZA.html">Caza 1</a>
-          <a href="caza.html">Caza 2</a>
-	      <a href="caza1.html">Caza 3</a>
-        </div>
-      </div>
-    </div>
-    <div class="creditos">
-      <span>Creado por Jimgsey</span>
-      <a href="https://github.com/jimgsey" target="_blank">
+        <div class="creditos">
+         <span>Creado por Jimgsey</span>
+           <a href="https://github.com/jimgsey" target="_blank">
         <img src="https://img.icons8.com/ios/50/000000/github.png" alt="Github">
       </a>
     </div>
-  </div>
-  <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
-  <script>
-    function closeAllDropdowns() {
-      var dropdowns = document.getElementsByClassName('dropdown');
-      for (var i = 0; i < dropdowns.length; i++) {
-        dropdowns[i].style.display = 'none';
-      }
-    }
+   <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        function toggleMenu(menuId, button) {
+            const isMobile = window.matchMedia('(max-width: 600px)').matches;
 
-    document.getElementById('dazn-f1-button').addEventListener('click', function(event) {
-      event.preventDefault();
-      closeAllDropdowns();
-      var dropdown = document.getElementById('dazn-f1-dropdown');
-	  // Aseguramos que el submenú siempre tiene una altura adecuada
-	  dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-	  dropdown.style.maxHeight = dropdown.style.display === 'block' ? '70vh' : 'none'; // Aseguramos el max-height
-    });
+            // Cierra todos los menús
+            const menus = document.querySelectorAll('.submenu');
+            const buttons = document.querySelectorAll('.button');
+            menus.forEach(menu => menu.style.display = 'none');
+            buttons.forEach(btn => btn.classList.remove('active'));
 
-    document.getElementById('f1tv-button').addEventListener('click', function(event) {
-      event.preventDefault();
-      closeAllDropdowns();
-      var dropdown = document.getElementById('f1tv-dropdown');
-	  // Aseguramos que el submenú siempre tiene una altura adecuada
-	  dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-	  dropdown.style.maxHeight = dropdown.style.display === 'block' ? '70vh' : 'none'; // Aseguramos el max-height
-    });
-
-    document.getElementById('liga-button').addEventListener('click', function(event) {
-      event.preventDefault();
-      closeAllDropdowns();
-      var dropdown = document.getElementById('liga-dropdown');
-	  // Aseguramos que el submenú siempre tiene una altura adecuada
-	  dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-	  dropdown.style.maxHeight = dropdown.style.display === 'block' ? '70vh' : 'none'; // Aseguramos el max-height
-    });
-
-    document.getElementById('caza-button').addEventListener('click', function(event) {
-      event.preventDefault();
-      closeAllDropdowns();
-      var dropdown = document.getElementById('caza-dropdown');
-	  // Aseguramos que el submenú siempre tiene una altura adecuada
-	  dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-	  dropdown.style.maxHeight = dropdown.style.display === 'block' ? '70vh' : 'none'; // Aseguramos el max-height
-    });
-
-    document.getElementById('tv-button').addEventListener('click', function(event) {
-      event.preventDefault();
-      closeAllDropdowns();
-      var dropdown = document.getElementById('tv-dropdown');
-	  // Aseguramos que el submenú siempre tiene una altura adecuada
-	  dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-	  dropdown.style.maxHeight = dropdown.style.display === 'block' ? '70vh' : 'none'; // Aseguramos el max-height
-    });
-
-    window.onclick = function(event) {
-      if (!event.target.matches('.boton')) {
-        closeAllDropdowns();
-      }
-    }
-  </script>
+            // Activa el submenú seleccionado
+            const menu = document.getElementById(menuId);
+            if (menu.style.display === "block") {
+                menu.style.display = "none";
+            } else {
+                menu.style.display = "block";
+                button.classList.add('active');
+            }
+        }
+    </script>
     <script>
     particlesJS("particles-js", {
       "particles": {
