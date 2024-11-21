@@ -227,26 +227,33 @@
       </a>
     </div>
    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
-    <script>
-        function toggleMenu(menuId, button) {
-            const isMobile = window.matchMedia('(max-width: 600px)').matches;
-
-            // Cierra todos los menús
-            const menus = document.querySelectorAll('.submenu');
-            const buttons = document.querySelectorAll('.button');
-            menus.forEach(menu => menu.style.display = 'none');
-            buttons.forEach(btn => btn.classList.remove('active'));
-
-            // Activa el submenú seleccionado
-            const menu = document.getElementById(menuId);
-            if (menu.style.display === "block") {
-                menu.style.display = "none";
-            } else {
-                menu.style.display = "block";
-                button.classList.add('active');
+  <script>
+    function toggleMenu(menuId, button) {
+        // Cierra todos los menús y elimina la clase 'active' de todos los botones
+        const menus = document.querySelectorAll('.submenu');
+        const buttons = document.querySelectorAll('.button');
+        
+        // Solo oculta los menús si no son el que estamos pulsando
+        menus.forEach(menu => {
+            if (menu.id !== menuId) {
+                menu.style.display = 'none';
             }
+        });
+
+        buttons.forEach(btn => {
+            btn.classList.remove('active');
+        });
+
+        // Activa el submenú seleccionado
+        const menu = document.getElementById(menuId);
+        if (menu.style.display === "block") {
+            menu.style.display = "none"; // Si está visible, se oculta
+        } else {
+            menu.style.display = "block"; // Si está oculto, se muestra
+            button.classList.add('active'); // Marca el botón como activo
         }
-    </script>
+    }
+</script>
     <script>
     particlesJS("particles-js", {
       "particles": {
