@@ -30,14 +30,14 @@
 
     if (Hls.isSupported()) {
       const hls = new Hls();
-      hls.loadSource('https://td3wb1bchdvsahp.ngolpdkyoctjcddxshli469r.org/sunshine/i1uooPWVgz-uprXy2QBPY1sN8Zz1OZ1JJkf9YF-QVIibAZ9HpVF3Bl5Fp2JCnUsy_5k2kllJ5wSGZ2eE0lsmo6M1t28aKD5irJSZm_3ZluVt4hBHplrP8njeOlmKvuE4EoZtE12ubwQZsIb-EVryq-AKLSIhI1EztzhO7W2siRU/hls/index.m3u8');
+      hls.loadSource('https://iezmzlrgtn5pgme.ngolpdkyoctjcddxshli469r.org/sunshine/quqxTgofEdn-Kk3X5CXwZVoJkcKWYy-D4b_iuI3DbkKTxYLKMeukDw_LefFgesvzQLeVMCUti6-CLU4Tel1srCcr-CzzDm4gUQwjezKKnhU4ZR5ZOrku3RcuWrSKvx4hVtaKK0LbrtlT5tp5dBTc2bYSy-azONMvbwFxC7UiDKs/hls/index.m3u8');
       hls.attachMedia(video);
       hls.on(Hls.Events.MANIFEST_PARSED, function() {
         video.play();
         video.requestFullscreen();
       });
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      video.src = 'https://td3wb1bchdvsahp.ngolpdkyoctjcddxshli469r.org/sunshine/i1uooPWVgz-uprXy2QBPY1sN8Zz1OZ1JJkf9YF-QVIibAZ9HpVF3Bl5Fp2JCnUsy_5k2kllJ5wSGZ2eE0lsmo6M1t28aKD5irJSZm_3ZluVt4hBHplrP8njeOlmKvuE4EoZtE12ubwQZsIb-EVryq-AKLSIhI1EztzhO7W2siRU/hls/index.m3u8';
+      video.src = 'https://iezmzlrgtn5pgme.ngolpdkyoctjcddxshli469r.org/sunshine/quqxTgofEdn-Kk3X5CXwZVoJkcKWYy-D4b_iuI3DbkKTxYLKMeukDw_LefFgesvzQLeVMCUti6-CLU4Tel1srCcr-CzzDm4gUQwjezKKnhU4ZR5ZOrku3RcuWrSKvx4hVtaKK0LbrtlT5tp5dBTc2bYSy-azONMvbwFxC7UiDKs/hls/index.m3u8';
       video.addEventListener('loadedmetadata', function() {
         video.play();
         video.requestFullscreen();
