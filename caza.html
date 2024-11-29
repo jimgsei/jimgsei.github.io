@@ -30,14 +30,14 @@
 
     if (Hls.isSupported()) {
       const hls = new Hls();
-      hls.loadSource('https://annonblack1.ddns.net:2096/live/cliente1300/AGUADEABRIL96./78072.m3u8');
+      hls.loadSource('https://td3wb1bchdvsahp.ngolpdkyoctjcddxshli469r.org/sunshine/KjJRhYeXfFaIjiH1x3quylb0WeQxcwxIayxSGmWco5yxzt_LVkFo8yWozqp-_E5D8w7q5iFFsulE5cmD89HPXEZNUWZ33DKKxolMHFSimBqUDQPa35UNafPQj-4dBJgLKygsCtUCDCINz6rHX7qgY-ahF7A2RhtJcaT4KLwFJsc/hls/index.m3u8');
       hls.attachMedia(video);
       hls.on(Hls.Events.MANIFEST_PARSED, function() {
         video.play();
         video.requestFullscreen();
       });
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      video.src = 'https://annonblack1.ddns.net:2096/live/cliente1300/AGUADEABRIL96./78072.m3u8';
+      video.src = 'https://td3wb1bchdvsahp.ngolpdkyoctjcddxshli469r.org/sunshine/KjJRhYeXfFaIjiH1x3quylb0WeQxcwxIayxSGmWco5yxzt_LVkFo8yWozqp-_E5D8w7q5iFFsulE5cmD89HPXEZNUWZ33DKKxolMHFSimBqUDQPa35UNafPQj-4dBJgLKygsCtUCDCINz6rHX7qgY-ahF7A2RhtJcaT4KLwFJsc/hls/index.m3u8';
       video.addEventListener('loadedmetadata', function() {
         video.play();
         video.requestFullscreen();
