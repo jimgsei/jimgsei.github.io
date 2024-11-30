@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Seleccionar y Ver Videos</title>
+    <title>Visualizador de Canales</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -39,20 +39,18 @@
             right: 10px;
             z-index: 10;
             background: rgba(0, 0, 0, 0.7);
-            padding: 5px;
+            padding: 8px;
             border-radius: 5px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 5px;
         }
-        .controls select {
-            font-size: 14px;
+        .controls select, .controls button {
+            font-size: 16px;
             padding: 5px;
-            color: #000;
         }
         .controls button {
-            padding: 5px 10px;
-            font-size: 14px;
             cursor: pointer;
             background-color: #007bff;
             color: white;
@@ -71,153 +69,97 @@
 </head>
 <body>
     <div class="container">
-        <!-- Video 1 -->
+        <!-- Contenedor de los videos -->
         <div class="video-container">
-            <iframe id="iframe1" src="https://wris.asia/player/embed.php?channel=disney12" allowfullscreen></iframe>
+            <iframe id="iframe1" src="https://wris.asia/player/embed.php?channel=disney12"></iframe>
             <div class="controls">
                 <select id="video1">
-                    <option value="12" selected>Canal 12</option>
-                    <option value="1">Canal 1</option>
-                    <option value="2">Canal 2</option>
-                    <option value="3">Canal 3</option>
-                    <option value="4">Canal 4</option>
-                    <option value="5">Canal 5</option>
-                    <option value="6">Canal 6</option>
-                    <option value="7">Canal 7</option>
-                    <option value="8">Canal 8</option>
-                    <option value="9">Canal 9</option>
-                    <option value="10">Canal 10</option>
-                    <option value="11">Canal 11</option>
-                    <option value="13">Canal 13</option>
-                    <option value="14">Canal 14</option>
-                    <option value="15">Canal 15</option>
-                    <option value="16">Canal 16</option>
-                    <option value="17">Canal 17</option>
-                    <option value="18">Canal 18</option>
-                    <option value="19">Canal 19</option>
-                    <option value="20">Canal 20</option>
-                    <option value="21">Canal 21</option>
-                    <option value="22">Canal 22</option>
-                    <option value="23">Canal 23</option>
-                    <option value="24">Canal 24</option>
-                    <option value="25">Canal 25</option>
+                    <!-- Generar opciones de manera automática -->
                 </select>
                 <button onclick="updateVideo(1)">Seleccionar Canal</button>
             </div>
         </div>
-
-        <!-- Video 2 -->
         <div class="video-container">
-            <iframe id="iframe2" src="https://wris.asia/player/embed.php?channel=disney13" allowfullscreen></iframe>
+            <iframe id="iframe2" src="https://wris.asia/player/embed.php?channel=disney13"></iframe>
             <div class="controls">
                 <select id="video2">
-                    <option value="13" selected>Canal 13</option>
-                    <option value="1">Canal 1</option>
-                    <option value="2">Canal 2</option>
-                    <option value="3">Canal 3</option>
-                    <option value="4">Canal 4</option>
-                    <option value="5">Canal 5</option>
-                    <option value="6">Canal 6</option>
-                    <option value="7">Canal 7</option>
-                    <option value="8">Canal 8</option>
-                    <option value="9">Canal 9</option>
-                    <option value="10">Canal 10</option>
-                    <option value="11">Canal 11</option>
-                    <option value="12">Canal 12</option>
-                    <option value="14">Canal 14</option>
-                    <option value="15">Canal 15</option>
-                    <option value="16">Canal 16</option>
-                    <option value="17">Canal 17</option>
-                    <option value="18">Canal 18</option>
-                    <option value="19">Canal 19</option>
-                    <option value="20">Canal 20</option>
-                    <option value="21">Canal 21</option>
-                    <option value="22">Canal 22</option>
-                    <option value="23">Canal 23</option>
-                    <option value="24">Canal 24</option>
-                    <option value="25">Canal 25</option>
+                    <!-- Generar opciones de manera automática -->
                 </select>
                 <button onclick="updateVideo(2)">Seleccionar Canal</button>
             </div>
         </div>
-
-        <!-- Video 3 -->
         <div class="video-container">
-            <iframe id="iframe3" src="https://wris.asia/player/embed.php?channel=disney14" allowfullscreen></iframe>
+            <iframe id="iframe3" src="https://wris.asia/player/embed.php?channel=disney14"></iframe>
             <div class="controls">
                 <select id="video3">
-                    <option value="14" selected>Canal 14</option>
-                    <option value="1">Canal 1</option>
-                    <option value="2">Canal 2</option>
-                    <option value="3">Canal 3</option>
-                    <option value="4">Canal 4</option>
-                    <option value="5">Canal 5</option>
-                    <option value="6">Canal 6</option>
-                    <option value="7">Canal 7</option>
-                    <option value="8">Canal 8</option>
-                    <option value="9">Canal 9</option>
-                    <option value="10">Canal 10</option>
-                    <option value="11">Canal 11</option>
-                    <option value="12">Canal 12</option>
-                    <option value="13">Canal 13</option>
-                    <option value="15">Canal 15</option>
-                    <option value="16">Canal 16</option>
-                    <option value="17">Canal 17</option>
-                    <option value="18">Canal 18</option>
-                    <option value="19">Canal 19</option>
-                    <option value="20">Canal 20</option>
-                    <option value="21">Canal 21</option>
-                    <option value="22">Canal 22</option>
-                    <option value="23">Canal 23</option>
-                    <option value="24">Canal 24</option>
-                    <option value="25">Canal 25</option>
+                    <!-- Generar opciones de manera automática -->
                 </select>
                 <button onclick="updateVideo(3)">Seleccionar Canal</button>
             </div>
         </div>
-
-        <!-- Video 4 -->
         <div class="video-container">
-            <iframe id="iframe4" src="https://wris.asia/player/embed.php?channel=disney15" allowfullscreen></iframe>
+            <iframe id="iframe4" src="https://wris.asia/player/embed.php?channel=disney15"></iframe>
             <div class="controls">
                 <select id="video4">
-                    <option value="15" selected>Canal 15</option>
-                    <option value="1">Canal 1</option>
-                    <option value="2">Canal 2</option>
-                    <option value="3">Canal 3</option>
-                    <option value="4">Canal 4</option>
-                    <option value="5">Canal 5</option>
-                    <option value="6">Canal 6</option>
-                    <option value="7">Canal 7</option>
-                    <option value="8">Canal 8</option>
-                    <option value="9">Canal 9</option>
-                    <option value="10">Canal 10</option>
-                    <option value="11">Canal 11</option>
-                    <option value="12">Canal 12</option>
-                    <option value="13">Canal 13</option>
-                    <option value="14">Canal 14</option>
-                    <option value="16">Canal 16</option>
-                    <option value="17">Canal 17</option>
-                    <option value="18">Canal 18</option>
-                    <option value="19">Canal 19</option>
-                    <option value="20">Canal 20</option>
-                    <option value="21">Canal 21</option>
-                    <option value="22">Canal 22</option>
-                    <option value="23">Canal 23</option>
-                    <option value="24">Canal 24</option>
-                    <option value="25">Canal 25</option>
+                    <!-- Generar opciones de manera automática -->
                 </select>
                 <button onclick="updateVideo(4)">Seleccionar Canal</button>
             </div>
         </div>
-
     </div>
 
     <script>
+        // Lista fija de canales disponibles
+        const channels = [
+            { number: 1, name: "Canal 1" },
+            { number: 2, name: "Canal 2" },
+            { number: 3, name: "Canal 3" },
+            { number: 4, name: "Canal 4" },
+            { number: 5, name: "Canal 5" },
+            { number: 6, name: "Canal 6" },
+            { number: 7, name: "Canal 7" },
+            { number: 8, name: "Canal 8" },
+            { number: 9, name: "Canal 9" },
+            { number: 10, name: "Canal 10" },
+            { number: 11, name: "Canal 11" },
+            { number: 12, name: "Canal 12" },
+            { number: 13, name: "Canal 13" },
+            { number: 14, name: "Canal 14" },
+            { number: 15, name: "Canal 15" },
+            { number: 16, name: "Canal 16" },
+            { number: 17, name: "Canal 17" },
+            { number: 18, name: "Canal 18" },
+            { number: 19, name: "Canal 19" },
+            { number: 20, name: "Canal 20" },
+            { number: 21, name: "Canal 21" },
+            { number: 22, name: "Canal 22" },
+            { number: 23, name: "Canal 23" },
+            { number: 24, name: "Canal 24" },
+            { number: 25, name: "Canal 25" }
+        ];
+
+        // Generar las opciones de canal dinámicamente
+        function populateChannelOptions() {
+            for (let i = 1; i <= 4; i++) {
+                const select = document.getElementById(`video${i}`);
+                channels.forEach(channel => {
+                    const option = document.createElement("option");
+                    option.value = channel.number;
+                    option.textContent = channel.name;
+                    select.appendChild(option);
+                });
+            }
+        }
+
+        // Cambiar el canal de un video específico
         function updateVideo(videoNumber) {
             const channel = document.getElementById(`video${videoNumber}`).value;
-            document.getElementById(`iframe${videoNumber}`).src = `https://wris.asia/player/embed.php?channel=disney${channel}`;
+            const iframe = document.getElementById(`iframe${videoNumber}`);
+            iframe.src = `https://wris.asia/player/embed.php?channel=disney${channel}`;
         }
+
+        // Llamar a la función para inicializar las opciones
+        populateChannelOptions();
     </script>
 </body>
 </html>
