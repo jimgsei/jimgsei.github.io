@@ -71,11 +71,23 @@
         }
     </style>
     <script>
+        const specialChannels = ["sportv3", "disney3", "max1", "nba5"];
+
         function updatePlayer(playerId) {
             const category = document.getElementById(`category-${playerId}`).value;
-            const number = document.getElementById(`number-${playerId}`).value;
+            const number = document.getElementById(`number-${playerId}`);
             const iframe = document.getElementById(`iframe-${playerId}`);
-            iframe.src = `https://wris.asia/player/embed.php?channel=${category}${number}`;
+
+            // Check if the selected channel is in the special list
+            if (specialChannels.includes(category)) {
+                number.disabled = true;  // Disable the number selector for these channels
+            } else {
+                number.disabled = false; // Enable the number selector for other channels
+            }
+
+            // Update the iframe source based on the selected category and number
+            const numberValue = number.disabled ? '' : number.value;
+            iframe.src = `https://wris.asia/player/embed.php?channel=${category}${numberValue}`;
         }
     </script>
 </head>
@@ -95,10 +107,10 @@
             return `
                 <div class="video-container">
                     <div class="player-menu">
-                        <select id="category-${id}">
+                        <select id="category-${id}" onchange="updatePlayer(${id})">
                             ${channels.map(channel => `<option value="${channel}">${channel}</option>`).join('')}
                         </select>
-                        <select id="number-${id}">
+                        <select id="number-${id}" onchange="updatePlayer(${id})">
                             ${[...Array(15).keys()].map(i => `<option value="${i + 1}">${i + 1}</option>`).join('')}
                         </select>
                         <button onclick="updatePlayer(${id})">Update</button>
