@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Selector</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            margin-bottom: 40px;
+        }
+        .video-container {
+            margin-bottom: 30px;
+            width: 45%;
+            background-color: #222;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px #444;
+            display: inline-block;
+            vertical-align: top;
+        }
+        .player-menu {
+            margin-bottom: 20px;
+        }
+        select {
+            margin: 5px;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 4px;
+            background-color: #333;
+            color: white;
+            border: 1px solid #444;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        iframe {
+            width: 100%;
+            height: 400px;
+            border: none;
+            border-radius: 8px;
+        }
+
+        /* Media Query for Small Screens (Mobile) */
+        @media (max-width: 768px) {
+            .video-container {
+                width: 100%; /* Full width on small screens */
+            }
+        }
+
+        /* Media Query for Larger Screens (Desktop) */
+        @media (min-width: 769px) {
+            .video-container {
+                width: 45%; /* Two columns on large screens */
+            }
+        }
+    </style>
+    <script>
+        function updatePlayer(playerId) {
+            const category = document.getElementById(`category-${playerId}`).value;
+            const number = document.getElementById(`number-${playerId}`).value;
+            const iframe = document.getElementById(`iframe-${playerId}`);
+            iframe.src = `https://wris.asia/player/embed.php?channel=${category}${number}`;
+        }
+    </script>
+</head>
+<body>
+    <h1>Video Selector Interface</h1>
+    <div id="players">
+        <!-- Repeat video player structure dynamically -->
+    </div>
+
+    <script>
+        const channels = [
+            "daznlaliga_", "dazn1_", "dazn2_", "espnplus", "daznf1_", "sportv3", 
+            "mplus_", "disney3", "dazn4_", "max1", "nba5"
+        ];
+
+        const createPlayer = (id) => {
+            return `
+                <div class="video-container">
+                    <div class="player-menu">
+                        <select id="category-${id}">
+                            ${channels.map(channel => `<option value="${channel}">${channel}</option>`).join('')}
+                        </select>
+                        <select id="number-${id}">
+                            ${[...Array(15).keys()].map(i => `<option value="${i + 1}">${i + 1}</option>`).join('')}
+                        </select>
+                        <button onclick="updatePlayer(${id})">Update</button>
+                    </div>
+                    <iframe id="iframe-${id}" src="about:blank"></iframe>
+                </div>
+            `;
+        };
+
+        const playerContainer = document.getElementById('players');
+        for (let i = 1; i <= 4; i++) {
+            playerContainer.innerHTML += createPlayer(i);
+        }
+    </script>
+</body>
+</html>
