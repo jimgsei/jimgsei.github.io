@@ -86,8 +86,8 @@
             }
 
             // Update the iframe src based on category selection
-            if (category === "daznf1+") {
-                iframe.src = "https://williamyaps.github.io/tv/channel/myfreeview/tv-alhijrah/daznf1.html?player_mute=off"; 
+            if (category === "daznf1 24h") {
+                iframe.src = "https://embed.sdfgnksbounce.com/embed2/daznf1.html"; // Updated URL
             } else {
                 const numberValue = number.disabled ? '' : number.value;
                 iframe.src = `https://wris.asia/player/embed.php?channel=${category}${numberValue}`;
@@ -103,7 +103,7 @@
 
     <script>
         const channels = [
-            "daznlaliga_", "dazn1_", "dazn2_", "dazn3_", "dazn4_", "daznf1_", "daznf1+", "espnplus", "sportv", 
+            "daznlaliga_", "dazn1_", "dazn2_", "dazn3_", "dazn4_", "daznf1_", "daznf1 24h", "espnplus", "sportv", 
             "mplus_", "disney", "max", "nba"
         ];
 
