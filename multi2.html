@@ -141,13 +141,51 @@
             const iframe = document.getElementById(`iframe-tdt-${playerId}`);
             iframe.src = `https://nebunexa.co/clappr/?id=${selectedChannel}`;
         }
+
+        // Función para agregar canales TDT al select de forma dinámica
+        function addTdtChannels(playerId) {
+            const selectElement = document.getElementById(`tdt-channel-select-${playerId}`);
+            tdtChannels.forEach(channel => {
+                const option = document.createElement("option");
+                option.value = channel;
+                option.text = channel;
+                selectElement.appendChild(option);
+            });
+        }
+
+        window.onload = () => {
+            // Al cargar la página, añadir los canales TDT a los select
+            addTdtChannels(1);
+            addTdtChannels(2);
+        };
     </script>
 </head>
 <body>
     <h1>Video Selector Interface</h1>
 
     <div id="players">
-        <!-- Repeat video player structure dynamically -->
+        <!-- Add TDT iframe players first -->
+        <h2>TDT</h2>
+        <!-- Insert two TDT iframes at the beginning -->
+        <div class="video-container">
+            <iframe id="iframe-tdt-1" src="https://nebunexa.co/clappr/?id=LA1" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+            <div class="player-menu" style="margin-top: 10px;">
+                <select id="tdt-channel-select-1" onchange="changeTdtChannel(1)">
+                    <!-- Channels will be dynamically added -->
+                </select>
+            </div>
+        </div>
+
+        <div class="video-container">
+            <iframe id="iframe-tdt-2" src="https://nebunexa.co/clappr/?id=LA1" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+            <div class="player-menu" style="margin-top: 10px;">
+                <select id="tdt-channel-select-2" onchange="changeTdtChannel(2)">
+                    <!-- Channels will be dynamically added -->
+                </select>
+            </div>
+        </div>
+
+        <!-- Now insert the other video players -->
     </div>
 
     <script>
@@ -179,30 +217,10 @@
             `;
         };
 
-        const createNewIframe = (id) => {
-            return ` 
-                <div class="video-container">
-                    <iframe id="iframe-tdt-${id}" src="https://nebunexa.co/clappr/?id=LA1" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-                    <div class="player-menu" style="margin-top: 10px;">
-                        <select id="tdt-channel-select-${id}" onchange="changeTdtChannel(${id})">
-                            ${tdtChannels.map(channel => `<option value="${channel}">${channel}</option>`).join('')}
-                        </select>
-                    </div>
-                </div>
-            `;
-        };
-
         const playerContainer = document.getElementById('players');
         for (let i = 1; i <= 4; i++) {
             playerContainer.innerHTML += createPlayer(i);
         }
-
-        // Add title for TDT section
-        playerContainer.innerHTML += `<h2>TDT</h2>`;
-
-        // Add two new iframes for TDT with the same size as the others
-        playerContainer.innerHTML += createNewIframe(1);
-        playerContainer.innerHTML += createNewIframe(2);
     </script>
 </body>
 </html>
