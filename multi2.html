@@ -74,43 +74,49 @@
         }
     </style>
     <script>
-        const specialChannels = ["sportv3", "daznf1 24h"]; // Special channels to disable the number dropdown
+        const specialChannels = [
+            "sportv3", "daznf1 24h", "tudnusa", "deportestvc", 
+            "winsportsplus", "foxmx", "liga1max"
+        ];
         const channelUrls = {
-            "daznf1 24h": "https://embed.sdfgnksbounce.com/embed2/daznf1.html", // Custom URL for "daznf1 24h"
-            "daznf1_": "https://antuanct78.github.io/-016-ES-DAZN-F1/", // Custom URL for "daznf1_"
-            // Add other custom URLs for specific channels here if needed
+            "daznf1 24h": "https://embed.sdfgnksbounce.com/embed2/daznf1.html",
+            "daznf1_": "https://antuanct78.github.io/-016-ES-DAZN-F1/"
         };
 
-        // Define the base URL for TDT channels
         const tdtBaseUrl = "https://nebunexa.co/clappr/?id=";
         const tdtChannels = ["LA1", "ANTENA3", "CUATRO", "TELECINCO", "LASEXTA"];
 
         function updatePlayer(playerId) {
             const category = document.getElementById(`category-${playerId}`).value;
             const number = document.getElementById(`number-${playerId}`);
+            const tdtChannel = document.getElementById(`tdt-channel-${playerId}`);
             const iframe = document.getElementById(`iframe-${playerId}`);
 
-            // Check if the selected channel is in the special list
+            // Configura visibilidad de los selectores
             if (specialChannels.includes(category)) {
-                number.disabled = true;  // Disable the number selector for special channels
+                number.disabled = true;
+                number.style.display = "none";
             } else {
-                number.disabled = false; // Enable the number selector for other channels
+                number.disabled = false;
+                number.style.display = "inline-block";
             }
 
-            // Check if the category is TDT
             if (category === "TDT") {
-                const tdtChannel = document.getElementById(`tdt-channel-${playerId}`).value;
-                iframe.src = `${tdtBaseUrl}${tdtChannel}`;
-                number.disabled = true; // Disable the number selector when TDT is selected
-                document.getElementById(`number-${playerId}`).style.display = "none"; // Hide the number dropdown
+                iframe.src = `${tdtBaseUrl}${tdtChannel.value}`;
+                number.style.display = "none";
+                tdtChannel.style.display = "inline-block";
+            } else if (channelUrls[category]) {
+                // Si el canal tiene una URL específica, úsala
+                iframe.src = channelUrls[category];
+                tdtChannel.style.display = "none";
             } else {
-                document.getElementById(`number-${playerId}`).style.display = "inline-block"; // Show the number dropdown
+                // Construir la URL dinámica para los canales que no tienen URL específica
+                tdtChannel.style.display = "none";
                 const numberValue = number.disabled ? '' : number.value;
                 iframe.src = `https://wris.asia/player/embed.php?channel=${category}${numberValue}`;
             }
         }
 
-        // Function to reload the iframe when the 'Actualizar' button is clicked
         function reloadIframe(playerId) {
             updatePlayer(playerId);
         }
@@ -125,8 +131,10 @@
 
     <script>
         const channels = [
-            "daznlaliga_", "dazn1_", "dazn2_", "dazn3_", "dazn4_", "daznf1_", "daznf1 24h", "espnplus", "sportv", 
-            "mplus_", "disney", "max", "nba", "TDT"
+            "daznlaliga_", "dazn1_", "dazn2_", "dazn3_", "dazn4_", "daznf1_", 
+            "daznf1 24h", "espnplus", "sportv", "mplus_", "disney", "max", 
+            "nba", "TDT", "deportestvc", "winsportsplus", "foxmx", "premiere", 
+            "eventos", "liga1max", "canal", "tudnusa"
         ];
 
         const createPlayer = (id) => {
@@ -154,22 +162,6 @@
         for (let i = 1; i <= 4; i++) {
             playerContainer.innerHTML += createPlayer(i);
         }
-
-        // Show the TDT channel selector only if TDT is selected
-        document.querySelectorAll('select[id^="category-"]').forEach(select => {
-            select.addEventListener('change', (event) => {
-                const id = event.target.id.split('-')[1];
-                const tdtChannelSelect = document.getElementById(`tdt-channel-${id}`);
-                const numberSelect = document.getElementById(`number-${id}`);
-                if (event.target.value === "TDT") {
-                    tdtChannelSelect.style.display = "inline-block"; // Show TDT channels selector
-                    numberSelect.style.display = "none"; // Hide number selector
-                } else {
-                    tdtChannelSelect.style.display = "none"; // Hide TDT channels selector
-                    numberSelect.style.display = "inline-block"; // Show number selector
-                }
-            });
-        });
     </script>
 </body>
 </html>
