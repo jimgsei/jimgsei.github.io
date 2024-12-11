@@ -11,35 +11,26 @@
             font-family: Arial, sans-serif;
             text-align: center;
             margin: 0;
-            padding: 0;
+            padding: 20px;
         }
-
         h1 {
-            margin-top: 40px; /* Aseguramos que haya un margen para los botones */
             margin-bottom: 40px;
         }
-
         h2 {
             color: white;
             margin: 40px 0;
             font-size: 24px;
         }
-
         .video-container {
             margin-bottom: 30px;
+            width: 45%;
             background-color: #222;
             padding: 10px;
             border-radius: 8px;
             box-shadow: 0px 0px 10px #444;
             display: inline-block;
             vertical-align: top;
-            width: 45%;
         }
-
-        .video-container.center {
-            width: 90%;
-        }
-
         .player-menu {
             margin-bottom: 20px;
             display: flex;
@@ -47,7 +38,6 @@
             align-items: center;
             gap: 10px;
         }
-
         .player-menu select {
             padding: 10px;
             font-size: 16px;
@@ -56,7 +46,6 @@
             color: white;
             border: 1px solid #444;
         }
-
         .player-menu button {
             padding: 10px 20px;
             background-color: #007BFF;
@@ -65,11 +54,9 @@
             border-radius: 4px;
             cursor: pointer;
         }
-
         .player-menu button:hover {
             background-color: #0056b3;
         }
-
         iframe {
             width: 100%;
             height: 400px;
@@ -80,34 +67,25 @@
         /* Media Query for Small Screens (Mobile) */
         @media (max-width: 768px) {
             .video-container {
-                width: 100%;
-            }
-			h3 {
-                display: block;
+                width: 100%; /* Full width on small screens */
             }
         }
 
         /* Media Query for Larger Screens (Desktop) */
         @media (min-width: 769px) {
             .video-container {
-                width: 45%;
-            }
-
-            #third-iframe {
-                width: 90%;
-            }
-
-            .video-row {
-                display: flex;
-                justify-content: space-between;
-            }
-
-            .video-row .video-container {
-                width: 45%;
+                width: 45%; /* Two columns on large screens */
             }
         }
 
-        /* Estilos para los botones arriba */
+        .full-width-iframe {
+            width: 100%;
+            height: 100vh;
+            max-width: 1280px;
+            aspect-ratio: 16/9;
+            border: none;
+        }
+      /* Estilos para los botones arriba */
         .top-buttons {
             margin-bottom: 30px; /* Aseguramos que los botones no toquen el título */
             display: flex;
@@ -128,15 +106,6 @@
         .top-buttons button:hover {
             background-color: rgba(255, 255, 255, 0.4);
         }
-       
-	    /* Por defecto, el título está oculto */
-        h3 {
-            display: none;
-        }
-		h2 	{
-                display: block;
-            }
-
     </style>
     <script>
         const specialChannels = [
@@ -156,6 +125,7 @@
             const tdtChannel = document.getElementById(`tdt-channel-${playerId}`);
             const iframe = document.getElementById(`iframe-${playerId}`);
 
+            // Configura visibilidad de los selectores
             if (specialChannels.includes(category)) {
                 number.disabled = true;
                 number.style.display = "none";
@@ -186,12 +156,14 @@
             updatePlayer(playerId);
         }
 
+        // Función para cambiar el canal de TDT de un iframe específico
         function changeTdtChannel(playerId) {
             const selectedChannel = document.getElementById(`tdt-channel-select-${playerId}`).value;
             const iframe = document.getElementById(`iframe-tdt-${playerId}`);
             iframe.src = `https://nebunexa.co/clappr/?id=${selectedChannel}`;
         }
 
+        // Función para agregar canales TDT al select de forma dinámica
         function addTdtChannels(playerId) {
             const selectElement = document.getElementById(`tdt-channel-select-${playerId}`);
             tdtChannels.forEach(channel => {
@@ -203,41 +175,58 @@
         }
 
         window.onload = () => {
+            // Al cargar la página, añadir los canales TDT a los select
             addTdtChannels(1);
             addTdtChannels(2);
         };
     </script>
 </head>
 <body>
-    <!-- Botones arriba -->
+
+ <!-- Botones arriba -->
     <div class="top-buttons">
         <button onclick="window.location.href='https://jimgsei.github.io'">Inicio</button>
-        <button onclick="window.location.href='multi2.html'">x2 </button>
+        <button onclick="window.location.href='multi.html'">x1 </button>
         <button onclick="window.location.href='multi4.html'">x4 </button>
         <button onclick="window.location.href='multie.html'">Experimental </button>
     </div>
-
     <h1>Multi Pantalla</h1>
 
     <div id="players">
-        <h2>TDT / Mix</h2>
-		<h3>TDT </h3>
-        <div class="video-row">
-            <div class="video-container">
-                <iframe id="iframe-tdt-1" src="https://nebunexa.co/clappr/?id=LA1" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-                <div class="player-menu" style="margin-top: 10px;">
-                    <select id="tdt-channel-select-1" onchange="changeTdtChannel(1)">
-                    </select>
-                </div>
-            </div>
-  <h3>Mix</h3>
-            <div class="video-container">
-                <iframe id="iframe-mix-1" src="https://huhu.to/" allow="encrypted-media" allowfullscreen></iframe>
+        <!-- Add TDT iframe players first -->
+        <h2>TDT</h2>
+        <!-- Insert two TDT iframes at the beginning -->
+        <div class="video-container">
+            <iframe id="iframe-tdt-1" src="https://nebunexa.co/clappr/?id=LA1" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+            <div class="player-menu" style="margin-top: 10px;">
+                <select id="tdt-channel-select-1" onchange="changeTdtChannel(1)">
+                    <!-- Channels will be dynamically added -->
+                </select>
             </div>
         </div>
 
+        <div class="video-container">
+            <iframe id="iframe-tdt-2" src="https://nebunexa.co/clappr/?id=LA1" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+            <div class="player-menu" style="margin-top: 10px;">
+                <select id="tdt-channel-select-2" onchange="changeTdtChannel(2)">
+                    <!-- Channels will be dynamically added -->
+                </select>
+            </div>
+        </div>
+
+        <!-- Add Mix section -->
+        <h2>Mix</h2>
+        <div class="video-container">
+            <iframe id="iframe-mix-1" src="https://huhu.to/" allow="encrypted-media" allowfullscreen></iframe>
+        </div>
+
+        <div class="video-container">
+            <iframe id="iframe-mix-2" src="https://oha.to/" allow="encrypted-media" allowfullscreen></iframe>
+        </div>
+
+        <!-- Add Deportes title -->
         <h2>Deportes</h2>
-		<h3>Deportes</h3>
+
     </div>
 
     <script>
@@ -258,6 +247,7 @@
                         <select id="number-${id}" onchange="updatePlayer(${id})">
                             ${[...Array(15).keys()].map(i => `<option value="${i + 1}">${i + 1}</option>`).join('')}
                         </select>
+                        <!-- TDT-specific channel selector -->
                         <select id="tdt-channel-${id}" onchange="updatePlayer(${id})" style="display:none;">
                             ${tdtChannels.map(channel => `<option value="${channel}">${channel}</option>`).join('')}
                         </select>
@@ -269,7 +259,7 @@
         };
 
         const playerContainer = document.getElementById('players');
-        for (let i = 1; i <= 1; i++) {
+        for (let i = 1; i <= 2; i++) {
             playerContainer.innerHTML += createPlayer(i);
         }
     </script>
