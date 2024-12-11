@@ -145,6 +145,80 @@
         .top-buttons button:hover {
             background-color: rgba(255, 255, 255, 0.4);
         }
+       #programacion-container {
+            display: none;
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: scroll;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+		
+        /* Estilos para la barra de desplazamiento */
+        #programacion-container::-webkit-scrollbar {
+            width: 12px; /* Ancho de la barra de desplazamiento */
+        }
+
+        #programacion-container::-webkit-scrollbar-track {
+            background-color: transparent; /* Fondo del track (la parte sobre la que se desliza el pulgar) */
+            border-radius: 10px; /* Bordes redondeados en el track */
+        }
+
+        #programacion-container::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.5); /* Color del pulgar (la parte que se mueve) */
+            border-radius: 10px; /* Bordes redondeados del pulgar */
+            border: 2px solid transparent; /* Bordes suaves alrededor del pulgar */
+        }
+
+        #programacion-container::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(255, 255, 255, 0.7); /* Color al pasar el mouse sobre el pulgar */
+        }
+
+        /* Para Firefox, que usa -moz-scrollbars */
+        #programacion-container {
+            scrollbar-width: thin; /* Hace la barra de desplazamiento más delgada */
+            scrollbar-color: rgba(255, 255, 255, 0.5) transparent; /* Color del pulgar y el track */
+        }
+
+        /* Hacemos que el track sea transparente en Firefox */
+        #programacion-container {
+            background-color: transparent; /* Track transparente */
+        }
+		
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        /* Alineación horizontal de los elementos en el player-menu */
+        .player-menu {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* Aseguramos que el botón y el selector estén alineados de manera adecuada */
+        #canal-selector {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        #toggle-programacion {
+            flex-shrink: 0;
+        }
    </style>
 
     <script>
@@ -215,6 +289,7 @@
             addTdtChannels(1);
             addTdtChannels(2);
         };
+		
     </script>
 </head>
 <body>
@@ -230,15 +305,32 @@
 
     <div id="players">
         <h2>TDT / Mix</h2>
-		<h3>TDT </h3>
+        <h3>TDT</h3>
         <div class="video-row">
             <div class="video-container">
                 <iframe id="iframe-tdt-1" src="https://nebunexa.co/clappr/?id=LA1" allow="autoplay; encrypted-media" allowfullscreen></iframe>
                 <div class="player-menu" style="margin-top: 10px;">
                     <select id="tdt-channel-select-1" onchange="changeTdtChannel(1)">
                     </select>
+                    
+                    <!-- Selector de canal TDT y botón de programación en la misma fila -->
+                    <select id="canal-selector" onchange="fetchProgramacion(this.value)">
+                        <option value="">Programación</option>
+                        <option value="TVE1">TVE 1</option>
+                        <option value="Antena_3">Antena 3</option>
+						<option value="Cuatro">Cuatro</option>
+                        <option value="Telecinco">Telecinco</option>
+                        <option value="La_Sexta">La Sexta</option>
+                    </select>
+                    <button id="toggle-programacion" style="display: none;" onclick="toggleProgramacion()">Ocultar Programación</button>
+                </div>
+
+                <div id="programacion-container">
+                    <p>Cargando la programación...</p>
                 </div>
             </div>
+			
+			
   <h3>Mix</h3>
             <div class="video-container">
                 <iframe id="iframe-mix-1" src="https://huhu.to/" allow="encrypted-media" allowfullscreen></iframe>
@@ -282,5 +374,79 @@
             playerContainer.innerHTML += createPlayer(i);
         }
     </script>
+	  <script>
+    // Función para obtener la URL del canal
+    function getCanalUrl(canal) {
+      return `https://www.programacion-tdt.com/${canal}.html`;
+    }
+
+    // Función para obtener y mostrar la programación
+    async function fetchProgramacion(canal) {
+      if (!canal) {
+        document.getElementById('programacion-container').style.display = 'none';
+        document.getElementById('toggle-programacion').style.display = 'none';
+        return;
+      }
+
+      try {
+        // Usamos el proxy AllOrigins para evitar bloqueos de CORS
+        const url = `https://api.allorigins.win/get?url=${encodeURIComponent(getCanalUrl(canal))}`;
+        
+        const response = await fetch(url);
+        const data = await response.json();
+
+        // Usamos el DOMParser para analizar el HTML recibido
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(data.contents, 'text/html');
+
+        // Buscamos la tabla de programación en el documento
+        const table = doc.querySelector('#content > table');
+
+        if (table) {
+          // Eliminar el primer y el último tr
+          const rows = table.querySelectorAll('tr');
+          if (rows.length > 1) {
+            // Eliminar el primer tr
+            rows[0].remove();
+            // Eliminar el último tr
+            rows[rows.length - 1].remove();
+          }
+
+          // Mostrar la tabla con la programación
+          document.getElementById('programacion-container').innerHTML = '';
+          document.getElementById('programacion-container').appendChild(table);
+          document.getElementById('programacion-container').style.display = 'block'; // Mostrar el contenedor
+          document.getElementById('toggle-programacion').style.display = 'inline-block'; // Mostrar el botón
+        } else {
+          document.getElementById('programacion-container').innerHTML = '<p>No se pudo encontrar la tabla de programación.</p>';
+          document.getElementById('programacion-container').style.display = 'block'; // Mostrar el contenedor
+          document.getElementById('toggle-programacion').style.display = 'inline-block'; // Mostrar el botón
+        }
+      } catch (error) {
+        console.error('Error al cargar la programación:', error);
+        document.getElementById('programacion-container').innerHTML = '<p>Error al cargar la programación.</p>';
+        document.getElementById('programacion-container').style.display = 'block'; // Mostrar el contenedor
+        document.getElementById('toggle-programacion').style.display = 'inline-block'; // Mostrar el botón
+      }
+    }
+
+    // Evento para detectar el cambio de canal
+    document.getElementById('canal-selector').addEventListener('change', function() {
+      const canalSeleccionado = this.value;
+      fetchProgramacion(canalSeleccionado);
+    });
+
+    // Evento para ocultar o mostrar la programación (manteniendo el selector visible)
+    document.getElementById('toggle-programacion').addEventListener('click', function() {
+      const container = document.getElementById('programacion-container');
+      if (container.style.display === 'none') {
+        container.style.display = 'block';
+        this.innerText = 'Ocultar Programación';
+      } else {
+        container.style.display = 'none';
+        this.innerText = 'Mostrar Programación';
+      }
+    });
+  </script>
 </body>
 </html>
