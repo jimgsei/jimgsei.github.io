@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Selector</title>
-    <style>
+    <title>Multi Pantalla</title>
+  <style>
         body {
             background-color: black;
             color: white;
@@ -23,6 +23,14 @@
             color: white;
             margin: 40px 0;
             font-size: 24px;
+            display: block; /* Por defecto, visible */
+        }
+
+        h3 {
+            color: white;
+            margin: 40px 0;
+            font-size: 24px;
+            display: none; /* Por defecto, oculto */
         }
 
         .video-container {
@@ -82,6 +90,12 @@
             .video-container {
                 width: 100%;
             }
+            h2 {
+                display: none; /* Ocultar h2 en pantallas pequeñas */
+            }
+            h3 {
+                display: block; /* Mostrar h3 en pantallas pequeñas */
+            }
         }
 
         /* Media Query for Larger Screens (Desktop) */
@@ -101,6 +115,12 @@
 
             .video-row .video-container {
                 width: 45%;
+            }
+            h2 {
+                display: block; /* Mostrar h2 en pantallas grandes */
+            }
+            h3 {
+                display: none; /* Ocultar h3 en pantallas grandes */
             }
         }
 
@@ -125,8 +145,8 @@
         .top-buttons button:hover {
             background-color: rgba(255, 255, 255, 0.4);
         }
+   </style>
 
-    </style>
     <script>
         const specialChannels = [
             "sportv3", "daznf1 24h", "tudnusa", "deportestvc", 
@@ -209,7 +229,8 @@
     <h1>Multi Pantalla</h1>
 
     <div id="players">
-        <h2>TDT</h2>
+        <h2>TDT / Mix</h2>
+		<h3>TDT </h3>
         <div class="video-row">
             <div class="video-container">
                 <iframe id="iframe-tdt-1" src="https://nebunexa.co/clappr/?id=LA1" allow="autoplay; encrypted-media" allowfullscreen></iframe>
@@ -218,13 +239,14 @@
                     </select>
                 </div>
             </div>
-
+  <h3>Mix</h3>
             <div class="video-container">
                 <iframe id="iframe-mix-1" src="https://huhu.to/" allow="encrypted-media" allowfullscreen></iframe>
             </div>
         </div>
 
         <h2>Deportes</h2>
+		<h3>Deportes</h3>
     </div>
 
     <script>
