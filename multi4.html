@@ -106,6 +106,76 @@
         .top-buttons button:hover {
             background-color: rgba(255, 255, 255, 0.4);
         }
+	    .programacion-container {
+        display: none;
+        margin-top: 20px;
+        max-height: 270px;
+        overflow-y: scroll;
+        border: 1px solid #ddd;
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Estilos para la barra de desplazamiento */
+    .programacion-container::-webkit-scrollbar {
+        width: 12px;
+    }
+
+    .programacion-container::-webkit-scrollbar-track {
+        background-color: transparent;
+        border-radius: 10px;
+    }
+
+    .programacion-container::-webkit-scrollbar-thumb {
+        background-color: rgba(255, 255, 255, 0.5);
+        border-radius: 10px;
+        border: 2px solid transparent;
+    }
+
+    .programacion-container::-webkit-scrollbar-thumb:hover {
+        background-color: rgba(255, 255, 255, 0.7);
+    }
+
+    .programacion-container {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255, 255, 255, 0.5) transparent;
+    }
+
+    .programacion-container {
+        background-color: transparent;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 8px;
+        text-align: left;
+        border: 1px solid #ddd;
+    }
+
+    th {
+        background-color: #f4f4f4;
+    }
+
+    .player-menu {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        gap: 15px;
+    }
+
+    #canal-selector {
+        flex: 0 1 150px;
+        min-width: 100px;
+    }
+
+    #toggle-programacion {
+        flex-shrink: 0;
+    }
     </style>
     <script>
         const specialChannels = [
@@ -193,26 +263,50 @@
     <h1>Multi Pantalla</h1>
 
     <div id="players">
-        <!-- Add TDT iframe players first -->
-        <h2>TDT</h2>
-        <!-- Insert two TDT iframes at the beginning -->
-        <div class="video-container">
-            <iframe id="iframe-tdt-1" src="https://nebunexa.co/clappr/?id=LA1" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-            <div class="player-menu" style="margin-top: 10px;">
-                <select id="tdt-channel-select-1" onchange="changeTdtChannel(1)">
-                    <!-- Channels will be dynamically added -->
-                </select>
-            </div>
-        </div>
+ <!-- Add TDT iframe players first -->
+<h2>TDT</h2>
+<!-- Insert two TDT iframes at the beginning -->
+<div class="video-container">
+    <iframe id="iframe-tdt-1" src="https://nebunexa.co/clappr/?id=LA1" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+    <div class="player-menu" style="margin-top: 10px;">
+        <select id="tdt-channel-select-1" onchange="changeTdtChannel(1)">
+            <!-- Channels will be dynamically added -->
+        </select>
+        <select id="canal-selector-1" onchange="fetchProgramacion(1, this.value)">
+            <option value="">Programación</option>
+            <option value="TVE1">TVE 1</option>
+            <option value="Antena_3">Antena 3</option>
+            <option value="Cuatro">Cuatro</option>
+            <option value="Telecinco">Telecinco</option>
+            <option value="La_Sexta">La Sexta</option>
+        </select>
+        <button id="toggle-programacion-1" style="display: none;" onclick="toggleProgramacion(1)">Ocultar</button>
+    </div>
+    <div id="programacion-container-1" class="programacion-container" style="display: none;">
+        <p>Cargando la programación...</p>
+    </div>
+</div>
 
-        <div class="video-container">
-            <iframe id="iframe-tdt-2" src="https://nebunexa.co/clappr/?id=LA1" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-            <div class="player-menu" style="margin-top: 10px;">
-                <select id="tdt-channel-select-2" onchange="changeTdtChannel(2)">
-                    <!-- Channels will be dynamically added -->
-                </select>
-            </div>
-        </div>
+<div class="video-container">
+    <iframe id="iframe-tdt-2" src="https://nebunexa.co/clappr/?id=LA1" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+    <div class="player-menu" style="margin-top: 10px;">
+        <select id="tdt-channel-select-2" onchange="changeTdtChannel(2)">
+            <!-- Channels will be dynamically added -->
+        </select>
+        <select id="canal-selector-2" onchange="fetchProgramacion(2, this.value)">
+            <option value="">Programación</option>
+            <option value="TVE1">TVE 1</option>
+            <option value="Antena_3">Antena 3</option>
+            <option value="Cuatro">Cuatro</option>
+            <option value="Telecinco">Telecinco</option>
+            <option value="La_Sexta">La Sexta</option>
+        </select>
+        <button id="toggle-programacion-2" style="display: none;" onclick="toggleProgramacion(2)">Ocultar</button>
+    </div>
+    <div id="programacion-container-2" class="programacion-container" style="display: none;">
+        <p>Cargando la programación...</p>
+    </div>
+</div>
 
         <!-- Add Mix section above Deportes -->
         <h2>Mix</h2>
@@ -264,5 +358,73 @@
             playerContainer.innerHTML += createPlayer(i);
         }
     </script>
+	
+	
+<script>
+    // Función para obtener la URL del canal
+    function getCanalUrl(canal) {
+        return `https://www.programacion-tdt.com/${canal}.html`;
+    }
+
+    // Función para obtener y mostrar la programación
+    async function fetchProgramacion(playerId, canal) {
+        const containerId = `programacion-container-${playerId}`;
+        const toggleButtonId = `toggle-programacion-${playerId}`;
+
+        if (!canal) {
+            document.getElementById(containerId).style.display = 'none';
+            document.getElementById(toggleButtonId).style.display = 'none';
+            return;
+        }
+
+        try {
+            const url = `https://api.allorigins.win/get?url=${encodeURIComponent(getCanalUrl(canal))}`;
+            const response = await fetch(url);
+            const data = await response.json();
+
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(data.contents, 'text/html');
+            const table = doc.querySelector('#content > table');
+
+            if (table) {
+                const rows = table.querySelectorAll('tr');
+                if (rows.length > 1) {
+                    rows[0].remove();
+                    rows[rows.length - 1].remove();
+                }
+
+                const container = document.getElementById(containerId);
+                container.innerHTML = '';
+                container.appendChild(table);
+                container.style.display = 'block';
+                document.getElementById(toggleButtonId).style.display = 'inline-block';
+            } else {
+                document.getElementById(containerId).innerHTML = '<p>No se pudo encontrar la tabla de programación.</p>';
+                document.getElementById(containerId).style.display = 'block';
+                document.getElementById(toggleButtonId).style.display = 'inline-block';
+            }
+        } catch (error) {
+            console.error('Error al cargar la programación:', error);
+            document.getElementById(containerId).innerHTML = '<p>Error al cargar la programación.</p>';
+            document.getElementById(containerId).style.display = 'block';
+            document.getElementById(toggleButtonId).style.display = 'inline-block';
+        }
+    }
+
+    // Función para alternar la visibilidad del contenedor de programación
+    function toggleProgramacion(playerId) {
+        const containerId = `programacion-container-${playerId}`;
+        const container = document.getElementById(containerId);
+        const button = document.getElementById(`toggle-programacion-${playerId}`);
+
+        if (container.style.display === 'none') {
+            container.style.display = 'block';
+            button.innerText = 'Ocultar';
+        } else {
+            container.style.display = 'none';
+            button.innerText = 'Mostrar';
+        }
+    }
+</script>
 </body>
 </html>
