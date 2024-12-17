@@ -221,6 +221,53 @@
             flex-shrink: 0;
         }
    </style>
+</head>
+<body>
+
+    <!-- Botones arriba -->
+    <div class="top-buttons">
+        <button onclick="window.location.href='https://jimgsei.github.io'">Inicio</button>
+        <button onclick="window.location.href='multi2.html'">x2 </button>
+        <button onclick="window.location.href='multi4.html'">x4 </button>
+        <button onclick="window.location.href='multie.html'">Experimental </button>
+    </div>
+
+    <h1>Multi Pantalla</h1>
+
+    <div id="players">
+        <h2>TDT / Mix</h2>
+        <h3>TDT</h3>
+        <div class="video-row">
+            <div class="video-container">
+                <iframe id="iframe-tdt-1" src="https://nebunexa.co/clappr/?id=LA1" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                <div class="player-menu" style="margin-top: 10px;">
+                    <select id="tdt-channel-select-1" onchange="changeTdtChannel(1)"></select>
+                    <!-- Selector de canal TDT y botón de programación en la misma fila -->
+                    <select id="canal-selector" onchange="fetchProgramacion(this.value)">
+                        <option value="">Programación</option>
+                        <option value="TVE1">TVE 1</option>
+                        <option value="Antena_3">Antena 3</option>
+                        <option value="Cuatro">Cuatro</option>
+                        <option value="Telecinco">Telecinco</option>
+                        <option value="La_Sexta">La Sexta</option>
+                    </select>
+                    <button id="toggle-programacion" style="display: none;" onclick="toggleProgramacion()">Ocultar</button>
+                </div>
+
+                <div id="programacion-container">
+                    <p>Cargando la programación...</p>
+                </div>
+            </div>
+
+            <h3>Mix</h3>
+            <div class="video-container">
+                <iframe id="iframe-mix-1" src="https://huhu.to/" allow="encrypted-media" allowfullscreen></iframe>
+            </div>
+        </div>
+
+        <h2>Deportes</h2>
+        <h3>Deportes</h3>
+    </div>
 
     <script>
         const specialChannels = [
@@ -234,6 +281,39 @@
         const tdtBaseUrl = "https://nebunexa.co/clappr/?id=";
         const tdtChannels = ["LA1", "ANTENA3", "CUATRO", "TELECINCO", "LASEXTA"];
 
+        const channels = [
+            "daznlaliga_", "dazn1_", "dazn2_", "dazn3_", "dazn4_", "daznf1_", 
+            "daznf1 24h", "espnplus", "sportv", "mplus_", "disney", "max", 
+            "nba", "deportestvc", "winsportsplus", "foxmx", "premiere", 
+            "eventos", "liga1max", "canal", "tudnusa", "mcampeones_", "hypermotion_", "futv", "paramount", "foxar",
+        ];
+
+        const createPlayer = (id) => {
+            return ` 
+                <div class="video-container">
+                    <div class="player-menu">
+                        <select id="category-${id}" onchange="updatePlayer(${id})">
+                            ${channels.map(channel => `<option value="${channel}">${channel}</option>`).join('')}
+                        </select>
+                        <select id="number-${id}" onchange="updatePlayer(${id})">
+                            ${[...Array(15).keys()].map(i => `<option value="${i + 1}">${i + 1}</option>`).join('')}
+                        </select>
+                        <select id="tdt-channel-${id}" onchange="updatePlayer(${id})" style="display:none;">
+                            ${tdtChannels.map(channel => `<option value="${channel}">${channel}</option>`).join('')}
+                        </select>
+                        <button onclick="reloadIframe(${id})">Actualizar</button>
+                    </div>
+                    <iframe id="iframe-${id}" src="about:blank" allowfullscreen allow="fullscreen; picture-in-picture"></iframe>
+                </div>
+            `;
+        };
+
+        const playerContainer = document.getElementById('players');
+        for (let i = 1; i <= 1; i++) {
+            playerContainer.innerHTML += createPlayer(i);
+        }
+
+        // Actualiza el iframe según la categoría seleccionada
         function updatePlayer(playerId) {
             const category = document.getElementById(`category-${playerId}`).value;
             const number = document.getElementById(`number-${playerId}`);
@@ -270,12 +350,14 @@
             updatePlayer(playerId);
         }
 
+        // Función para cambiar el canal TDT
         function changeTdtChannel(playerId) {
             const selectedChannel = document.getElementById(`tdt-channel-select-${playerId}`).value;
             const iframe = document.getElementById(`iframe-tdt-${playerId}`);
             iframe.src = `https://nebunexa.co/clappr/?id=${selectedChannel}`;
         }
 
+        // Función para agregar canales TDT
         function addTdtChannels(playerId) {
             const selectElement = document.getElementById(`tdt-channel-select-${playerId}`);
             tdtChannels.forEach(channel => {
@@ -290,166 +372,67 @@
             addTdtChannels(1);
             addTdtChannels(2);
         };
-		
-    </script>
-</head>
-<body>
 
-	
-    <!-- Botones arriba -->
-    <div class="top-buttons">
-        <button onclick="window.location.href='https://jimgsei.github.io'">Inicio</button>
-        <button onclick="window.location.href='multi2.html'">x2 </button>
-        <button onclick="window.location.href='multi4.html'">x4 </button>
-        <button onclick="window.location.href='multie.html'">Experimental </button>
-    </div>
-
-    <h1>Multi Pantalla</h1>
-
-    <div id="players">
-        <h2>TDT / Mix</h2>
-        <h3>TDT</h3>
-        <div class="video-row">
-            <div class="video-container">
-                <iframe id="iframe-tdt-1" src="https://nebunexa.co/clappr/?id=LA1" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-                <div class="player-menu" style="margin-top: 10px;">
-                    <select id="tdt-channel-select-1" onchange="changeTdtChannel(1)">
-                    </select>
-                    
-                    <!-- Selector de canal TDT y botón de programación en la misma fila -->
-                    <select id="canal-selector" onchange="fetchProgramacion(this.value)">
-                        <option value="">Programación</option>
-                        <option value="TVE1">TVE 1</option>
-                        <option value="Antena_3">Antena 3</option>
-			<option value="Cuatro">Cuatro</option>
-                        <option value="Telecinco">Telecinco</option>
-                        <option value="La_Sexta">La Sexta</option>
-                    </select>
-                    <button id="toggle-programacion" style="display: none;" onclick="toggleProgramacion()">Ocultar</button>
-                </div>
-
-                <div id="programacion-container">
-                    <p>Cargando la programación...</p>
-                </div>
-            </div>
-			
-			
-  <h3>Mix</h3>
-            <div class="video-container">
-                <iframe id="iframe-mix-1" src="https://huhu.to/" allow="encrypted-media" allowfullscreen></iframe>
-            </div>
-        </div>
-
-        <h2>Deportes</h2>
-		<h3>Deportes</h3>
-    </div>
-
-    <script>
-        const channels = [
-            "daznlaliga_", "dazn1_", "dazn2_", "dazn3_", "dazn4_", "daznf1_", 
-            "daznf1 24h", "espnplus", "sportv", "mplus_", "disney", "max", 
-            "nba", "deportestvc", "winsportsplus", "foxmx", "premiere", 
-            "eventos", "liga1max", "canal", "tudnusa", "mcampeones_", "hypermotion_", "futv", "paramount", "foxar",
-        ];
-
-        const createPlayer = (id) => {
-            return ` 
-                <div class="video-container">
-                    <div class="player-menu">
-                        <select id="category-${id}" onchange="updatePlayer(${id})">
-                            ${channels.map(channel => `<option value="${channel}">${channel}</option>`).join('')}
-                        </select>
-                        <select id="number-${id}" onchange="updatePlayer(${id})">
-                            ${[...Array(15).keys()].map(i => `<option value="${i + 1}">${i + 1}</option>`).join('')}
-                        </select>
-                        <select id="tdt-channel-${id}" onchange="updatePlayer(${id})" style="display:none;">
-                            ${tdtChannels.map(channel => `<option value="${channel}">${channel}</option>`).join('')}
-                        </select>
-                        <button onclick="reloadIframe(${id})">Actualizar</button>
-                    </div>
-                    <iframe id="iframe-${id}" src="about:blank" allowfullscreen allow="fullscreen; picture-in-picture"></iframe>
-                </div>
-            `;
-        };
-
-        const playerContainer = document.getElementById('players');
-        for (let i = 1; i <= 1; i++) {
-            playerContainer.innerHTML += createPlayer(i);
+        // Función para obtener la URL del canal
+        function getCanalUrl(canal) {
+            return `https://www.programacion-tdt.com/${canal}.html`;
         }
-    </script>
-	  <script>
-    // Función para obtener la URL del canal
-    function getCanalUrl(canal) {
-      return `https://www.programacion-tdt.com/${canal}.html`;
-    }
 
-    // Función para obtener y mostrar la programación
-    async function fetchProgramacion(canal) {
-      if (!canal) {
-        document.getElementById('programacion-container').style.display = 'none';
-        document.getElementById('toggle-programacion').style.display = 'none';
-        return;
-      }
+        // Función para obtener y mostrar la programación
+        async function fetchProgramacion(canal) {
+            if (!canal) {
+                document.getElementById('programacion-container').style.display = 'none';
+                document.getElementById('toggle-programacion').style.display = 'none';
+                return;
+            }
 
-      try {
-        // Usamos el proxy AllOrigins para evitar bloqueos de CORS
-        const url = `https://api.allorigins.win/get?url=${encodeURIComponent(getCanalUrl(canal))}`;
-        
-        const response = await fetch(url);
-        const data = await response.json();
+            try {
+                const url = `https://api.allorigins.win/get?url=${encodeURIComponent(getCanalUrl(canal))}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(data.contents, 'text/html');
+                const table = doc.querySelector('#content > table');
 
-        // Usamos el DOMParser para analizar el HTML recibido
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(data.contents, 'text/html');
+                if (table) {
+                    const rows = table.querySelectorAll('tr');
+                    if (rows.length > 1) {
+                        rows[0].remove();
+                        rows[rows.length - 1].remove();
+                    }
 
-        // Buscamos la tabla de programación en el documento
-        const table = doc.querySelector('#content > table');
-
-        if (table) {
-          // Eliminar el primer y el último tr
-          const rows = table.querySelectorAll('tr');
-          if (rows.length > 1) {
-            // Eliminar el primer tr
-            rows[0].remove();
-            // Eliminar el último tr
-            rows[rows.length - 1].remove();
-          }
-
-          // Mostrar la tabla con la programación
-          document.getElementById('programacion-container').innerHTML = '';
-          document.getElementById('programacion-container').appendChild(table);
-          document.getElementById('programacion-container').style.display = 'block'; // Mostrar el contenedor
-          document.getElementById('toggle-programacion').style.display = 'inline-block'; // Mostrar el botón
-        } else {
-          document.getElementById('programacion-container').innerHTML = '<p>No se pudo encontrar la tabla de programación.</p>';
-          document.getElementById('programacion-container').style.display = 'block'; // Mostrar el contenedor
-          document.getElementById('toggle-programacion').style.display = 'inline-block'; // Mostrar el botón
+                    document.getElementById('programacion-container').innerHTML = '';
+                    document.getElementById('programacion-container').appendChild(table);
+                    document.getElementById('programacion-container').style.display = 'block';
+                    document.getElementById('toggle-programacion').style.display = 'inline-block';
+                } else {
+                    document.getElementById('programacion-container').innerHTML = '<p>No se pudo encontrar la tabla de programación.</p>';
+                    document.getElementById('programacion-container').style.display = 'block';
+                    document.getElementById('toggle-programacion').style.display = 'inline-block';
+                }
+            } catch (error) {
+                console.error('Error al cargar la programación:', error);
+                document.getElementById('programacion-container').innerHTML = '<p>Error al cargar la programación.</p>';
+                document.getElementById('programacion-container').style.display = 'block';
+                document.getElementById('toggle-programacion').style.display = 'inline-block';
+            }
         }
-      } catch (error) {
-        console.error('Error al cargar la programación:', error);
-        document.getElementById('programacion-container').innerHTML = '<p>Error al cargar la programación.</p>';
-        document.getElementById('programacion-container').style.display = 'block'; // Mostrar el contenedor
-        document.getElementById('toggle-programacion').style.display = 'inline-block'; // Mostrar el botón
-      }
-    }
 
-    // Evento para detectar el cambio de canal
-    document.getElementById('canal-selector').addEventListener('change', function() {
-      const canalSeleccionado = this.value;
-      fetchProgramacion(canalSeleccionado);
-    });
+        document.getElementById('canal-selector').addEventListener('change', function() {
+            const canalSeleccionado = this.value;
+            fetchProgramacion(canalSeleccionado);
+        });
 
-    // Evento para ocultar o mostrar la programación (manteniendo el selector visible)
-    document.getElementById('toggle-programacion').addEventListener('click', function() {
-      const container = document.getElementById('programacion-container');
-      if (container.style.display === 'none') {
-        container.style.display = 'block';
-        this.innerText = 'Ocultar';
-      } else {
-        container.style.display = 'none';
-        this.innerText = 'Mostrar';
-      }
-    });
-  </script>
+        document.getElementById('toggle-programacion').addEventListener('click', function() {
+            const container = document.getElementById('programacion-container');
+            if (container.style.display === 'none') {
+                container.style.display = 'block';
+                this.innerText = 'Ocultar';
+            } else {
+                container.style.display = 'none';
+                this.innerText = 'Mostrar';
+            }
+        });
+    </script>
 </body>
 </html>
