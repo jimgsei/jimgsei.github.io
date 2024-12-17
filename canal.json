@@ -12,6 +12,7 @@
     "baseUrl": "https://www.programacion-tdt.com/",
     "allOriginsUrl": "https://api.allorigins.win/get?url="
   },
+  "sportUrl": "https://wris.asia/player/embed.php?channel=",
   "tdtChannels": [
     "LA1", "ANTENA3", "CUATRO", "TELECINCO", "LASEXTA"
   ],
