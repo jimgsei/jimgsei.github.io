@@ -1,0 +1,13 @@
+{
+  "specialChannels": [
+    "sportv3", "daznf1 24h", "tudnusa", "deportestvc", 
+    "winsportsplus", "foxmx", "liga1max", "premiere", "futv", "foxar"
+  ],
+  "channelUrls": {
+    "daznf1 24h": "https://embed.sdfgnksbounce.com/embed2/daznf1.html"
+  },
+  "tdtBaseUrl": "https://nebunexa.co/clappr/?id=",
+  "tdtChannels": [
+    "LA1", "ANTENA3", "CUATRO", "TELECINCO", "LASEXTA"
+  ]
+}
