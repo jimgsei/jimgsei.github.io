@@ -7,6 +7,11 @@
     "daznf1 24h": "https://embed.sdfgnksbounce.com/embed2/daznf1.html"
   },
   "tdtBaseUrl": "https://nebunexa.co/clappr/?id=",
+  "mixUrl": "https://huhu.to/",
+  "programmingUrls": {
+    "baseUrl": "https://www.programacion-tdt.com/",
+    "allOriginsUrl": "https://api.allorigins.win/get?url="
+  },
   "tdtChannels": [
     "LA1", "ANTENA3", "CUATRO", "TELECINCO", "LASEXTA"
   ],
@@ -15,11 +20,5 @@
     "daznf1 24h", "espnplus", "sportv", "mplus_", "disney", "max", 
     "nba", "deportestvc", "winsportsplus", "foxmx", "premiere", 
     "eventos", "liga1max", "canal", "tudnusa", "mcampeones_", "hypermotion_", "futv", "paramount", "foxar"
-  ],
-  "programmingUrls": {
-    "baseUrl": "https://www.programacion-tdt.com/",
-    "allOriginsUrl": "https://api.allorigins.win/get?url="
-  },
-  "mixUrl": "https://huhu.to/",
-  "iframeBaseUrl": "https://wris.asia/player/embed.php?channel="
+  ]
 }
