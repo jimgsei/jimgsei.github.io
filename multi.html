@@ -262,7 +262,7 @@
 
             <h3>Mix</h3>
             <div class="video-container">
-                <iframe id="iframe-mix-1" src="https://huhu.to/" allow="encrypted-media" allowfullscreen></iframe>
+                <iframe id="iframe-mix-1" src="about:blank" allow="encrypted-media" allowfullscreen></iframe>
             </div>
         </div>
 
@@ -281,6 +281,10 @@
 
     loadCanalJson().then(data => {
         channelsData = data;
+		
+	// Asignamos la URL de 'mixUrl' al iframe
+    const iframeMix = document.getElementById('iframe-mix-1');
+    iframeMix.src = channelsData.mixUrl; // Aquí usamos la URL del JSON
 
         const createPlayer = (id) => {
             return ` 
