@@ -12,7 +12,10 @@
     "espnmx", "fanatiz", "teleamazonas"
   ],
   "channelUrls": {
-    "daznf1 24h": "https://embed.sdfgnksbounce.com/embed2/daznf1.html"
+    "daznf1 24h": "https://embed.sdfgnksbounce.com/embed2/daznf1.html",
+    "espn": "https://wris.asia/player/embed.php?channel=espn",
+    "eventos": "https://wris.asia/player/embed.php?channel=eventos",
+    "espnplus": "https://wris.asia/player/embed.php?channel=espnplus"
   },
   "tdtBaseUrl": "https://nebunexa.co/clappr/?id=",
   "tdtUrl": "https://nebunexa.co/clappr/?id=",
@@ -40,4 +43,3 @@
   "mixUrl": "https://huhu.to/",
   "sportUrl": "https://wris.asia/player/embed.php?channel="
 }
-
