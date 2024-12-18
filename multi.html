@@ -240,8 +240,8 @@
         <h3>TDT</h3>
         <div class="video-row">
             <div class="video-container">
-                <iframe id="iframe-tdt-1" src="https://nebunexa.co/clappr/?id=LA1" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-                <div class="player-menu" style="margin-top: 10px;">
+                 <iframe id="iframe-tdt-1" src="about:blank" allow="autoplay; encrypted-media" allowfullscreen></iframe>           
+				<div class="player-menu" style="margin-top: 10px;">
                     <select id="tdt-channel-select-1" onchange="changeTdtChannel(1)">
                     </select>
                     <select id="canal-selector" onchange="fetchProgramacion(this.value)">
@@ -285,6 +285,12 @@
 	// Asignamos la URL de 'mixUrl' al iframe
     const iframeMix = document.getElementById('iframe-mix-1');
     iframeMix.src = channelsData.mixUrl; // Aquí usamos la URL del JSON
+	
+	// Asignamos la URL base de TDT y el identificador
+    const iframeTdt = document.getElementById('iframe-tdt-1');
+    const tdtChannelId = 'LA1';  // Puedes obtener este valor dinámicamente si es necesario
+    iframeTdt.src = `${channelsData.tdtBaseUrl}${tdtChannelId}`; // Usamos la URL base del JSON y concatenamos el identificador
+  
 
         const createPlayer = (id) => {
             return ` 
