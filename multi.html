@@ -51,9 +51,12 @@
     .player-menu {
         margin-bottom: 20px;
         display: flex;
+		flex-wrap: nowrap;
+        overflow-x: auto; 
         justify-content: center;
         align-items: center;
         gap: 10px;
+		scrollbar-width: thin; 
     }
 
     .player-menu select {
@@ -63,6 +66,9 @@
         background-color: #333;
         color: white;
         border: 1px solid #444;
+		flex: 0 0 auto; 
+        min-width: 100px; 
+        max-width: 150px; 
     }
 
     .player-menu button {
@@ -314,24 +320,13 @@
     <div class="player-menu">
         <!-- Selector de Canal -->
         <select id="deportes-channel-select" onchange="updateDeportesIframe()">
-            <option value="">Seleccionar Canal</option>
+            <option value="">Selec. Canal</option>
             <!-- Aquí se llenarán los canales dinámicamente -->
         </select>
 		
         <!-- Selector de Número (del 2 al 7) -->
 		<select id="espn-number-select" onchange="updateDeportesIframe()" style="display: none;">
-            <option value="">Seleccionar Número</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-            <option value="6">6</option>
-            <option value="7">7</option>
-        </select>
-		
-		<select id="deportes-number-select" style="display: none;" onchange="updateDeportesIframeWithNumber()">
-            <option value="">Seleccionar Número</option>
-             <option value="1">1</option>
+            <option value="">Más canles</option>
             <option value="2">2</option>
             <option value="3">3</option>
             <option value="4">4</option>
@@ -341,7 +336,7 @@
         </select>
 		
         <select id="deportes-option-select" onchange="updateDeportesIframeWithOption()" style="display:none;">
-            <option value="">Seleccionar Opción</option>
+            <option value="">Op. Visual</option>
             <option value="_1">_1</option>
             <option value="_2">_2</option>
             <option value="_3">_3</option>
@@ -559,7 +554,7 @@ function updateMenusForSelectedChannel() {
     if (['espn', 'foxar', 'foxmx', 'deportestvc', 'hypermotion', 'premiere', 'mlaliga', 'mcampeones', 'disney', 'tigopy', 'espnmx', 'fanatiz'].includes(selectedChannel)) {
         const defaultOption = document.createElement('option');
         defaultOption.value = "";
-        defaultOption.textContent = "Seleccionar Número";
+        defaultOption.textContent = "Más Canales";
         espnNumberSelect.appendChild(defaultOption); // Dejar el valor vacío inicialmente
 
         // Agregar la opción "Volver al canal base"
@@ -579,7 +574,7 @@ function updateMenusForSelectedChannel() {
     } else if (['eventos1', 'espnplus1', 'paramount1', 'dazn1', 'sportv1', 'nba1', 'max1', 'peacock1'].includes(selectedChannel)) {
         const defaultOption = document.createElement('option');
         defaultOption.value = "";
-        defaultOption.textContent = "Seleccionar Número";
+        defaultOption.textContent = "Más canales";
         espnNumberSelect.appendChild(defaultOption); // Dejar el valor vacío inicialmente
 
         // Agregar la opción "Volver al canal base"
@@ -605,7 +600,7 @@ function updateMenusForSelectedChannel() {
         deportesOptionSelect.style.display = 'inline-block';
         const defaultOption = document.createElement('option');
         defaultOption.value = "";
-        defaultOption.textContent = "Seleccionar Opción";
+        defaultOption.textContent = "Op. Visual";
         deportesOptionSelect.appendChild(defaultOption);
 
         const resetOption = document.createElement('option');
