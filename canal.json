@@ -1,16 +1,8 @@
 {
   "specialChannels": [
-    "sportv1", "daznf1 24h", "tudnusa", "deportestvc",
-    "winsportsplus", "foxmx", "liga1max", "premiere", "futv", "foxar",
-    "espn", "eventos1", "foxar", "espnpremium", "tyc", "futv", "foxmx",
-    "espnplus1", "nfl1", "paramount1", "paramount8", "mplus", "canal4",
-    "mcopadelrey", "peacock1", "deportestvc", "foxdeportes", "daznf1",
-    "dazn1", "daznlaliga", "dazn1de", "espndeportes", "tntar", "hypermotion",
-    "sportv1", "winsportsplus", "winsports", "tudnusa", "tudnmx", "liga1max",
-    "foxpremium", "tntpremium", "premiere", "mls", "dsports", "laligabar",
-    "mlaliga", "mcampeones", "nba1", "disney", "max1", "tigopy", "goltv",
-    "espnmx", "fanatiz", "teleamazonas"
-  ],
+    "daznf1", "dazn1", "daznlaliga", "dazn1de", "laligabar", "liga1max", "mlaliga", "mplus", "mcampeones", "mcopadelrey", "premiere", "espn", "espnplus1", "espnpremium", "espndeportes", "espnmx", "sportv1", "dsports", "nba1", "nfl1", "disney", "max1", "deportestvc", "goltv", "deportestvc", "paramount1", "hypermotion", "eventos1", "tyc",  "tntar", "tntpremium", "tudnusa", "tudnmx", "foxdeportes", "foxmx",  "futv", "foxar", "foxpremium", "winsportsplus", "winsports", "mls", "tigopy", "fanatiz", "teleamazonas", "daznf1 24h"      
+  ],  
+  
   "channelUrls": {
     "daznf1 24h": "https://embed.sdfgnksbounce.com/embed2/daznf1.html"
   },
