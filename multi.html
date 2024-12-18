@@ -477,13 +477,13 @@ function updateDeportesIframeWithOption() {
     }
 
     // Comportamiento especial para eventos1, espnplus1, paramount1, peacock1
-    if (['eventos1', 'espnplus1', 'paramount1', 'peacock1'].includes(selectedChannel)) {
+    if (['eventos1', 'espnplus1', 'paramount1', 'dazn1', 'sportv1', 'nba1', 'max1', 'peacock1'].includes(selectedChannel)) {
         if (selectedNumber && selectedNumber !== "") {
             // Borrar el último número y añadir el nuevo seleccionado
             newUrl = newUrl.replace(/\d+$/, ""); // Eliminar el número final
             newUrl += selectedNumber; // Añadir el nuevo número
         }
-    } else if (['espn', 'dazn', 'premiere', 'mlaliga', 'mcampeones', 'disney', 'tigopy', 'espnmx', 'fanatiz', 'deportestvc', 'foxmx', 'foxar'].includes(selectedChannel) && selectedNumber && selectedNumber !== "") {
+    } else if (['espn', 'foxar', 'foxmx', 'deportestvc', 'hypermotion', 'premiere', 'mlaliga', 'mcampeones', 'disney', 'tigopy', 'espnmx', 'fanatiz'].includes(selectedChannel) && selectedNumber && selectedNumber !== "") {
         // Comportamiento regular para otros canales con números
         newUrl += selectedNumber;
     }
@@ -519,12 +519,12 @@ function updateDeportesIframe() {
     }
 
     // Comportamiento especial para eventos1, espnplus1, paramount1, peacock1
-    if (['eventos1', 'espnplus1', 'paramount1', 'peacock1'].includes(selectedChannel)) {
+    if (['eventos1', 'espnplus1', 'paramount1', 'dazn1', 'sportv1', 'nba1', 'max1', 'peacock1'].includes(selectedChannel)) {
         if (selectedNumber && selectedNumber !== "") {
             newUrl = newUrl.replace(/\d+$/, ""); // Eliminar el número final
             newUrl += selectedNumber; // Añadir el nuevo número
         }
-    } else if (['espn', 'dazn', 'premiere', 'mlaliga', 'mcampeones', 'disney', 'tigopy', 'espnmx', 'fanatiz', 'deportestvc', 'foxmx', 'foxar'].includes(selectedChannel) && selectedNumber && selectedNumber !== "") {
+    } else if (['espn', 'foxar', 'foxmx', 'deportestvc', 'hypermotion', 'premiere', 'mlaliga', 'mcampeones', 'disney', 'tigopy', 'espnmx', 'fanatiz'].includes(selectedChannel) && selectedNumber && selectedNumber !== "") {
         newUrl += selectedNumber;
     }
 
@@ -547,7 +547,7 @@ function updateMenusForSelectedChannel() {
     deportesOptionSelect.innerHTML = '';
 
     // Agregar la opción de seleccionar número solo si es necesario
-    if (['espn', 'dazn', 'premiere', 'mlaliga', 'mcampeones', 'disney', 'tigopy', 'espnmx', 'fanatiz', 'deportestvc', 'foxmx', 'foxar'].includes(selectedChannel)) {
+    if (['espn', 'foxar', 'foxmx', 'deportestvc', 'hypermotion', 'premiere', 'mlaliga', 'mcampeones', 'disney', 'tigopy', 'espnmx', 'fanatiz'].includes(selectedChannel)) {
         const defaultOption = document.createElement('option');
         defaultOption.value = "";
         defaultOption.textContent = "Seleccionar Número";
@@ -567,7 +567,7 @@ function updateMenusForSelectedChannel() {
             espnNumberSelect.appendChild(option);
         }
         espnNumberSelect.style.display = 'inline-block';
-    } else if (['eventos1', 'espnplus1', 'paramount1', 'peacock1'].includes(selectedChannel)) {
+    } else if (['eventos1', 'espnplus1', 'paramount1', 'dazn1', 'sportv1', 'nba1', 'max1', 'peacock1'].includes(selectedChannel)) {
         const defaultOption = document.createElement('option');
         defaultOption.value = "";
         defaultOption.textContent = "Seleccionar Número";
