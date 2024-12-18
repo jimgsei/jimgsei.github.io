@@ -240,8 +240,8 @@
         <h3>TDT</h3>
         <div class="video-row">
             <div class="video-container">
-                 <iframe id="iframe-tdt-1" src="about:blank" allow="autoplay; encrypted-media" allowfullscreen></iframe>           
-				<div class="player-menu" style="margin-top: 10px;">
+                <iframe id="iframe-tdt-1" src="about:blank" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                <div class="player-menu" style="margin-top: 10px;">
                     <select id="tdt-channel-select-1" onchange="changeTdtChannel(1)">
                     </select>
                     <select id="canal-selector" onchange="fetchProgramacion(this.value)">
@@ -268,196 +268,187 @@
 
         <h2>Deportes</h2>
         <h3>Deportes</h3>
+        <div class="video-row">
+            <!-- Canal de Deportes -->
+            <div class="video-container">
+                <div class="player-menu">
+                    <select id="deportes-channel-select" onchange="updateDeportesIframe()">
+                        <option value="">Seleccionar Canal</option>
+                    </select>
+                    <select id="deportes-option-select" onchange="updateDeportesIframeWithOption()" style="display:none;">
+                        <option value="">Seleccionar Opción</option>
+                        <option value="_1">_1</option>
+                        <option value="_2">_2</option>
+                        <option value="_3">_3</option>
+                        <option value="_4">_4</option>
+                    </select>
+                    <button onclick="reloadDeportesIframe()">Actualizar</button>
+                </div>
+                <iframe id="iframe-deportes" src="about:blank" allowfullscreen allow="fullscreen; picture-in-picture"></iframe>
+            </div>
+        </div>
     </div>
 
-<script>
-    async function loadCanalJson() {
-        const response = await fetch('https://raw.githubusercontent.com/jimgsei/jimgsei.github.io/refs/heads/master/canal.json');
-        const data = await response.json();
-        return data;
-    }
-
-    let channelsData;
-
-    loadCanalJson().then(data => {
-        channelsData = data;
-		
-	// Asignamos la URL de 'mixUrl' al iframe
-    const iframeMix = document.getElementById('iframe-mix-1');
-    iframeMix.src = channelsData.mixUrl; // Aquí usamos la URL del JSON
-	
-	// Asignamos la URL base de TDT y el identificador
-    const iframeTdt = document.getElementById('iframe-tdt-1');
-    const tdtChannelId = 'LA1';  // Puedes obtener este valor dinámicamente si es necesario
-    iframeTdt.src = `${channelsData.tdtBaseUrl}${tdtChannelId}`; // Usamos la URL base del JSON y concatenamos el identificador
-  
-
-        const createPlayer = (id) => {
-            return ` 
-                <div class="video-container">
-                    <div class="player-menu">
-                        <select id="category-${id}" onchange="updatePlayer(${id})">
-                            ${channelsData.channels.map(channel => `<option value="${channel}">${channel}</option>`).join('')}
-                        </select>
-                        <select id="number-${id}" onchange="updatePlayer(${id})">
-                            ${[...Array(15).keys()].map(i => `<option value="${i + 1}">${i + 1}</option>`).join('')}
-                        </select>
-                        <select id="tdt-channel-${id}" onchange="updatePlayer(${id})" style="display:none;">
-                            ${channelsData.tdtChannels.map(channel => `<option value="${channel}">${channel}</option>`).join('')}
-                        </select>
-                        <button onclick="reloadIframe(${id})">Actualizar</button>
-                    </div>
-                    <iframe id="iframe-${id}" src="about:blank" allowfullscreen allow="fullscreen; picture-in-picture"></iframe>
-                </div>
-            `;
-        };
-
-        const playerContainer = document.getElementById('players');
-        for (let i = 1; i <= 1; i++) {
-            playerContainer.innerHTML += createPlayer(i);
-        }
-    });
-
-    function updatePlayer(playerId) {
-        const category = document.getElementById(`category-${playerId}`).value;
-        const number = document.getElementById(`number-${playerId}`);
-        const tdtChannel = document.getElementById(`tdt-channel-${playerId}`);
-        const iframe = document.getElementById(`iframe-${playerId}`);
-
-        if (channelsData.specialChannels.includes(category)) {
-            number.disabled = true;
-            number.style.display = "none";
-        } else {
-            number.disabled = false;
-            number.style.display = "inline-block";
-        }
-
-        if (category === "TDT") {
-            iframe.src = `${channelsData.tdtUrl}${tdtChannel.value}`;
-            number.style.display = "none";
-            tdtChannel.style.display = "inline-block";
-        } else if (category === "LA1") {
-            iframe.src = `${channelsData.tdtUrl}LA1`;
-            number.style.display = "none";
-            tdtChannel.style.display = "none";
-        } else if (channelsData.channelUrls[category]) {
-            iframe.src = channelsData.channelUrls[category];
-            tdtChannel.style.display = "none";
-        } else if (category === "huhu") {
-            iframe.src = `${channelsData.mixUrl}${category}`;
-            tdtChannel.style.display = "none";
-        } else if (category === "sportv" || category === "daznf1" || category === "espnplus") {
-            iframe.src = `${channelsData.sportUrl}${category}`;
-            tdtChannel.style.display = "none";
-        } else {
-            tdtChannel.style.display = "none";
-            const numberValue = number.disabled ? '' : number.value;
-            iframe.src = `${channelsData.sportUrl}${category}${numberValue}`;  <!-- CORRECCIÓN AQUÍ -->
-        }
-    }
-
-    function reloadIframe(playerId) {
-        updatePlayer(playerId);
-    }
-
-    function changeTdtChannel(playerId) {
-        const selectedChannel = document.getElementById(`tdt-channel-select-${playerId}`).value;
-        const iframe = document.getElementById(`iframe-tdt-${playerId}`);
-        iframe.src = `${channelsData.tdtUrl}${selectedChannel}`;
-    }
-
-    function addTdtChannels(playerId) {
-        const selectElement = document.getElementById(`tdt-channel-select-${playerId}`);
-        channelsData.tdtChannels.forEach(channel => {
-            const option = document.createElement("option");
-            option.value = channel;
-            option.text = channel;
-            selectElement.appendChild(option);
-        });
-    }
-
-    window.onload = () => {
-        loadCanalJson().then(() => {
-            addTdtChannels(1);
-            addTdtChannels(2);
-        });
-    };
-
-    // Función para obtener la URL del canal
-    function getCanalUrl(canal) {
-        return `${channelsData.programmingUrls.baseUrl}${canal}.html`;
-    }
-
-    // Función para obtener y mostrar la programación
-    async function fetchProgramacion(canal) {
-        if (!canal) {
-            document.getElementById('programacion-container').style.display = 'none';
-            document.getElementById('toggle-programacion').style.display = 'none';
-            return;
-        }
-
-        try {
-            const url = `${channelsData.programmingUrls.allOriginsUrl}${encodeURIComponent(getCanalUrl(canal))}`;
-            const response = await fetch(url);
+    <!-- Script para TDT y Mix -->
+    <script>
+        async function loadCanalJson() {
+            const response = await fetch('https://raw.githubusercontent.com/jimgsei/jimgsei.github.io/refs/heads/master/canal.json');
             const data = await response.json();
+            return data;
+        }
 
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(data.contents, 'text/html');
-            const table = doc.querySelector('#content > table');
+        let channelsData;
 
-            if (table) {
-                const rows = table.querySelectorAll('tr');
-                if (rows.length > 1) {
-                    rows[0].remove();
-                    rows[rows.length - 1].remove();
-                }
+        loadCanalJson().then(data => {
+            channelsData = data;
 
-                document.getElementById('programacion-container').innerHTML = '';
-                document.getElementById('programacion-container').appendChild(table);
-                document.getElementById('programacion-container').style.display = 'block';
-                document.getElementById('toggle-programacion').style.display = 'inline-block';
+            // Asignamos la URL de 'mixUrl' al iframe
+            const iframeMix = document.getElementById('iframe-mix-1');
+            iframeMix.src = channelsData.mixUrl; // Aquí usamos la URL del JSON
+
+            // Asignamos la URL base de TDT y el identificador
+            const iframeTdt = document.getElementById('iframe-tdt-1');
+            const tdtChannelId = 'LA1';  // Puedes obtener este valor dinámicamente si es necesario
+            iframeTdt.src = `${channelsData.tdtBaseUrl}${tdtChannelId}`; // Usamos la URL base del JSON y concatenamos el identificador
+
+            // Llenar el selector de canales de TDT
+            const tdtSelect = document.getElementById('tdt-channel-select-1');
+            channelsData.tdtChannels.forEach(channel => {
+                const option = document.createElement('option');
+                option.value = channel;
+                option.textContent = channel;
+                tdtSelect.appendChild(option);
+            });
+        });
+
+        // Función para cambiar el canal TDT
+        function changeTdtChannel(playerId) {
+            const selectedChannel = document.getElementById(`tdt-channel-select-${playerId}`).value;
+            const iframe = document.getElementById(`iframe-tdt-${playerId}`);
+            
+            // Asegurarse de que el canal está seleccionado y existe en los datos
+            if (channelsData.tdtChannels.includes(selectedChannel)) {
+                iframe.src = `${channelsData.tdtBaseUrl}${selectedChannel}`;
             } else {
-                document.getElementById('programacion-container').innerHTML = '<p>No se pudo encontrar la tabla de programación.</p>';
+                console.error('Canal TDT no encontrado');
+            }
+        }
+
+        // Función para obtener la URL del canal
+        function getCanalUrl(canal) {
+            return `${channelsData.programmingUrls.baseUrl}${canal}.html`;
+        }
+
+        // Función para obtener y mostrar la programación
+        async function fetchProgramacion(canal) {
+            if (!canal) {
+                document.getElementById('programacion-container').style.display = 'none';
+                document.getElementById('toggle-programacion').style.display = 'none';
+                return;
+            }
+
+            try {
+                const url = `${channelsData.programmingUrls.allOriginsUrl}${encodeURIComponent(getCanalUrl(canal))}`;
+                const response = await fetch(url);
+                const data = await response.json();
+
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(data.contents, 'text/html');
+                const table = doc.querySelector('#content > table');
+
+                if (table) {
+                    const rows = table.querySelectorAll('tr');
+                    if (rows.length > 1) {
+                        rows[0].remove();
+                        rows[rows.length - 1].remove();
+                    }
+
+                    document.getElementById('programacion-container').innerHTML = '';
+                    document.getElementById('programacion-container').appendChild(table);
+                    document.getElementById('programacion-container').style.display = 'block';
+                    document.getElementById('toggle-programacion').style.display = 'inline-block';
+                } else {
+                    document.getElementById('programacion-container').innerHTML = '<p>No se pudo encontrar la tabla de programación.</p>';
+                    document.getElementById('programacion-container').style.display = 'block';
+                    document.getElementById('toggle-programacion').style.display = 'inline-block';
+                }
+            } catch (error) {
+                console.error('Error al cargar la programación:', error);
+                document.getElementById('programacion-container').innerHTML = '<p>Error al cargar la programación.</p>';
                 document.getElementById('programacion-container').style.display = 'block';
                 document.getElementById('toggle-programacion').style.display = 'inline-block';
             }
-        } catch (error) {
-            console.error('Error al cargar la programación:', error);
-            document.getElementById('programacion-container').innerHTML = '<p>Error al cargar la programación.</p>';
-            document.getElementById('programacion-container').style.display = 'block';
-            document.getElementById('toggle-programacion').style.display = 'inline-block';
         }
-    }
 
-    document.getElementById('canal-selector').addEventListener('change', function() {
-        const canalSeleccionado = this.value;
-        fetchProgramacion(canalSeleccionado);
-    });
+        document.getElementById('canal-selector').addEventListener('change', function() {
+            const canalSeleccionado = this.value;
+            fetchProgramacion(canalSeleccionado);
+        });
 
-    document.getElementById('toggle-programacion').addEventListener('click', function() {
-        const container = document.getElementById('programacion-container');
-        if (container.style.display === 'none') {
-            container.style.display = 'block';
-            this.innerText = 'Ocultar';
-        } else {
-            container.style.display = 'none';
-            this.innerText = 'Mostrar';
+        document.getElementById('toggle-programacion').addEventListener('click', function() {
+            const container = document.getElementById('programacion-container');
+            if (container.style.display === 'none') {
+                container.style.display = 'block';
+                this.innerText = 'Ocultar';
+            } else {
+                container.style.display = 'none';
+                this.innerText = 'Mostrar';
+            }
+        });
+    </script>
+
+    <!-- Script para Deportes -->
+    <script>
+        // Función para actualizar el iframe de deportes con la opción seleccionada
+        function updateDeportesIframeWithOption() {
+            const selectedChannel = document.getElementById('deportes-channel-select').value;
+            const selectedOption = document.getElementById('deportes-option-select').value;
+            const iframe = document.getElementById('iframe-deportes');
+
+            if (channelsData.channelUrls[selectedChannel]) {
+                iframe.src = channelsData.channelUrls[selectedChannel] + selectedOption;
+            } else if (channelsData.sportUrl) {
+                iframe.src = `${channelsData.sportUrl}${selectedChannel}${selectedOption}`;
+            }
         }
-    });
-	
-	function toggleProgramacion() {
-    const container = document.getElementById('programacion-container');
-    const button = document.getElementById('toggle-programacion');
 
-    if (container.style.display === 'none') {
-        container.style.display = 'block';
-        button.innerText = 'Ocultar';  // Cambiar el texto del botón a "Ocultar"
-    } else {
-        container.style.display = 'none';
-        button.innerText = 'Mostrar';  // Cambiar el texto del botón a "Mostrar"
-    }
-}
-</script>
+        // Función para actualizar el iframe de deportes
+        function updateDeportesIframe() {
+            const selectedChannel = document.getElementById('deportes-channel-select').value;
+            const iframe = document.getElementById('iframe-deportes');
+            const deportesOptionSelect = document.getElementById('deportes-option-select');
 
+            // Mostrar el selector de opciones (1, 2, 3, 4) solo si se selecciona un canal
+            if (selectedChannel) {
+                deportesOptionSelect.style.display = 'inline-block';
+            } else {
+                deportesOptionSelect.style.display = 'none';
+            }
+
+            if (channelsData.channelUrls[selectedChannel]) {
+                iframe.src = channelsData.channelUrls[selectedChannel];
+            } else if (channelsData.sportUrl) {
+                iframe.src = `${channelsData.sportUrl}${selectedChannel}`;
+            }
+        }
+
+        // Recargar el iframe de deportes
+        function reloadDeportesIframe() {
+            updateDeportesIframeWithOption();
+        }
+
+        // Llenar el selector de canales de deportes
+        loadCanalJson().then(data => {
+            channelsData = data;
+            const deportesSelect = document.getElementById('deportes-channel-select');
+            channelsData.specialChannels.forEach(channel => {
+                const option = document.createElement('option');
+                option.value = channel;
+                option.textContent = channel;
+                deportesSelect.appendChild(option);
+            });
+        });
+    </script>
 </body>
+
 </html>
