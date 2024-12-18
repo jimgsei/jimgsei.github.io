@@ -4,223 +4,253 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Multi Pantalla</title>
-  <style>
-        body {
-            background-color: black;
-            color: white;
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 0;
-            padding: 0;
-        }
+<style>
+    body {
+        background-color: black;
+        color: white;
+        font-family: Arial, sans-serif;
+        text-align: center;
+        margin: 0;
+        padding: 0;
+    }
 
-        h1 {
-            margin-top: 40px; /* Aseguramos que haya un margen para los botones */
-            margin-bottom: 40px;
-        }
+    h1 {
+        margin-top: 40px; /* Aseguramos que haya un margen para los botones */
+        margin-bottom: 40px;
+    }
 
-        h2 {
-            color: white;
-            margin: 40px 0;
-            font-size: 24px;
-            display: block; /* Por defecto, visible */
-        }
+    h2 {
+        color: white;
+        margin: 40px 0;
+        font-size: 24px;
+        display: block; /* Por defecto, visible */
+    }
 
-        h3 {
-            color: white;
-            margin: 40px 0;
-            font-size: 24px;
-            display: none; /* Por defecto, oculto */
-        }
+    h3 {
+        color: white;
+        margin: 40px 0;
+        font-size: 24px;
+        display: none; /* Por defecto, oculto */
+    }
 
+    .video-container {
+        margin-bottom: 30px;
+        background-color: #222;
+        padding: 10px;
+        border-radius: 8px;
+        box-shadow: 0px 0px 10px #444;
+        display: inline-block;
+        vertical-align: top;
+        width: 45%;
+    }
+
+    .video-container.center {
+        width: 90%;
+    }
+
+    .player-menu {
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .player-menu select {
+        padding: 10px;
+        font-size: 16px;
+        border-radius: 4px;
+        background-color: #333;
+        color: white;
+        border: 1px solid #444;
+    }
+
+    .player-menu button {
+        padding: 10px 20px;
+        background-color: #007BFF;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .player-menu button:hover {
+        background-color: #0056b3;
+    }
+
+    iframe {
+        width: 100%;
+        height: 400px;
+        border: none;
+        border-radius: 8px;
+    }
+
+    /* Media Query for Small Screens (Mobile) */
+    @media (max-width: 768px) {
         .video-container {
-            margin-bottom: 30px;
-            background-color: #222;
-            padding: 10px;
-            border-radius: 8px;
-            box-shadow: 0px 0px 10px #444;
-            display: inline-block;
-            vertical-align: top;
+            width: 100%;
+        }
+        h2 {
+            display: none; /* Ocultar h2 en pantallas pequeñas */
+        }
+        h3 {
+            display: block; /* Mostrar h3 en pantallas pequeñas */
+        }
+    }
+
+    /* Media Query for Larger Screens (Desktop) */
+    @media (min-width: 769px) {
+        .video-container {
             width: 45%;
         }
 
-        .video-container.center {
+        #third-iframe {
             width: 90%;
         }
 
-        .player-menu {
-            margin-bottom: 20px;
+        .video-row {
             display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
+            justify-content: space-between;
         }
 
-        .player-menu select {
-            padding: 10px;
-            font-size: 16px;
-            border-radius: 4px;
-            background-color: #333;
-            color: white;
-            border: 1px solid #444;
+        .video-row .video-container {
+            width: 45%;
         }
+        h2 {
+            display: block; /* Mostrar h2 en pantallas grandes */
+        }
+        h3 {
+            display: none; /* Ocultar h3 en pantallas grandes */
+        }
+    }
 
-        .player-menu button {
-            padding: 10px 20px;
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
+    /* Estilos para los botones arriba */
+    .top-buttons {
+        margin-bottom: 30px; 
+        padding-top: 20px;
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+    }
 
-        .player-menu button:hover {
-            background-color: #0056b3;
-        }
+    .top-buttons button {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: 1px solid transparent;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
 
-        iframe {
-            width: 100%;
-            height: 400px;
-            border: none;
-            border-radius: 8px;
-        }
+    .top-buttons button:hover {
+        background-color: rgba(255, 255, 255, 0.4);
+    }
 
-        /* Media Query for Small Screens (Mobile) */
-        @media (max-width: 768px) {
-            .video-container {
-                width: 100%;
-            }
-            h2 {
-                display: none; /* Ocultar h2 en pantallas pequeñas */
-            }
-            h3 {
-                display: block; /* Mostrar h3 en pantallas pequeñas */
-            }
-        }
+    #programacion-container {
+        display: none;
+        margin-top: 20px;
+        max-height: 270px;
+        overflow-y: scroll;
+        border: 1px solid #ddd;
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
 
-        /* Media Query for Larger Screens (Desktop) */
-        @media (min-width: 769px) {
-            .video-container {
-                width: 45%;
-            }
+    /* Estilos para la barra de desplazamiento */
+    #programacion-container::-webkit-scrollbar {
+        width: 12px; /* Ancho de la barra de desplazamiento */
+    }
 
-            #third-iframe {
-                width: 90%;
-            }
+    #programacion-container::-webkit-scrollbar-track {
+        background-color: transparent; /* Fondo del track (la parte sobre la que se desliza el pulgar) */
+        border-radius: 10px; /* Bordes redondeados en el track */
+    }
 
-            .video-row {
-                display: flex;
-                justify-content: space-between;
-            }
+    #programacion-container::-webkit-scrollbar-thumb {
+        background-color: rgba(255, 255, 255, 0.5); /* Color del pulgar (la parte que se mueve) */
+        border-radius: 10px; /* Bordes redondeados del pulgar */
+        border: 2px solid transparent; /* Bordes suaves alrededor del pulgar */
+    }
 
-            .video-row .video-container {
-                width: 45%;
-            }
-            h2 {
-                display: block; /* Mostrar h2 en pantallas grandes */
-            }
-            h3 {
-                display: none; /* Ocultar h3 en pantallas grandes */
-            }
-        }
+    #programacion-container::-webkit-scrollbar-thumb:hover {
+        background-color: rgba(255, 255, 255, 0.7); /* Color al pasar el mouse sobre el pulgar */
+    }
 
-        /* Estilos para los botones arriba */
-        .top-buttons {
-            margin-bottom: 30px; 
-	    padding-top: 20px;
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-        }
+    /* Para Firefox, que usa -moz-scrollbars */
+    #programacion-container {
+        scrollbar-width: thin; /* Hace la barra de desplazamiento más delgada */
+        scrollbar-color: rgba(255, 255, 255, 0.5) transparent; /* Color del pulgar y el track */
+    }
 
-        .top-buttons button {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: 1px solid transparent;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
+    /* Hacemos que el track sea transparente en Firefox */
+    #programacion-container {
+        background-color: transparent; /* Track transparente */
+    }
 
-        .top-buttons button:hover {
-            background-color: rgba(255, 255, 255, 0.4);
-        }
-       #programacion-container {
-            display: none;
-            margin-top: 20px;
-            max-height: 270px;
-            overflow-y: scroll;
-            border: 1px solid #ddd;
-            padding: 10px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-		
-        /* Estilos para la barra de desplazamiento */
-        #programacion-container::-webkit-scrollbar {
-            width: 12px; /* Ancho de la barra de desplazamiento */
-        }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
 
-        #programacion-container::-webkit-scrollbar-track {
-            background-color: transparent; /* Fondo del track (la parte sobre la que se desliza el pulgar) */
-            border-radius: 10px; /* Bordes redondeados en el track */
-        }
+    th, td {
+        padding: 8px;
+        text-align: left;
+        border: 1px solid #ddd;
+    }
 
-        #programacion-container::-webkit-scrollbar-thumb {
-            background-color: rgba(255, 255, 255, 0.5); /* Color del pulgar (la parte que se mueve) */
-            border-radius: 10px; /* Bordes redondeados del pulgar */
-            border: 2px solid transparent; /* Bordes suaves alrededor del pulgar */
-        }
+    th {
+        background-color: #f4f4f4;
+    }
 
-        #programacion-container::-webkit-scrollbar-thumb:hover {
-            background-color: rgba(255, 255, 255, 0.7); /* Color al pasar el mouse sobre el pulgar */
-        }
+    /* Alineación horizontal de los elementos en el player-menu */
+    .player-menu {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        gap: 15px;
+    }
 
-        /* Para Firefox, que usa -moz-scrollbars */
-        #programacion-container {
-            scrollbar-width: thin; /* Hace la barra de desplazamiento más delgada */
-            scrollbar-color: rgba(255, 255, 255, 0.5) transparent; /* Color del pulgar y el track */
-        }
+    /* Aseguramos que el botón y el selector estén alineados de manera adecuada */
+    #canal-selector {
+        flex: 0 1 150px; 
+        min-width: 100px;
+    }
 
-        /* Hacemos que el track sea transparente en Firefox */
-        #programacion-container {
-            background-color: transparent; /* Track transparente */
-        }
-		
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+    #toggle-programacion {
+        flex-shrink: 0;
+    }
 
-        th, td {
-            padding: 8px;
-            text-align: left;
-            border: 1px solid #ddd;
-        }
+    /* Nuevos estilos añadidos para el selector de ESPN */
+    #espn-number-select {
+        display: none; /* Se oculta por defecto */
+        padding: 10px;
+        font-size: 16px;
+        border-radius: 4px;
+        background-color: #333;
+        color: white;
+        border: 1px solid #444;
+    }
 
-        th {
-            background-color: #f4f4f4;
-        }
+    /* Mostrar el selector de número solo para ESPN */
+    #deportes-channel-select[value="ESPN"] + #espn-number-select {
+        display: inline-block;
+    }
+	.deportes-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        text-align: center;
+        height: 100vh; /* Ajustar según sea necesario */
+        width: 100%;
+    }
+    .player-menu {
+        margin-bottom: 20px;
+    }
+</style>
 
-        /* Alineación horizontal de los elementos en el player-menu */
-        .player-menu {
-            display: flex;
-            justify-content: flex-start;
-            align-items: center;
-            gap: 15px;
-        }
-
-        /* Aseguramos que el botón y el selector estén alineados de manera adecuada */
-        #canal-selector {
-           flex: 0 1 150px; 
-           min-width: 100px;
-        }
-
-        #toggle-programacion {
-            flex-shrink: 0;
-        }
-   </style>
 </head>
 
 <body>
@@ -266,28 +296,57 @@
             </div>
         </div>
 
-        <h2>Deportes</h2>
-        <h3>Deportes</h3>
-        <div class="video-row">
-            <!-- Canal de Deportes -->
-            <div class="video-container">
-                <div class="player-menu">
-                    <select id="deportes-channel-select" onchange="updateDeportesIframe()">
-                        <option value="">Seleccionar Canal</option>
-                    </select>
-                    <select id="deportes-option-select" onchange="updateDeportesIframeWithOption()" style="display:none;">
-                        <option value="">Seleccionar Opción</option>
-                        <option value="_1">_1</option>
-                        <option value="_2">_2</option>
-                        <option value="_3">_3</option>
-                        <option value="_4">_4</option>
-                    </select>
-                    <button onclick="reloadDeportesIframe()">Actualizar</button>
-                </div>
-                <iframe id="iframe-deportes" src="about:blank" allowfullscreen allow="fullscreen; picture-in-picture"></iframe>
-            </div>
-        </div>
+<h2>Deportes</h2>
+<h3>Deportes</h3>
+
+
+    <!-- Canal de Deportes -->
+    <div class="video-container">
+    <div class="player-menu">
+        <!-- Selector de Canal -->
+        <select id="deportes-channel-select" onchange="updateDeportesIframe()">
+            <option value="">Seleccionar Canal</option>
+            <!-- Aquí se llenarán los canales dinámicamente -->
+        </select>
+		
+        <!-- Selector de Número (del 2 al 7) -->
+		<select id="espn-number-select" onchange="updateDeportesIframe()" style="display: none;">
+            <option value="">Seleccionar Número</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+        </select>
+		
+		<select id="deportes-number-select" style="display: none;" onchange="updateDeportesIframeWithNumber()">
+            <option value="">Seleccionar Número</option>
+             <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+        </select>
+		
+        <select id="deportes-option-select" onchange="updateDeportesIframeWithOption()" style="display:none;">
+            <option value="">Seleccionar Opción</option>
+            <option value="_1">_1</option>
+            <option value="_2">_2</option>
+            <option value="_3">_3</option>
+            <option value="_4">_4</option>
+        </select>
+
+
+        <button onclick="reloadDeportesIframe()">Actualizar</button>
     </div>
+    <iframe id="iframe-deportes" src="about:blank" allowfullscreen allow="fullscreen; picture-in-picture"></iframe>
+    <div id="iframe-deportes-url" style="margin-top: 10px; color: lightgray; font-size: 14px;">
+        URL del iframe: <span id="current-deportes-url">about:blank</span>
+    </div>
+</div>
 
     <!-- Script para TDT y Mix -->
     <script>
@@ -398,57 +457,207 @@
     </script>
 
     <!-- Script para Deportes -->
-    <script>
-        // Función para actualizar el iframe de deportes con la opción seleccionada
-        function updateDeportesIframeWithOption() {
-            const selectedChannel = document.getElementById('deportes-channel-select').value;
-            const selectedOption = document.getElementById('deportes-option-select').value;
-            const iframe = document.getElementById('iframe-deportes');
+<script>
+// Función para actualizar el iframe con la opción seleccionada
+function updateDeportesIframeWithOption() {
+    const selectedChannel = document.getElementById('deportes-channel-select').value;
+    const selectedOption = document.getElementById('deportes-option-select').value;
+    const selectedNumber = document.getElementById('espn-number-select').value; // Número seleccionado
+    const iframe = document.getElementById('iframe-deportes');
+    const urlDisplay = document.getElementById('current-deportes-url');
 
-            if (channelsData.channelUrls[selectedChannel]) {
-                iframe.src = channelsData.channelUrls[selectedChannel] + selectedOption;
-            } else if (channelsData.sportUrl) {
-                iframe.src = `${channelsData.sportUrl}${selectedChannel}${selectedOption}`;
-            }
+    let newUrl = "";
+
+    // Verificar si el canal tiene una URL base definida en channelUrls
+    if (channelsData.channelUrls[selectedChannel]) {
+        newUrl = channelsData.channelUrls[selectedChannel];
+    } else if (channelsData.sportUrl) {
+        // Si no está en channelUrls, usar sportUrl y añadir el canal
+        newUrl = `${channelsData.sportUrl}${selectedChannel}`;
+    }
+
+    // Comportamiento especial para eventos1, espnplus1, paramount1, peacock1
+    if (['eventos1', 'espnplus1', 'paramount1', 'peacock1'].includes(selectedChannel)) {
+        if (selectedNumber && selectedNumber !== "") {
+            // Borrar el último número y añadir el nuevo seleccionado
+            newUrl = newUrl.replace(/\d+$/, ""); // Eliminar el número final
+            newUrl += selectedNumber; // Añadir el nuevo número
         }
+    } else if (['espn', 'dazn', 'premiere', 'mlaliga', 'mcampeones', 'disney', 'tigopy', 'espnmx', 'fanatiz', 'deportestvc', 'foxmx', 'foxar'].includes(selectedChannel) && selectedNumber && selectedNumber !== "") {
+        // Comportamiento regular para otros canales con números
+        newUrl += selectedNumber;
+    }
 
-        // Función para actualizar el iframe de deportes
-        function updateDeportesIframe() {
-            const selectedChannel = document.getElementById('deportes-channel-select').value;
-            const iframe = document.getElementById('iframe-deportes');
-            const deportesOptionSelect = document.getElementById('deportes-option-select');
+    // Si hay una opción seleccionada, añadirla al final de la URL
+    if (selectedOption && selectedOption !== "") {
+        newUrl += selectedOption;
+    }
 
-            // Mostrar el selector de opciones (1, 2, 3, 4) solo si se selecciona un canal
-            if (selectedChannel) {
-                deportesOptionSelect.style.display = 'inline-block';
-            } else {
-                deportesOptionSelect.style.display = 'none';
-            }
+    // Verificar que la URL sea válida
+    if (newUrl) {
+        iframe.src = newUrl; // Actualizar el iframe
+        urlDisplay.textContent = newUrl; // Mostrar la URL
+    }
+}
 
-            if (channelsData.channelUrls[selectedChannel]) {
-                iframe.src = channelsData.channelUrls[selectedChannel];
-            } else if (channelsData.sportUrl) {
-                iframe.src = `${channelsData.sportUrl}${selectedChannel}`;
-            }
+// Función para actualizar el iframe solo con el canal seleccionado
+function updateDeportesIframe() {
+    const selectedChannel = document.getElementById('deportes-channel-select').value;
+    const selectedNumber = document.getElementById('espn-number-select').value; // Número seleccionado
+    const iframe = document.getElementById('iframe-deportes');
+    const deportesOptionSelect = document.getElementById('deportes-option-select');
+    const urlDisplay = document.getElementById('current-deportes-url');
+
+    let newUrl = "";
+
+    // Verificar si la URL del canal está definida en channelUrls
+    if (channelsData.channelUrls[selectedChannel]) {
+        newUrl = channelsData.channelUrls[selectedChannel];
+    } else if (channelsData.sportUrl) {
+        // Si no está en channelUrls, usar sportUrl con el nombre del canal
+        newUrl = `${channelsData.sportUrl}${selectedChannel}`;
+    }
+
+    // Comportamiento especial para eventos1, espnplus1, paramount1, peacock1
+    if (['eventos1', 'espnplus1', 'paramount1', 'peacock1'].includes(selectedChannel)) {
+        if (selectedNumber && selectedNumber !== "") {
+            newUrl = newUrl.replace(/\d+$/, ""); // Eliminar el número final
+            newUrl += selectedNumber; // Añadir el nuevo número
         }
+    } else if (['espn', 'dazn', 'premiere', 'mlaliga', 'mcampeones', 'disney', 'tigopy', 'espnmx', 'fanatiz', 'deportestvc', 'foxmx', 'foxar'].includes(selectedChannel) && selectedNumber && selectedNumber !== "") {
+        newUrl += selectedNumber;
+    }
 
-        // Recargar el iframe de deportes
-        function reloadDeportesIframe() {
+    // Verificar que la URL sea válida
+    if (newUrl) {
+        iframe.src = newUrl; // Actualizar el iframe
+        urlDisplay.textContent = newUrl; // Mostrar la URL
+    }
+}
+
+// Función para actualizar los menús según el canal seleccionado
+function updateMenusForSelectedChannel() {
+    const selectedChannel = document.getElementById('deportes-channel-select').value;
+
+    const espnNumberSelect = document.getElementById('espn-number-select');
+    const deportesOptionSelect = document.getElementById('deportes-option-select');
+
+    // Limpiar los menús
+    espnNumberSelect.innerHTML = '';
+    deportesOptionSelect.innerHTML = '';
+
+    // Agregar la opción de seleccionar número solo si es necesario
+    if (['espn', 'dazn', 'premiere', 'mlaliga', 'mcampeones', 'disney', 'tigopy', 'espnmx', 'fanatiz', 'deportestvc', 'foxmx', 'foxar'].includes(selectedChannel)) {
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.textContent = "Seleccionar Número";
+        espnNumberSelect.appendChild(defaultOption); // Dejar el valor vacío inicialmente
+
+        // Agregar la opción "Volver al canal base"
+        const resetOption = document.createElement('option');
+        resetOption.value = "reset";
+        resetOption.textContent = "Volver al canal base";
+        espnNumberSelect.appendChild(resetOption);
+
+        // Agregar las opciones de números (2-7)
+        for (let i = 2; i <= 7; i++) {
+            const option = document.createElement('option');
+            option.value = i;
+            option.textContent = i;
+            espnNumberSelect.appendChild(option);
+        }
+        espnNumberSelect.style.display = 'inline-block';
+    } else if (['eventos1', 'espnplus1', 'paramount1', 'peacock1'].includes(selectedChannel)) {
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.textContent = "Seleccionar Número";
+        espnNumberSelect.appendChild(defaultOption); // Dejar el valor vacío inicialmente
+
+        // Agregar la opción "Volver al canal base"
+        const resetOption = document.createElement('option');
+        resetOption.value = "reset";
+        resetOption.textContent = "Volver al canal base";
+        espnNumberSelect.appendChild(resetOption);
+
+        // Agregar las opciones de números (1-8)
+        for (let i = 1; i <= 8; i++) {
+            const option = document.createElement('option');
+            option.value = i;
+            option.textContent = i;
+            espnNumberSelect.appendChild(option);
+        }
+        espnNumberSelect.style.display = 'inline-block';
+    } else {
+        espnNumberSelect.style.display = 'none';
+    }
+
+    // Agregar opciones solo si el canal requiere opciones
+    if (selectedChannel) {
+        deportesOptionSelect.style.display = 'inline-block';
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.textContent = "Seleccionar Opción";
+        deportesOptionSelect.appendChild(defaultOption);
+
+        const resetOption = document.createElement('option');
+        resetOption.value = "reset";
+        resetOption.textContent = "Volver a la opción base";
+        deportesOptionSelect.appendChild(resetOption);
+
+        for (let i = 1; i <= 4; i++) {
+            const option = document.createElement('option');
+            option.value = `_${i}`;
+            option.textContent = `_${i}`;
+            deportesOptionSelect.appendChild(option);
+        }
+    } else {
+        deportesOptionSelect.style.display = 'none';
+    }
+
+    // Para canales especiales, cargar inicialmente la URL base
+    if (['espn', 'dazn', 'premiere', 'mlaliga', 'mcampeones', 'disney', 'tigopy', 'espnmx', 'fanatiz', 'deportestvc', 'foxmx', 'foxar', 'eventos1', 'espnplus1', 'paramount1', 'peacock1'].includes(selectedChannel)) {
+        updateDeportesIframe();
+    }
+}
+
+// Llenar el selector de canales de deportes con los canales del JSON
+loadCanalJson().then(data => {
+    channelsData = data;
+    const deportesSelect = document.getElementById('deportes-channel-select');
+
+    // Agregar las opciones de los canales especiales
+    channelsData.specialChannels.forEach(channel => {
+        const option = document.createElement('option');
+        option.value = channel;
+        option.textContent = channel;
+        deportesSelect.appendChild(option);
+    });
+
+    deportesSelect.addEventListener('change', function() {
+        updateMenusForSelectedChannel();
+        updateDeportesIframe();
+    });
+
+    document.getElementById('espn-number-select').addEventListener('change', function() {
+        if (this.value === 'reset') {
+            document.getElementById('espn-number-select').selectedIndex = 0;
+            updateDeportesIframe();
+        } else {
             updateDeportesIframeWithOption();
         }
+    });
 
-        // Llenar el selector de canales de deportes
-        loadCanalJson().then(data => {
-            channelsData = data;
-            const deportesSelect = document.getElementById('deportes-channel-select');
-            channelsData.specialChannels.forEach(channel => {
-                const option = document.createElement('option');
-                option.value = channel;
-                option.textContent = channel;
-                deportesSelect.appendChild(option);
-            });
-        });
-    </script>
+    document.getElementById('deportes-option-select').addEventListener('change', function() {
+        if (this.value === 'reset') {
+            document.getElementById('deportes-option-select').selectedIndex = 0;
+            updateDeportesIframe();
+        } else {
+            updateDeportesIframeWithOption();
+        }
+    });
+});
+</script>
+
 </body>
 
 </html>
