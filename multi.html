@@ -444,6 +444,19 @@
             this.innerText = 'Mostrar';
         }
     });
+	
+	function toggleProgramacion() {
+    const container = document.getElementById('programacion-container');
+    const button = document.getElementById('toggle-programacion');
+
+    if (container.style.display === 'none') {
+        container.style.display = 'block';
+        button.innerText = 'Ocultar';  // Cambiar el texto del botón a "Ocultar"
+    } else {
+        container.style.display = 'none';
+        button.innerText = 'Mostrar';  // Cambiar el texto del botón a "Mostrar"
+    }
+}
 </script>
 
 </body>
