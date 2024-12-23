@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Canales VAVOO</title>
+    <title>OHA Kanalları</title>
     <style>
         /* Mevcut CSS kodları korunuyor */
         body {
@@ -198,44 +198,44 @@
 </head>
 <body>
     <video id="video-player" controls></video>
-    <h1 id="page-title">CANALES VAVOO</h1>
+    <h1 id="page-title">OHA KANALLARI</h1>
     <div id="category-list"></div>
     <div id="search-container">
-        <input type="text" id="search-input" placeholder="Buscar contenido...">
-        <button id="clear-btn">Limpiar</button>
+        <input type="text" id="search-input" placeholder="İçerik ara...">
+        <button id="clear-btn">Temizle</button>
     </div>
     <div id="channel-list"></div>
     <div class="button-container">
-        <button id="export-btn">Exportar</button>
-        <button id="refresh-btn">Actualizar</button>
+        <button id="export-btn">Dışa Aktar</button>
+        <button id="refresh-btn">Yenile</button>
     </div>
 
     <div id="modal">
         <div class="modal-content">
             <p id="modal-title"></p>
             <div class="modal-buttons">
-                <button class="play-btn">Reproducir</button>
-                <button class="copy-btn">Copiar</button>
-                <button class="rename-btn">Renombrar</button>
-                <button class="cancel-btn">Cancelar</button>
+                <button class="play-btn">Oynat</button>
+                <button class="copy-btn">Kopyala</button>
+                <button class="rename-btn">İsim Ver</button>
+                <button class="cancel-btn">İptal</button>
             </div>
         </div>
     </div>
 
     <div id="export-modal">
         <div class="export-modal-content">
-            <p>Selecciona las categorías:</p>
+            <p>Kategorileri seçin:</p>
             <div id="export-options" style="max-height: 200px; overflow-y: auto;"></div>
             <div class="export-buttons">
-                <button class="confirm-btn">Exportar</button>
-                <button class="cancel-btn">Cancelar</button>
+                <button class="confirm-btn">Dışa Aktar</button>
+                <button class="cancel-btn">İptal</button>
             </div>
         </div>
     </div>
 
     <script>
         const proxyUrl = 'https://api.codetabs.com/v1/proxy/?quest=';
-        const mainUrl = 'https://vavoo.to/channels';
+        const mainUrl = 'https://oha.to/channels';  // Cambio de la URL base aquí
         const player = document.getElementById('video-player');
         const modal = document.getElementById('modal');
         const modalTitle = document.getElementById('modal-title');
@@ -248,16 +248,39 @@
         const pageTitle = document.getElementById('page-title');
         let selectedChannelUrl = '';
         let categories = {};
-        let currentBaseUrl = 'https://vavoo.to/play/';
+        let currentBaseUrl = 'https://oha.to/play/';  // Cambio de la URL base aquí
         let allChannels = [];
         const baseUrls = {
-            'CANALES VAVOO': 'https://vavoo.to/play/',
-            'CANALES HUHU': 'https://huhu.to/play/',
-            'CANALES KOOL': 'https://kool.to/play/',
-            'CANALES OHA': 'https://oha.to/play/'
+            'OHA KANALLARI': 'https://oha.to/play/'  // Cambio de la URL base aquí
         };
 
-        // El resto del script permanece igual.
+        // Función de carga de canales
+        async function loadChannels() {
+            try {
+                const mainResponse = await fetch(proxyUrl + mainUrl);
+                const mainData = await mainResponse.json();
+                categories = {};
+                allChannels = [];
+                mainData.forEach(item => {
+                    const { country, id, name } = item;
+                    const channelUrl = currentBaseUrl + id + '/index.m3u8';
+                    const channel = { id, name, url: channelUrl };
+                    allChannels.push(channel);
+                    if (!categories[country]) {
+                        categories[country] = [];
+                    }
+                    categories[country].push(channel);
+                });
+
+                populateCategoryList();
+                populateChannelList(allChannels);
+            } catch (error) {
+                console.error(error);
+                alert('Bir hata oluştu: ' + error.message);
+            }
+        }
+
+        loadChannels();
     </script>
 </body>
 </html>
