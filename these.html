@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OHA Kanalları</title>
+    <title>VAVOO Kanalları</title>
     <style>
         /* Mevcut CSS kodları korunuyor */
         body {
@@ -198,7 +198,7 @@
 </head>
 <body>
     <video id="video-player" controls></video>
-    <h1 id="page-title">OHA KANALLARI</h1>
+    <h1 id="page-title">VAVOO KANALLARI</h1>
     <div id="category-list"></div>
     <div id="search-container">
         <input type="text" id="search-input" placeholder="İçerik ara...">
@@ -235,7 +235,7 @@
 
     <script>
         const proxyUrl = 'https://api.codetabs.com/v1/proxy/?quest=';
-        const mainUrl = 'https://oha.to/channels';  // Cambio de la URL base aquí
+        const mainUrl = 'https://vavoo.to/channels';
         const player = document.getElementById('video-player');
         const modal = document.getElementById('modal');
         const modalTitle = document.getElementById('modal-title');
@@ -248,13 +248,115 @@
         const pageTitle = document.getElementById('page-title');
         let selectedChannelUrl = '';
         let categories = {};
-        let currentBaseUrl = 'https://oha.to/play/';  // Cambio de la URL base aquí
+        let currentBaseUrl = 'https://oha.to/play/';
         let allChannels = [];
         const baseUrls = {
-            'OHA KANALLARI': 'https://oha.to/play/'  // Cambio de la URL base aquí
+            'VAVOO KANALLARI': 'https://vavoo.to/play/',
+            'HUHU KANALLARI': 'https://huhu.to/play/',
+            'KOOL KANALLARI': 'https://kool.to/play/',
+            'OHA KANALLARI': 'https://oha.to/play/'
         };
 
-        // Función de carga de canales
+        // Başlık tıklama olayını dinleyin ve değiştirin
+        pageTitle.addEventListener('click', async () => {
+            const titles = Object.keys(baseUrls);
+            const currentIndex = titles.indexOf(pageTitle.textContent);
+            const nextIndex = (currentIndex + 1) % titles.length;
+            pageTitle.textContent = titles[nextIndex];
+            currentBaseUrl = baseUrls[titles[nextIndex]];
+            await loadChannels();
+        });
+
+        // Oynat butonu olay dinleyicisi
+        document.querySelector('.play-btn').addEventListener('click', () => {
+            player.src = selectedChannelUrl;
+            player.play();
+            modal.style.display = 'none';
+        });
+
+        // Kopyala butonu olay dinleyicisi
+        document.querySelector('.copy-btn').addEventListener('click', () => {
+            navigator.clipboard.writeText(selectedChannelUrl).then(() => {
+                alert('Bağlantı kopyalandı');
+            }).catch(err => {
+                alert('Kopyalama hatası: ' + err);
+            });
+            modal.style.display = 'none';
+        });
+
+        // İsim Ver butonu olay dinleyicisi
+        document.querySelector('.rename-btn').addEventListener('click', () => {
+            const newName = prompt('Yeni isim:', modalTitle.textContent);
+            if (newName) {
+                modalTitle.textContent = newName;
+                const currentChannelItem = document.querySelector(`.channel-item span`);
+                if (currentChannelItem) {
+                    currentChannelItem.textContent = newName;
+                }
+            }
+            modal.style.display = 'none';
+        });
+
+        // İptal butonu olay dinleyicisi
+        document.querySelectorAll('.cancel-btn').forEach(btn => btn.addEventListener('click', () => {
+            modal.style.display = 'none';
+            exportModal.style.display = 'none';
+        }));
+
+        // Dışa Aktar butonu olay dinleyicisi
+        exportBtn.addEventListener('click', () => {
+            exportOptions.innerHTML = '';
+            Object.keys(categories).forEach(country => {
+                const categoryLabel = document.createElement('label');
+                const categoryCheckbox = document.createElement('input');
+                categoryCheckbox.type = 'checkbox';
+                categoryCheckbox.value = country;
+                categoryCheckbox.dataset.type = 'category';
+                categoryLabel.appendChild(categoryCheckbox);
+                categoryLabel.appendChild(document.createTextNode(country));
+                exportOptions.appendChild(categoryLabel);
+                exportOptions.appendChild(document.createElement('br'));
+            });
+            exportModal.style.display = 'flex';
+        });
+
+        // Yenile butonu olay dinleyicisi
+        refreshBtn.addEventListener('click', async () => {
+            await loadChannels();
+        });
+
+        // Dışa Aktar modalındaki onay butonu olay dinleyicisi
+        document.querySelector('.confirm-btn').addEventListener('click', () => {
+            const selectedCategories = Array.from(exportOptions.querySelectorAll('input[type="checkbox"]:checked')).map(input => input.value);
+            if (selectedCategories.length === 0) {
+                alert('Lütfen en az bir kategori seçin.');
+                return;
+            }
+            const m3uContent = '#EXTM3U\n' + selectedCategories.map(category => {
+                const channelsInCategory = categories[category].map(channel => `#EXTINF:-1 tvg-id="${channel.id}" tvg-name="${channel.name}" tvg-logo="" group-title="${category}",${channel.name}\n${channel.url}`).join('\n');
+                return channelsInCategory;
+            }).join('\n');
+            navigator.clipboard.writeText(m3uContent).then(() => {
+                alert('M3U dosyası panoya kopyalandı');
+            }).catch(err => {
+                alert('Kopyalama hatası: ' + err);
+            });
+            exportModal.style.display = 'none';
+        });
+
+        // Arama kutusu olay dinleyicisi
+        searchInput.addEventListener('input', () => {
+            const query = searchInput.value.toLowerCase();
+            const filteredChannels = allChannels.filter(channel => channel.name.toLowerCase().includes(query));
+            populateChannelList(filteredChannels);
+        });
+
+        // Temizle butonu olay dinleyicisi
+        clearBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            populateChannelList(allChannels);
+        });
+
         async function loadChannels() {
             try {
                 const mainResponse = await fetch(proxyUrl + mainUrl);
@@ -278,6 +380,39 @@
                 console.error(error);
                 alert('Bir hata oluştu: ' + error.message);
             }
+        }
+
+        function populateCategoryList() {
+            const categoryList = document.getElementById('category-list');
+            categoryList.innerHTML = '';
+            Object.keys(categories).forEach(country => {
+                const categoryItem = document.createElement('div');
+                categoryItem.classList.add('category-item');
+                categoryItem.textContent = country;
+                categoryItem.addEventListener('click', () => {
+                    populateChannelList(categories[country]);
+                });
+                categoryList.appendChild(categoryItem);
+            });
+
+            populateChannelList(allChannels);
+        }
+
+        function populateChannelList(channelList) {
+            const channelListContainer = document.getElementById('channel-list');
+            channelListContainer.innerHTML = '';
+            channelList.forEach(channel => {
+                const channelItem = document.createElement('div');
+                channelItem.classList.add('channel-item');
+                channelItem.dataset.url = channel.url;
+                channelItem.innerHTML = `<span>${channel.name}</span><i class="fas fa-external-link-alt"></i>`;
+                channelItem.addEventListener('click', () => {
+                    selectedChannelUrl = channel.url;
+                    modalTitle.textContent = channel.name;
+                    modal.style.display = 'flex';
+                });
+                channelListContainer.appendChild(channelItem);
+            });
         }
 
         loadChannels();
