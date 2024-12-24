@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VAVOO Kanalları</title>
+    <title>Canales VAVOO</title>
     <style>
         /* Mevcut CSS kodları korunuyor */
         body {
@@ -198,29 +198,41 @@
 </head>
 <body>
     <video id="video-player" controls></video>
-    <h1 id="page-title">VAVOO KANALLARI</h1>
-    <div id="category-list"></div>
-    <div id="search-container">
-        <input type="text" id="search-input" placeholder="İçerik ara...">
-        <button id="clear-btn">Temizle</button>
-    </div>
-    <div id="channel-list"></div>
-    <div class="button-container">
-        <button id="export-btn">Dışa Aktar</button>
-        <button id="refresh-btn">Yenile</button>
-    </div>
+<h1 id="page-title">CANALES VAVOO (pulsa para cambiar fuente)</h1>
+<div id="category-list"></div>
+<div id="search-container">
+    <input type="text" id="search-input" placeholder="Buscar contenido...">
+    <button id="clear-btn">Limpiar</button>
+</div>
+<div id="channel-list"></div>
+<div class="button-container">
+    <button id="export-btn">Exportar</button>
+    <button id="refresh-btn">Actualizar</button>
+</div>
 
-    <div id="modal">
-        <div class="modal-content">
-            <p id="modal-title"></p>
-            <div class="modal-buttons">
-                <button class="play-btn">Oynat</button>
-                <button class="copy-btn">Kopyala</button>
-                <button class="rename-btn">İsim Ver</button>
-                <button class="cancel-btn">İptal</button>
-            </div>
+<div id="modal">
+    <div class="modal-content">
+        <p id="modal-title"></p>
+        <div class="modal-buttons">
+            <button class="play-btn">Reproducir</button>
+            <button class="copy-btn">Copiar</button>
+            <button class="rename-btn">Renombrar</button>
+            <button class="cancel-btn">Cancelar</button>
         </div>
     </div>
+</div>
+
+<div id="export-modal">
+    <div class="export-modal-content">
+        <p>Seleccione categorías:</p>
+        <div id="export-options" style="max-height: 200px; overflow-y: auto;"></div>
+        <div class="export-buttons">
+            <button class="confirm-btn">Exportar</button>
+            <button class="cancel-btn">Cancelar</button>
+        </div>
+    </div>
+</div>
+
 
     <div id="export-modal">
         <div class="export-modal-content">
@@ -251,10 +263,10 @@
         let currentBaseUrl = 'https://oha.to/play/';
         let allChannels = [];
         const baseUrls = {
-            'VAVOO KANALLARI': 'https://vavoo.to/play/',
-            'HUHU KANALLARI': 'https://huhu.to/play/',
-            'KOOL KANALLARI': 'https://kool.to/play/',
-            'OHA KANALLARI': 'https://oha.to/play/'
+            'Canales VAVOO (pulsa para cambiar fuente)': 'https://vavoo.to/play/',
+            'Canales HUHU (pulsa para cambiar fuente)': 'https://huhu.to/play/',
+            'Canales KOOL (pulsa para cambiar fuente)': 'https://kool.to/play/',
+            'Canales OHA (pulsa para cambiar fuente)': 'https://oha.to/play/'
         };
 
         // Başlık tıklama olayını dinleyin ve değiştirin
