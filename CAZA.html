@@ -159,6 +159,8 @@
     </div>
     
     <div id="channel-list"></div>
+
+    <div id="current-url"></div> <!-- Se añadió el contenedor de URL -->
     
     <div id="github-link">
         <a href="https://github.com/jimgsey" target="_blank">
@@ -226,7 +228,9 @@
                 channelItem.addEventListener('click', () => {
                     player.src = channel.url;
                     player.play();
-                    currentUrlDisplay.textContent = ' ' + channel.url; // Mostrar la URL
+                    if (currentUrlDisplay) {
+                        currentUrlDisplay.textContent = ' ' + channel.url; // Mostrar la URL
+                    }
                 });
                 channelListContainer.appendChild(channelItem);
             });
@@ -236,7 +240,9 @@
                 const firstChannel = channelList[0];
                 player.src = firstChannel.url;
                 player.play();
-                currentUrlDisplay.textContent = firstChannel.url; // Mostrar la URL del primer canal
+                if (currentUrlDisplay) {
+                    currentUrlDisplay.textContent = firstChannel.url; // Mostrar la URL del primer canal
+                }
             }
         }
 
