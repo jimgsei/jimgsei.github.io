@@ -119,15 +119,23 @@
             border-radius: 5px;
             border: 1px solid #666;
             color: white;
+            display: flex;
+            align-items: center;
         }
 
         #search-bar input {
-            width: 95%;
+            width: 100%;
             padding: 8px;
             border: 1px solid #666;
             background-color: #333;
             color: white;
             border-radius: 5px;
+        }
+
+        #clear-search {
+            color: #aaa;
+            margin-left: 10px;
+            cursor: pointer;
         }
 
         /* Estilos para la sección de GitHub */
@@ -171,6 +179,7 @@
     <!-- Barra de búsqueda visible desde el principio -->
     <div id="search-bar">
         <input type="text" id="search-input" placeholder="Buscar canal...">
+        <span id="clear-search" style="display: none;"><i class="fas fa-times"></i></span> <!-- X para borrar la búsqueda -->
     </div>
     
     <div id="channel-list"></div>
@@ -190,6 +199,7 @@
         const sourceToggle = document.getElementById('source-toggle');
         const searchInput = document.getElementById('search-input');
         const searchBar = document.getElementById('search-bar');
+        const clearSearch = document.getElementById('clear-search');
 
         const sources = [
             { name: 'OHA', url: 'https://oha.to/play/' },
@@ -252,6 +262,14 @@
                 channel.name.toLowerCase().includes(query)
             );
             populateChannelList(filteredChannels);
+            clearSearch.style.display = query ? 'inline' : 'none'; // Mostrar X solo si hay texto
+        });
+
+        // Borrar búsqueda al hacer clic en la X
+        clearSearch.addEventListener('click', () => {
+            searchInput.value = ''; // Limpiar el campo de búsqueda
+            clearSearch.style.display = 'none'; // Ocultar la X
+            populateChannelList(allChannels); // Mostrar todos los canales
         });
 
         // Inicializar la página con los canales de la fuente inicial (OHA)
