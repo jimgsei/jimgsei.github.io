@@ -109,6 +109,27 @@
             }
         }
 
+        /* Estilos para la barra de búsqueda */
+        #search-bar {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #444;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 5px;
+            border: 1px solid #666;
+            color: white;
+        }
+
+        #search-bar input {
+            width: 95%;
+            padding: 8px;
+            border: 1px solid #666;
+            background-color: #333;
+            color: white;
+            border-radius: 5px;
+        }
+
         /* Estilos para la sección de GitHub */
         #github-link {
             margin-top: 10px;
@@ -146,8 +167,13 @@
     <video id="video-player" controls></video>
     <div id="current-url"> </div> <!-- Aquí se muestra la URL actual -->
     <button id="source-toggle">OHA (pulsa para cambiar)</button>
+    
+    <!-- Barra de búsqueda visible desde el principio -->
+    <div id="search-bar">
+        <input type="text" id="search-input" placeholder="Buscar canal...">
+    </div>
+    
     <div id="channel-list"></div>
-    <div id="current-url"></div> <!-- Aquí se muestra la URL actual -->
 
     <div id="github-link">
         <a href="https://github.com/jimgsey" target="_blank">
@@ -162,6 +188,8 @@
         const channelListContainer = document.getElementById('channel-list');
         const currentUrlDisplay = document.getElementById('current-url');
         const sourceToggle = document.getElementById('source-toggle');
+        const searchInput = document.getElementById('search-input');
+        const searchBar = document.getElementById('search-bar');
 
         const sources = [
             { name: 'OHA', url: 'https://oha.to/play/' },
@@ -216,6 +244,15 @@
                 channelListContainer.appendChild(channelItem);
             });
         }
+
+        // Filtrar canales según la búsqueda
+        searchInput.addEventListener('input', () => {
+            const query = searchInput.value.toLowerCase();
+            const filteredChannels = allChannels.filter(channel => 
+                channel.name.toLowerCase().includes(query)
+            );
+            populateChannelList(filteredChannels);
+        });
 
         // Inicializar la página con los canales de la fuente inicial (OHA)
         loadChannels(sources[currentSourceIndex].url);
