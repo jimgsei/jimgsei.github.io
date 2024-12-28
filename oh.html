@@ -17,19 +17,22 @@
             overflow: hidden;
             background-color: #f0f0f0;
         }
+
         video {
-            width: 60%; /* Video más estrecho */
-            height: 50vh; /* Video más alto */
+            width: 60%;  /* Video más estrecho por defecto */
+            height: 50vh; /* Video más alto por defecto */
             margin: 20px 0;
             border-radius: 15px;
             max-width: 900px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
+
         h1 {
             font-size: 24px;
             margin: 20px 0;
             cursor: pointer;
         }
+
         #source-toggle {
             background-color: #007bff;
             color: white;
@@ -37,12 +40,14 @@
             border-radius: 5px;
             cursor: pointer;
             transition: background-color 0.3s;
-			margin-top: 20px;
+            margin-top: 20px;
             margin-bottom: 20px;
         }
+
         #source-toggle:hover {
             background-color: #0056b3;
         }
+
         #channel-list {
             display: flex;
             flex-direction: column;
@@ -58,13 +63,16 @@
             scrollbar-width: thin;
             scrollbar-color: #007bff #e0e0e0;
         }
+
         #channel-list::-webkit-scrollbar {
             width: 8px;
         }
+
         #channel-list::-webkit-scrollbar-thumb {
             background-color: #007bff;
             border-radius: 4px;
         }
+
         .channel-item {
             background-color: #e0e0e0;
             padding: 10px;
@@ -75,15 +83,19 @@
             align-items: center;
             transition: background-color 0.3s;
         }
+
         .channel-item:hover {
             background-color: #d0d0d0;
         }
+
         .channel-item span {
             flex: 1;
         }
+
         .channel-item i {
             color: #555;
         }
+
         #current-url {
             font-size: 14px;
             color: #555;
@@ -92,11 +104,21 @@
             width: 80%;
             max-width: 600px;
         }
+
+        /* Estilos para dispositivos móviles */
+        @media (max-width: 768px) {
+            video {
+                width: 100%;  /* El video ocupa todo el ancho de la pantalla en móviles */
+                height: auto; /* Mantener la relación de aspecto */
+                border-radius: 0; /* Eliminar bordes redondeados en móviles */
+            }
+        }
+
     </style>
 </head>
 <body>
     <video id="video-player" controls></video>
-	<div id="current-url"> Dirección: </div> <!-- Aquí se muestra la URL actual -->
+    <div id="current-url"> Dirección: </div> <!-- Aquí se muestra la URL actual -->
     <button id="source-toggle">OHA (pulsa para cambiar)</button>
     <div id="channel-list"></div>
     <div id="current-url"></div> <!-- Aquí se muestra la URL actual -->
