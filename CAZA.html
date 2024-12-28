@@ -161,6 +161,7 @@
     
     <div id="channel-list"></div>
 
+    <div id="current-url"></div> <!-- Se añadió el contenedor de URL -->
     
     <div id="github-link">
         <a href="https://github.com/jimgsey" target="_blank">
@@ -187,6 +188,7 @@
         ];
         let currentSourceIndex = 0; // Inicia con la fuente OHA
         let allChannels = [];
+        let channelsLoaded = false; // Indicador de que los canales están cargados
 
         // Detectar el gesto de "pull to refresh"
         let touchStartY = 0;
@@ -253,8 +255,10 @@
                 channelListContainer.appendChild(channelItem);
             });
 
-            // Reproducir automáticamente el primer canal después de cargar la lista
-            if (channelList.length > 0) {
+            channelsLoaded = true; // Marcar como cargado
+
+            // Si los canales están cargados, reproducir el primer canal
+            if (channelsLoaded && channelList.length > 0) {
                 const firstChannel = channelList[0];
                 player.src = firstChannel.url;
                 player.play();
