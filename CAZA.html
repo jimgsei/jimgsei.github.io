@@ -159,7 +159,7 @@
     </div>
     
     <div id="channel-list"></div>
-
+    
     <div id="github-link">
         <a href="https://github.com/jimgsey" target="_blank">
             <i class="fab fa-github github-icon"></i>By Jimgsey
@@ -230,6 +230,14 @@
                 });
                 channelListContainer.appendChild(channelItem);
             });
+
+            // Reproducir automáticamente el primer canal después de cargar la lista
+            if (channelList.length > 0) {
+                const firstChannel = channelList[0];
+                player.src = firstChannel.url;
+                player.play();
+                currentUrlDisplay.textContent = firstChannel.url; // Mostrar la URL del primer canal
+            }
         }
 
         // Inicializar la página con los canales de la fuente inicial (OHA)
