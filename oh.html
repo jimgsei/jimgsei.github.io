@@ -210,6 +210,24 @@
         let currentSourceIndex = 0; // Inicia con la fuente OHA
         let allChannels = [];
 
+        // Detectar el gesto de "pull to refresh" (recargar la página)
+        let touchStartY = 0;
+        let touchEndY = 0;
+
+        window.addEventListener('touchstart', (e) => {
+            touchStartY = e.touches[0].clientY;
+        });
+
+        window.addEventListener('touchmove', (e) => {
+            touchEndY = e.touches[0].clientY;
+        });
+
+        window.addEventListener('touchend', () => {
+            if (touchEndY - touchStartY > 100) {  // Si el desplazamiento hacia abajo es mayor a 100px
+                location.reload();  // Recargar la página
+            }
+        });
+
         // Cambiar fuente de canales al hacer clic en el botón
         sourceToggle.addEventListener('click', () => {
             currentSourceIndex = (currentSourceIndex + 1) % sources.length; // Cambia entre las fuentes
