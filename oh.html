@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canales España</title>
+    <style>
+        /* Estilos generales */
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0;
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+            background-color: #f0f0f0;
+        }
+        video {
+            width: 60%; /* Video más estrecho */
+            height: 50vh; /* Video más alto */
+            margin: 20px 0;
+            border-radius: 15px;
+            max-width: 900px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        h1 {
+            font-size: 24px;
+            margin: 20px 0;
+            cursor: pointer;
+        }
+        #source-toggle {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+			margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        #source-toggle:hover {
+            background-color: #0056b3;
+        }
+        #channel-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 80%;
+            max-width: 600px;
+            max-height: 50vh; /* Menos espacio para la lista de canales */
+            overflow-y: auto;
+            padding: 10px;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            scrollbar-width: thin;
+            scrollbar-color: #007bff #e0e0e0;
+        }
+        #channel-list::-webkit-scrollbar {
+            width: 8px;
+        }
+        #channel-list::-webkit-scrollbar-thumb {
+            background-color: #007bff;
+            border-radius: 4px;
+        }
+        .channel-item {
+            background-color: #e0e0e0;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.3s;
+        }
+        .channel-item:hover {
+            background-color: #d0d0d0;
+        }
+        .channel-item span {
+            flex: 1;
+        }
+        .channel-item i {
+            color: #555;
+        }
+        #current-url {
+            font-size: 14px;
+            color: #555;
+            margin-top: 10px;
+            text-align: center;
+            width: 80%;
+            max-width: 600px;
+        }
+    </style>
+</head>
+<body>
+    <video id="video-player" controls></video>
+	<div id="current-url"> Dirección: </div> <!-- Aquí se muestra la URL actual -->
+    <button id="source-toggle">OHA (pulsa para cambiar)</button>
+    <div id="channel-list"></div>
+    <div id="current-url"></div> <!-- Aquí se muestra la URL actual -->
+
+    <script>
+        const proxyUrl = 'https://api.codetabs.com/v1/proxy/?quest=';
+        const mainUrl = 'https://vavoo.to/channels';
+        const player = document.getElementById('video-player');
+        const channelListContainer = document.getElementById('channel-list');
+        const currentUrlDisplay = document.getElementById('current-url');
+        const sourceToggle = document.getElementById('source-toggle');
+
+        const sources = [
+            { name: 'OHA', url: 'https://oha.to/play/' },
+            { name: 'HUHU', url: 'https://huhu.to/play/' },
+            { name: 'VAVOO', url: 'https://vavoo.to/play/' },
+            { name: 'KOOL', url: 'https://kool.to/play/' }
+        ];
+        let currentSourceIndex = 0; // Inicia con la fuente OHA
+        let allChannels = [];
+
+        // Cambiar fuente de canales al hacer clic en el botón
+        sourceToggle.addEventListener('click', () => {
+            currentSourceIndex = (currentSourceIndex + 1) % sources.length; // Cambia entre las fuentes
+            const currentSource = sources[currentSourceIndex];
+            sourceToggle.textContent = `${currentSource.name} (pulsa para cambiar)`; // Mostrar la fuente actual
+            loadChannels(currentSource.url); // Cargar los canales para la nueva fuente
+        });
+
+        // Cargar los canales de la fuente seleccionada
+        async function loadChannels(baseUrl) {
+            try {
+                const mainResponse = await fetch(proxyUrl + mainUrl);
+                const mainData = await mainResponse.json();
+                allChannels = [];
+                mainData.forEach(item => {
+                    const { country, id, name } = item;
+                    const channelUrl = baseUrl + id + '/index.m3u8';
+                    if (country === 'Spain') { // Filtramos solo los canales de España
+                        allChannels.push({ name, url: channelUrl });
+                    }
+                });
+                populateChannelList(allChannels); // Llenamos la lista de canales
+            } catch (error) {
+                console.error(error);
+                alert('Ha ocurrido un error: ' + error.message);
+            }
+        }
+
+        // Rellenar la lista de canales
+        function populateChannelList(channelList) {
+            channelListContainer.innerHTML = '';
+            channelList.forEach(channel => {
+                const channelItem = document.createElement('div');
+                channelItem.classList.add('channel-item');
+                channelItem.dataset.url = channel.url;
+                channelItem.innerHTML = `<span>${channel.name}</span><i class="fas fa-external-link-alt"></i>`;
+                channelItem.addEventListener('click', () => {
+                    player.src = channel.url;
+                    player.play();
+                    currentUrlDisplay.textContent = 'URL actual: ' + channel.url; // Mostrar la URL
+                });
+                channelListContainer.appendChild(channelItem);
+            });
+        }
+
+        // Inicializar la página con los canales de la fuente inicial (OHA)
+        loadChannels(sources[currentSourceIndex].url);
+    </script>
+</body>
+</html>
