@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Canales España</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet"> <!-- Agregado para íconos -->
     <style>
         /* Estilos generales */
         body {
@@ -16,14 +16,14 @@
             margin: 0;
             height: 100vh;
             overflow: hidden;
-            background-color: #0a0a0a; 
-            color: #fff; 
-            touch-action: manipulation; 
+            background-color: #0a0a0a; /* Fondo oscuro */
+            color: #fff; /* Texto blanco */
+            touch-action: manipulation; /* Desactiva el desplazamiento por defecto para manejar el touch */
         }
 
         video {
-            width: 60%;  
-            height: 50vh;
+            width: 60%;  /* Video más estrecho por defecto */
+            height: 50vh; /* Video más alto por defecto */
             margin: 20px 0;
             border-radius: 15px;
             max-width: 900px;
@@ -37,8 +37,8 @@
         }
 
         #source-toggle {
-            display: none; 
-            background-color: #007bff;  
+            display: none; /* Ocultar el botón de fuente */
+            background-color: #007bff;  /* Mantener el azul para el botón */
             color: white;
             padding: 10px 20px;
             border-radius: 5px;
@@ -49,7 +49,7 @@
         }
 
         #source-toggle:hover {
-            background-color: #0056b3; 
+            background-color: #0056b3;  /* Azul más oscuro al pasar el mouse */
         }
 
         #channel-list {
@@ -58,16 +58,16 @@
             gap: 10px;
             width: 80%;
             max-width: 600px;
-            max-height: 50vh;
+            max-height: 50vh; /* Menos espacio para la lista de canales */
             overflow-y: auto;
             padding: 10px;
-            background: #444; 
-            border: 1px solid #666; 
+            background: #444; /* Fondo gris oscuro */
+            border: 1px solid #666; /* Borde gris claro */
             border-radius: 8px;
         }
 
         .channel-item {
-            background-color: #555; 
+            background-color: #555; /* Gris oscuro */
             padding: 10px;
             border-radius: 5px;
             cursor: pointer;
@@ -78,7 +78,7 @@
         }
 
         .channel-item:hover {
-            background-color: #666; 
+            background-color: #666; /* Gris más claro al pasar el mouse */
         }
 
         .channel-item span {
@@ -91,29 +91,32 @@
 
         #current-url {
             font-size: 14px;
-            color: #bbb; 
+            color: #bbb; /* Color gris más claro */
             margin-top: 10px;
             text-align: center;
             width: 80%;
             max-width: 600px;
         }
 
+        /* Estilos para dispositivos móviles */
         @media (max-width: 768px) {
             video {
-                width: 100%; 
-                height: auto; 
-                border-radius: 0; 
+                width: 100%;  /* El video ocupa todo el ancho de la pantalla en móviles */
+                height: auto; /* Mantener la relación de aspecto */
+                border-radius: 0; /* Eliminar bordes redondeados en móviles */
             }
 
             #channel-list {
-                max-height: 30vh; 
+                max-height: 30vh; /* Reducir el tamaño del cajón de canales en móviles */
             }
         }
 
+        /* Ocultar la barra de búsqueda */
         #search-bar {
-            display: none; 
+            display: none; /* Ocultar la barra de búsqueda */
         }
 
+        /* Estilos para la sección de GitHub */
         #github-link {
             margin-top: 10px;
             font-size: 11px;
@@ -131,7 +134,7 @@
             margin-top: 5px;
             font-size: 14px;
             display: flex;
-            flex-direction: column;
+            flex-direction: column; /* Coloca el icono y el texto uno encima del otro */
             align-items: center;
         }
 
@@ -141,7 +144,7 @@
 
         .github-icon {
             font-size: 30px;
-            margin-bottom: 5px; 
+            margin-bottom: 5px; /* Espacio entre el icono y el texto */
         }
 
     </style>
@@ -149,7 +152,13 @@
 <body>
     <video id="video-player" controls></video>
     <button id="source-toggle">OHA (pulsa para cambiar)</button>
-
+    
+    <!-- Barra de búsqueda oculta -->
+    <div id="search-bar">
+        <input type="text" id="search-input" placeholder="Buscar canal...">
+        <span id="clear-search" style="display: none;"><i class="fas fa-times"></i></span> <!-- X para borrar la búsqueda -->
+    </div>
+    
     <div id="channel-list"></div>
    
     <div id="github-link">
@@ -159,12 +168,15 @@
     </div>
 
     <script>
-        const proxyUrl = 'https://api.codetabs.com/v1/proxy/?quest=';
-        const mainUrl = 'https://vavoo.to/channels';
+        const proxyUrl = 'https://thingproxy.freeboard.io/fetch/';  // Usamos el nuevo proxy
+        const mainUrl = 'https://vavoo.to/channels'; // URL original de la API de los canales
         const player = document.getElementById('video-player');
         const channelListContainer = document.getElementById('channel-list');
         const currentUrlDisplay = document.getElementById('current-url');
         const sourceToggle = document.getElementById('source-toggle');
+        const searchInput = document.getElementById('search-input');
+        const searchBar = document.getElementById('search-bar');
+        const clearSearch = document.getElementById('clear-search');
 
         const sources = [
             { name: 'OHA', url: 'https://oha.to/play/' },
@@ -172,29 +184,57 @@
             { name: 'VAVOO', url: 'https://vavoo.to/play/' },
             { name: 'KOOL', url: 'https://kool.to/play/' }
         ];
-        let currentSourceIndex = 0;
-
+        let currentSourceIndex = 0; // Inicia con la fuente OHA
         let allChannels = [];
-        let channelsLoaded = false; 
+        let channelsLoaded = false; // Indicador de que los canales están cargados
 
-        function handleChannelsData(data) {
-            allChannels = [];
-            data.forEach(item => {
-                const { country, id, name } = item;
-                const channelUrl = sources[currentSourceIndex].url + id + '/index.m3u8';
-                if (country === 'Spain' && (name.toLowerCase().includes('caza') || name.toLowerCase().includes('toros') || name.toLowerCase().includes('onetoro') || name.toLowerCase().includes('torole') || name.toLowerCase().includes('iberlia tv'))) { 
-                    allChannels.push({ name, url: channelUrl });
-                }
-            });
-            populateChannelList(allChannels);
+        // Detectar el gesto de "pull to refresh"
+        let touchStartY = 0;
+        let touchEndY = 0;
+
+        window.addEventListener('touchstart', (e) => {
+            touchStartY = e.touches[0].clientY;
+        });
+
+        window.addEventListener('touchmove', (e) => {
+            touchEndY = e.touches[0].clientY;
+        });
+
+        window.addEventListener('touchend', () => {
+            if (touchEndY - touchStartY > 100) {  // Si el desplazamiento hacia abajo es mayor a 100px
+                location.reload();  // Recargar la página
+            }
+        });
+
+        // Cambiar fuente de canales al hacer clic en el botón
+        sourceToggle.addEventListener('click', () => {
+            currentSourceIndex = (currentSourceIndex + 1) % sources.length; // Cambia entre las fuentes
+            const currentSource = sources[currentSourceIndex];
+            sourceToggle.textContent = `${currentSource.name} (pulsa para cambiar)`; // Mostrar la fuente actual
+            loadChannels(currentSource.url); // Cargar los canales para la nueva fuente
+        });
+
+        // Cargar los canales de la fuente seleccionada
+        async function loadChannels(baseUrl) {
+            try {
+                const response = await fetch(proxyUrl + encodeURIComponent(mainUrl));  // Usar el proxy para la solicitud
+                const data = await response.json();
+                allChannels = [];
+                data.forEach(item => {
+                    const { country, id, name } = item;
+                    const channelUrl = baseUrl + id + '/index.m3u8';
+                    if (country === 'Spain' && (name.toLowerCase().includes('caza') || name.toLowerCase().includes('toros') || name.toLowerCase().includes('onetoro') || name.toLowerCase().includes('torole') || name.toLowerCase().includes('iberlia tv'))) { 
+                        allChannels.push({ name, url: channelUrl });
+                    }
+                });
+                populateChannelList(allChannels); // Llenamos la lista de canales
+            } catch (error) {
+                console.error(error);
+                alert('Ha ocurrido un error: ' + error.message);
+            }
         }
 
-        function loadChannels(baseUrl) {
-            const script = document.createElement('script');
-            script.src = `${proxyUrl}${mainUrl}?callback=handleChannelsData`;
-            document.body.appendChild(script);
-        }
-
+        // Rellenar la lista de canales
         function populateChannelList(channelList) {
             channelListContainer.innerHTML = '';
             channelList.forEach(channel => {
@@ -205,27 +245,28 @@
                 channelItem.addEventListener('click', () => {
                     player.src = channel.url;
                     player.play();
+                    if (currentUrlDisplay) {
+                        currentUrlDisplay.textContent = ' ' + channel.url; // Mostrar la URL
+                    }
                 });
                 channelListContainer.appendChild(channelItem);
             });
 
-            channelsLoaded = true;
+            channelsLoaded = true; // Marcar como cargado
 
+            // Si los canales están cargados, reproducir el primer canal
             if (channelsLoaded && channelList.length > 0) {
                 const firstChannel = channelList[0];
                 player.src = firstChannel.url;
                 player.play();
+                if (currentUrlDisplay) {
+                    currentUrlDisplay.textContent = firstChannel.url; // Mostrar la URL del primer canal
+                }
             }
         }
 
+        // Inicializar la página con los canales de la fuente inicial (OHA)
         loadChannels(sources[currentSourceIndex].url);
-
-        sourceToggle.addEventListener('click', () => {
-            currentSourceIndex = (currentSourceIndex + 1) % sources.length;
-            const currentSource = sources[currentSourceIndex];
-            sourceToggle.textContent = `${currentSource.name} (pulsa para cambiar)`;
-            loadChannels(currentSource.url);
-        });
     </script>
 </body>
 </html>
