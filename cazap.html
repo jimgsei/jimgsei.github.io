@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Canales España</title>
+    <title>2Canales España</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet"> <!-- Agregado para íconos -->
     <style>
         /* Estilos generales */
@@ -150,11 +150,7 @@
     </style>
 </head>
 <body>
-    <!-- Reproductores de video adicionales -->
-    <video id="video-player-1" controls></video>
-    <video id="video-player-2" controls></video>
-    <video id="video-player-3" controls></video>
-    
+    <video id="video-player" controls></video>
     <button id="source-toggle">OHA (pulsa para cambiar)</button>
     
     <!-- Barra de búsqueda oculta -->
@@ -174,11 +170,7 @@
     <script>
         const proxyUrl = 'https://api.codetabs.com/v1/proxy/?quest=';
         const mainUrl = 'https://vavoo.to/channels';
-        const players = [
-            document.getElementById('video-player-1'),
-            document.getElementById('video-player-2'),
-            document.getElementById('video-player-3')
-        ];
+        const player = document.getElementById('video-player');
         const channelListContainer = document.getElementById('channel-list');
         const currentUrlDisplay = document.getElementById('current-url');
         const sourceToggle = document.getElementById('source-toggle');
@@ -196,33 +188,25 @@
         let allChannels = [];
         let channelsLoaded = false; // Indicador de que los canales están cargados
 
-        // Cambiar fuente de canales al hacer clic en el botón
-        sourceToggle.addEventListener('click', () => {
-            currentSourceIndex = (currentSourceIndex + 1) % sources.length; // Cambia entre las fuentes
-            const currentSource = sources[currentSourceIndex];
-            sourceToggle.textContent = `${currentSource.name} (pulsa para cambiar)`; // Mostrar la fuente actual
-            loadChannels(currentSource.url); // Cargar los canales para la nueva fuente
-        });
+        // Función de callback para JSONP
+        function handleChannelsData(data) {
+            allChannels = [];
+            data.forEach(item => {
+                const { country, id, name } = item;
+                const channelUrl = sources[currentSourceIndex].url + id + '/index.m3u8';
+                if (country === 'Spain' && (name.toLowerCase().includes('caza') || name.toLowerCase().includes('toros') || name.toLowerCase().includes('onetoro') || name.toLowerCase().includes('torole') || name.toLowerCase().includes('iberlia tv'))) { 
+                    // Filtramos solo los canales de España con "Caza" o "Iberlia TV" en el nombre
+                    allChannels.push({ name, url: channelUrl });
+                }
+            });
+            populateChannelList(allChannels); // Llenamos la lista de canales
+        }
 
-        // Cargar los canales de la fuente seleccionada
-        async function loadChannels(baseUrl) {
-            try {
-                const mainResponse = await fetch(proxyUrl + mainUrl);
-                const mainData = await mainResponse.json();
-                allChannels = [];
-                mainData.forEach(item => {
-                    const { country, id, name } = item;
-                    const channelUrl = baseUrl + id + '/index.m3u8';
-                    if (country === 'Spain' && (name.toLowerCase().includes('caza') || name.toLowerCase().includes('toros') || name.toLowerCase().includes('onetoro') || name.toLowerCase().includes('torole') || name.toLowerCase().includes('iberlia tv'))) { 
-                        // Filtramos solo los canales de España con "Caza" o "Iberlia TV" en el nombre
-                        allChannels.push({ name, url: channelUrl });
-                    }
-                });
-                populateChannelList(allChannels); // Llenamos la lista de canales
-            } catch (error) {
-                console.error(error);
-                alert('Ha ocurrido un error: ' + error.message);
-            }
+        // Cargar los canales de la fuente seleccionada usando JSONP
+        function loadChannels(baseUrl) {
+            const script = document.createElement('script');
+            script.src = `${proxyUrl}${mainUrl}?callback=handleChannelsData`;
+            document.body.appendChild(script);
         }
 
         // Rellenar la lista de canales
@@ -234,11 +218,8 @@
                 channelItem.dataset.url = channel.url;
                 channelItem.innerHTML = `<span>${channel.name}</span><i class="fas fa-external-link-alt"></i>`;
                 channelItem.addEventListener('click', () => {
-                    // Asigna el mismo enlace a todos los reproductores
-                    players.forEach(player => {
-                        player.src = channel.url;
-                        player.play();
-                    });
+                    player.src = channel.url;
+                    player.play();
                     if (currentUrlDisplay) {
                         currentUrlDisplay.textContent = ' ' + channel.url; // Mostrar la URL
                     }
@@ -251,10 +232,8 @@
             // Si los canales están cargados, reproducir el primer canal
             if (channelsLoaded && channelList.length > 0) {
                 const firstChannel = channelList[0];
-                players.forEach(player => {
-                    player.src = firstChannel.url;
-                    player.play();
-                });
+                player.src = firstChannel.url;
+                player.play();
                 if (currentUrlDisplay) {
                     currentUrlDisplay.textContent = firstChannel.url; // Mostrar la URL del primer canal
                 }
@@ -263,6 +242,14 @@
 
         // Inicializar la página con los canales de la fuente inicial (OHA)
         loadChannels(sources[currentSourceIndex].url);
+
+        // Cambiar fuente de canales al hacer clic en el botón
+        sourceToggle.addEventListener('click', () => {
+            currentSourceIndex = (currentSourceIndex + 1) % sources.length; // Cambia entre las fuentes
+            const currentSource = sources[currentSourceIndex];
+            sourceToggle.textContent = `${currentSource.name} (pulsa para cambiar)`; // Mostrar la fuente actual
+            loadChannels(currentSource.url); // Cargar los canales para la nueva fuente
+        });
     </script>
 </body>
 </html>
