@@ -223,7 +223,7 @@
                 mainData.forEach(item => {
                     const { country, id, name } = item;
                     const channelUrl = baseUrl + id + '/index.m3u8';
-                    if (country === 'Spain' && (name.toLowerCase().includes('caza') || name.toLowerCase().includes('iberlia tv'))) { 
+                    if (country === 'Spain' && (name.toLowerCase().includes('caza') || name.toLowerCase().includes('toros') || name.toLowerCase().includes('onetoro') || name.toLowerCase().includes('torole') || name.toLowerCase().includes('iberlia tv'))) { 
                         // Filtramos solo los canales de España con "Caza" o "Iberlia TV" en el nombre
                         allChannels.push({ name, url: channelUrl });
                     }
