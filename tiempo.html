@@ -428,6 +428,9 @@
             if (card.classList.contains('expanded')) {
                 card.classList.remove('expanded');
                 button.textContent = 'Ver por horas';
+
+                // Desplazar la página hacia la parte superior de la tarjeta
+                card.scrollIntoView({ behavior: 'smooth', block: 'start' });
             } else {
                 card.classList.add('expanded');
                 button.textContent = 'Ocultar';
