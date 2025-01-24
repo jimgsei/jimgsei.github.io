@@ -40,6 +40,31 @@
         .button-container button:hover {
             background-color: #023e8a;
         }
+        .search-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .search-container input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px 0 0 5px;
+            font-size: 1rem;
+            width: 300px;
+        }
+        .search-container button {
+            background-color: #0077b6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 0 5px 5px 0;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+        }
+        .search-container button:hover {
+            background-color: #023e8a;
+        }
         .weather-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -62,6 +87,10 @@
             margin: 0;
             font-size: 1.2rem;
             color: #555;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
         .weather-icon {
             font-size: 2rem;
@@ -180,7 +209,11 @@
     </style>
 </head>
 <body>
-    <h1>El Tiempo en Alcalá la Real y Ventas del Carrizal</h1>
+    <h1 id="location-title">El Tiempo en Ventas del Carrizal</h1>
+    <div class="search-container">
+        <input type="text" id="search-input" placeholder="Buscar otro lugar...">
+        <button onclick="searchLocation()"><i class="fas fa-search"></i></button>
+    </div>
     <div class="button-container">
         <button onclick="loadWeather(37.4613, -3.9237, 'Alcalá la Real')">Alcalá la Real</button>
         <button onclick="loadWeather(37.5436, -3.9908, 'Ventas del Carrizal')">Ventas del Carrizal</button>
@@ -190,9 +223,44 @@
     </div>
 
     <script>
+        // Función para actualizar el título con el nombre del lugar
+        function updateLocationTitle(locationName) {
+            document.getElementById('location-title').textContent = `El Tiempo en ${locationName}`;
+        }
+
+        // Función para buscar un lugar
+        async function searchLocation() {
+            const query = document.getElementById('search-input').value.trim();
+            if (!query) return;
+
+            try {
+                // Usar la API de Open-Meteo para buscar coordenadas por nombre
+                const response = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${query}&count=1&language=es&format=json`);
+                const data = await response.json();
+
+                if (data.results && data.results.length > 0) {
+                    const { latitude, longitude, name } = data.results[0];
+                    loadWeather(latitude, longitude, name);
+                } else {
+                    alert("Lugar no encontrado. Intenta con otro nombre.");
+                }
+            } catch (error) {
+                console.error('Error al buscar el lugar:', error);
+            }
+        }
+
+        // Función para obtener el día de la semana
+        function getDayOfWeek(date) {
+            const days = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+            return days[new Date(date).getDay()];
+        }
+
         // Función para cargar el tiempo de una ubicación
         async function loadWeather(latitude, longitude, locationName) {
             try {
+                // Actualizar el título
+                updateLocationTitle(locationName);
+
                 // URL de la API de Open-Meteo para 15 días y por horas
                 const dailyUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto&forecast_days=15`;
                 const hourlyUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&hourly=temperature_2m,weathercode,precipitation&timezone=auto`;
@@ -217,7 +285,10 @@
                     const card = document.createElement('div');
                     card.className = 'weather-card';
                     card.innerHTML = `
-                        <h3>${new Date(date).toLocaleDateString('es-ES')}</h3>
+                        <h3>
+                            <span>${getDayOfWeek(date)}</span>
+                            <span>${new Date(date).toLocaleDateString('es-ES')}</span>
+                        </h3>
                         <div class="weather-icon">
                             <i class="fas ${icon}"></i>
                         </div>
