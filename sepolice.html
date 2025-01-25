@@ -90,19 +90,16 @@
       position: absolute;
       top: 10px;
       right: 10px;
-      background-color: #64ffda; /* Teal background */
-      color: #0a192f; /* Dark blue text */
+      background: none; /* No background */
       border: none;
-      border-radius: 5px;
-      padding: 5px 10px;
+      color: #64ffda; /* Teal text */
       font-family: 'Courier New', monospace;
       font-size: 14px;
       cursor: pointer;
     }
 
     .copy-button.copied {
-      background-color: #0a192f; /* Dark blue background */
-      color: #64ffda; /* Teal text */
+      color: #ffffff; /* White text when copied */
     }
 
     /* Footer Styles */
@@ -223,12 +220,14 @@
     function analyzePermissionDeniedErrors(logContent) {
       // Regex to find "Permission denied" errors
       const permissionDeniedRegex = /(\/.*?): open failed: EACCES \(Permission denied\)/g;
+      // Regex to find "avc: denied" errors
+      const avcDeniedRegex = /avc: denied { (\w+) } for .*? scontext=u:r:([^:]+):s0 tcontext=u:object_r:([^:]+):s0 tclass=(\w+)/g;
 
       let match;
       const uniqueErrors = new Set(); // Avoid duplicates
       const sepolicyRules = [];
 
-      // Find matches in the log
+      // Find "Permission denied" errors
       while ((match = permissionDeniedRegex.exec(logContent)) !== null) {
         const filePath = match[1]; // File path
 
@@ -243,6 +242,24 @@
           const rule = `# ${context}\nallow system_app file:file { read open };`;
           sepolicyRules.push({
             file: 'system_app.te', // Default file name
+            rule: rule,
+          });
+        }
+      }
+
+      // Find "avc: denied" errors
+      while ((match = avcDeniedRegex.exec(logContent)) !== null) {
+        const [_, permission, scontext, tcontext, tclass] = match;
+
+        // Process only unique errors
+        const errorKey = `${scontext}:${tcontext}:${tclass}:${permission}`;
+        if (!uniqueErrors.has(errorKey)) {
+          uniqueErrors.add(errorKey);
+
+          // Generate sepolicy rule
+          const rule = `allow ${scontext} ${tcontext}:${tclass} { ${permission} };`;
+          sepolicyRules.push({
+            file: `${scontext}.te`, // Dynamic file name based on scontext
             rule: rule,
           });
         }
