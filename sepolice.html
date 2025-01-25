@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SELinux Log Analyzer</title>
+  <title>SELinux by Jimgsey</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
     /* General Styles */
@@ -36,14 +36,20 @@
       font-family: 'Courier New', monospace;
       font-size: 14px;
       resize: vertical;
+      overflow-x: auto; /* Prevent horizontal overflow */
+      white-space: pre-wrap; /* Preserve line breaks */
+      word-wrap: break-word; /* Break long words */
     }
 
     .section {
-      background-color: #112240; /* Darker blue */
+      background-color: rgba(17, 34, 64, 0.9); /* Darker blue with transparency */
       border-radius: 5px;
       padding: 20px;
       margin-top: 20px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); /* Soft shadow for floating effect */
+      backdrop-filter: blur(5px); /* Blur effect */
+      width: 100%; /* Ensure it doesn't overflow */
+      box-sizing: border-box; /* Include padding in width */
     }
 
     .section h2 {
@@ -61,11 +67,12 @@
     }
 
     .code-container {
-      background-color: #233554; /* Dark gray for code blocks */
+      background-color: rgba(35, 53, 84, 0.9); /* Dark gray for code blocks with transparency */
       border-radius: 0 0 5px 5px;
       overflow-x: auto;
       padding: 10px;
       position: relative;
+      backdrop-filter: blur(5px); /* Blur effect */
     }
 
     .code {
@@ -74,6 +81,7 @@
       white-space: pre-wrap; /* Preserve line breaks */
       margin: 0;
       padding-left: 40px; /* Space for line numbers */
+      word-wrap: break-word; /* Break long words */
     }
 
     .line-numbers {
@@ -96,7 +104,8 @@
     footer a {
       color: #64ffda;
       text-decoration: none;
-      display: inline-flex;
+      display: flex;
+      flex-direction: column;
       align-items: center;
       gap: 5px;
     }
@@ -106,7 +115,12 @@
     }
 
     footer i {
-      font-size: 1em; /* Same size as text */
+      font-size: 2em; /* Larger icon */
+      color: #64ffda; /* Teal color for the icon */
+    }
+
+    footer span {
+      font-size: 0.9em; /* Smaller text */
     }
 
     /* Responsive Design */
@@ -128,7 +142,7 @@
 
   <div class="section">
     <h2>Input Log</h2>
-    <input type="file" id="logFile" accept=".txt,.log" multiple>
+    <input type="file" id="logFile" accept=".txt,.log,text/plain" multiple>
     <textarea id="logText" placeholder="Or paste your log content here..."></textarea>
   </div>
 
@@ -144,7 +158,8 @@
 
   <footer>
     <a href="https://github.com/jimgsey" target="_blank">
-      <i class="fab fa-github"></i> Power by Jimgsey
+      <i class="fab fa-github"></i>
+      <span>Power by Jimgsey</span>
     </a>
   </footer>
 
