@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SELinux Log Analyzer by Jimgsey</title>
+  <style>
+    /* General Styles */
+    body {
+      background-color: #0a192f; /* Dark blue */
+      color: #ffffff; /* White text */
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 20px;
+      line-height: 1.6;
+    }
+
+    h1 {
+      color: #64ffda; /* Teal for headings */
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 150px;
+      background-color: #112240; /* Darker blue */
+      color: #ffffff; /* White text */
+      border: 1px solid #233554; /* Border color */
+      border-radius: 5px;
+      padding: 10px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      resize: vertical;
+    }
+
+    .section {
+      background-color: #112240; /* Darker blue */
+      border-radius: 5px;
+      padding: 20px;
+      margin-top: 20px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .section h2 {
+      color: #64ffda; /* Teal for section headings */
+      margin-top: 0;
+    }
+
+    .file-title {
+      background-color: #1f2a48; /* Dark blue for file title */
+      color: #64ffda; /* Teal for file title text */
+      padding: 10px;
+      border-radius: 5px 5px 0 0;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+    }
+
+    .code {
+      background-color: #233554; /* Dark gray for code blocks */
+      color: #ffffff; /* White text for code */
+      padding: 10px;
+      border-radius: 0 0 5px 5px;
+      font-family: 'Courier New', monospace;
+      overflow-x: auto;
+      margin-top: -5px; /* Remove gap between title and code */
+      white-space: pre-wrap; /* Preserve line breaks */
+    }
+
+    .input-methods {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .input-methods button {
+      background-color: #1f2a48;
+      color: #64ffda;
+      border: 1px solid #233554;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+    }
+
+    .input-methods button.active {
+      background-color: #64ffda;
+      color: #0a192f;
+    }
+
+    /* Responsive Design */
+    @media (min-width: 768px) {
+      body {
+        max-width: 800px;
+        margin: 0 auto;
+      }
+
+      textarea {
+        min-height: 200px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>SELinux Log Analyzer</h1>
+  <p>Upload a log file or paste the log content to analyze "Permission denied" errors and generate <code>sepolicy</code> rules.</p>
+
+  <div class="input-methods">
+    <button id="uploadButton" class="active">Upload File</button>
+    <button id="pasteButton">Paste Log</button>
+  </div>
+
+  <div id="uploadSection" class="section">
+    <h2>Upload Log File</h2>
+    <input type="file" id="logFile" accept=".txt,.log">
+  </div>
+
+  <div id="pasteSection" class="section" style="display: none;">
+    <h2>Paste Log Content</h2>
+    <textarea id="logText" placeholder="Paste your log content here..."></textarea>
+  </div>
+
+  <div class="section">
+    <h2>Detected Errors</h2>
+    <textarea id="output" placeholder="Results will appear here..." readonly></textarea>
+  </div>
+
+  <div id="sepolicySection" class="section" style="display: none;">
+    <h2>Generated SEPolicy Rules</h2>
+    <div id="sepolicyRules"></div>
+  </div>
+
+  <script>
+    // Toggle between upload and paste methods
+    const uploadButton = document.getElementById('uploadButton');
+    const pasteButton = document.getElementById('pasteButton');
+    const uploadSection = document.getElementById('uploadSection');
+    const pasteSection = document.getElementById('pasteSection');
+
+    uploadButton.addEventListener('click', () => {
+      uploadSection.style.display = 'block';
+      pasteSection.style.display = 'none';
+      uploadButton.classList.add('active');
+      pasteButton.classList.remove('active');
+    });
+
+    pasteButton.addEventListener('click', () => {
+      uploadSection.style.display = 'none';
+      pasteSection.style.display = 'block';
+      pasteButton.classList.add('active');
+      uploadButton.classList.remove('active');
+    });
+
+    // Analyze log from file or text
+    const logFileInput = document.getElementById('logFile');
+    const logTextInput = document.getElementById('logText');
+
+    logFileInput.addEventListener('change', function(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const logContent = e.target.result;
+          processLogContent(logContent);
+        };
+        reader.readAsText(file);
+      }
+    });
+
+    logTextInput.addEventListener('input', function() {
+      const logContent = logTextInput.value;
+      processLogContent(logContent);
+    });
+
+    function processLogContent(logContent) {
+      const { uniqueErrors, sepolicyRules } = analyzePermissionDeniedErrors(logContent);
+      document.getElementById('output').value = uniqueErrors.join('\n');
+      displaySepolicyRules(sepolicyRules);
+    }
+
+    function analyzePermissionDeniedErrors(logContent) {
+      // Regex to find "Permission denied" errors
+      const permissionDeniedRegex = /(\/.*?): open failed: EACCES \(Permission denied\)/g;
+
+      let match;
+      const uniqueErrors = new Set(); // Avoid duplicates
+      const sepolicyRules = [];
+
+      // Find matches in the log
+      while ((match = permissionDeniedRegex.exec(logContent)) !== null) {
+        const filePath = match[1]; // File path
+
+        // Process only unique errors
+        if (!uniqueErrors.has(filePath)) {
+          uniqueErrors.add(filePath);
+
+          // Extract context from the file path (e.g., "hbm" or "gpu")
+          const context = filePath.split('/').pop().toUpperCase();
+
+          // Generate sepolicy rule (assuming domain is "system_app")
+          const rule = `# ${context}\nallow system_app file:file { read open };`;
+          sepolicyRules.push({
+            file: 'system_app.te', // Default file name
+            rule: rule,
+          });
+        }
+      }
+
+      return {
+        uniqueErrors: Array.from(uniqueErrors),
+        sepolicyRules,
+      };
+    }
+
+    function displaySepolicyRules(sepolicyRules) {
+      const sepolicySection = document.getElementById('sepolicySection');
+      const sepolicyRulesElement = document.getElementById('sepolicyRules');
+
+      if (sepolicyRules.length > 0) {
+        // Show the section
+        sepolicySection.style.display = 'block';
+
+        // Clear previous content
+        sepolicyRulesElement.innerHTML = '';
+
+        // Display each rule
+        sepolicyRules.forEach(rule => {
+          const ruleContainer = document.createElement('div');
+          ruleContainer.style.marginBottom = '20px';
+
+          // File title
+          const fileTitle = document.createElement('div');
+          fileTitle.className = 'file-title';
+          fileTitle.textContent = `File: ${rule.file}`;
+          ruleContainer.appendChild(fileTitle);
+
+          // Code block
+          const codeBlock = document.createElement('div');
+          codeBlock.className = 'code';
+          codeBlock.textContent = rule.rule;
+          ruleContainer.appendChild(codeBlock);
+
+          sepolicyRulesElement.appendChild(ruleContainer);
+        });
+      } else {
+        // Hide the section if no rules
+        sepolicySection.style.display = 'none';
+      }
+    }
+  </script>
+</body>
+</html>
