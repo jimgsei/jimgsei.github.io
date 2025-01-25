@@ -30,7 +30,7 @@
       min-height: 150px;
       background-color: #112240; /* Darker blue */
       color: #ffffff; /* White text */
-      border: 1px solid #233554; /* Border color */
+      border: 1px solid #233554; /* Subtle border */
       border-radius: 5px;
       padding: 10px;
       font-family: 'Courier New', monospace;
@@ -39,21 +39,23 @@
       overflow-x: auto; /* Prevent horizontal overflow */
       white-space: pre-wrap; /* Preserve line breaks */
       word-wrap: break-word; /* Break long words */
+      box-sizing: border-box; /* Include padding and border in width */
     }
 
     .section {
       background-color: rgba(17, 34, 64, 0.9); /* Darker blue with transparency */
+      border: 1px solid #233554; /* Subtle border */
       border-radius: 5px;
       padding: 20px;
       margin-top: 20px;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); /* Soft shadow for floating effect */
       backdrop-filter: blur(5px); /* Blur effect */
       width: 100%; /* Ensure it doesn't overflow */
-      box-sizing: border-box; /* Include padding in width */
+      box-sizing: border-box; /* Include padding and border in width */
     }
 
     .section h2 {
-      color: #64ffda; /* Teal for section headings */
+      color: #ffffff; /* White for section headings */
       margin-top: 0;
     }
 
@@ -93,16 +95,29 @@
       user-select: none; /* Prevent selecting line numbers */
     }
 
+    .copy-icon {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      color: #64ffda; /* Teal for copy icon */
+      cursor: pointer;
+      font-size: 1.2em;
+    }
+
+    .copy-icon:hover {
+      color: #ffffff; /* White on hover */
+    }
+
     /* Footer Styles */
     footer {
       margin-top: auto;
       text-align: center;
       padding: 20px 0;
-      color: #64ffda;
+      color: #ffffff; /* White text */
     }
 
     footer a {
-      color: #64ffda;
+      color: #ffffff; /* White text */
       text-decoration: none;
       display: flex;
       flex-direction: column;
@@ -116,7 +131,7 @@
 
     footer i {
       font-size: 2em; /* Larger icon */
-      color: #64ffda; /* Teal color for the icon */
+      color: #ffffff; /* White color for the icon */
     }
 
     footer span {
@@ -142,7 +157,7 @@
 
   <div class="section">
     <h2>Input Log</h2>
-    <input type="file" id="logFile" accept=".txt,.log,text/plain" multiple>
+    <input type="file" id="logFile" accept="*" multiple>
     <textarea id="logText" placeholder="Or paste your log content here..."></textarea>
   </div>
 
@@ -272,6 +287,17 @@
           codeBlock.className = 'code';
           codeBlock.textContent = rule.rule;
           codeContainer.appendChild(codeBlock);
+
+          // Copy icon
+          const copyIcon = document.createElement('i');
+          copyIcon.className = 'fas fa-copy copy-icon';
+          copyIcon.title = 'Copy to clipboard';
+          copyIcon.addEventListener('click', () => {
+            navigator.clipboard.writeText(rule.rule).then(() => {
+              alert('Copied to clipboard!');
+            });
+          });
+          codeContainer.appendChild(copyIcon);
 
           ruleContainer.appendChild(codeContainer);
           sepolicyRulesElement.appendChild(ruleContainer);
