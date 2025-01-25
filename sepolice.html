@@ -43,14 +43,15 @@
     }
 
     .section {
-      background-color: rgba(17, 34, 64, 0.9); /* Darker blue with transparency */
+      background-color: rgba(17, 34, 64, 0.01); /* Darker blue with more transparency */
       border: 1px solid #233554; /* Subtle border */
       border-radius: 5px;
       padding: 20px;
-      margin-top: 20px;
+      margin: 20px auto; /* Centered with margin */
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); /* Soft shadow for floating effect */
-      backdrop-filter: blur(5px); /* Blur effect */
-      width: 100%; /* Ensure it doesn't overflow */
+      backdrop-filter: blur(10px); /* Stronger blur effect */
+      width: 90%; /* Default width for smaller screens */
+      max-width: 800px; /* Limit maximum width for larger screens */
       box-sizing: border-box; /* Include padding and border in width */
     }
 
@@ -132,33 +133,23 @@
       font-size: 0.9em; /* Smaller text */
     }
 
-    /* Responsive Design */
-    @media (min-width: 768px) {
-      body {
-        max-width: 800px;
-        margin: 0 auto;
-      }
-
-      textarea {
-        min-height: 200px;
-      }
+    /* Fondo de partículas */
+    #particles-js {
+      position: fixed; /* Fixed to cover the entire screen */
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      z-index: -1; /* Ensure particles are behind everything */
     }
-	/* Fondo de partículas */
-        #particles-js {
-         position: absolute;
-         width: 100%;
-         height: 100%;
-         top: 0;
-         left: 0;
-         z-index: 0;
-        }
-
   </style>
 </head>
 <body>
- <div id="particles-js"></div>
+  <div id="particles-js"></div>
   <h1>SELinux Log Analyzer</h1>
-  <p>Upload one or more log files or paste the log content to analyze "Permission denied" errors and generate <code>sepolicy</code> rules.</p>
+  <p style="text-align: center; max-width: 800px; margin: 0 auto;">
+  Upload one or more log files or paste the log content to analyze "Permission denied" errors and generate <code>sepolicy</code> rules.
+</p>
 
   <div class="section">
     <h2>Input Log</h2>
@@ -337,6 +328,9 @@
           ruleContainer.appendChild(codeContainer);
           sepolicyRulesElement.appendChild(ruleContainer);
         });
+
+        // Scroll to the sepolicy section
+        sepolicySection.scrollIntoView({ behavior: 'smooth' });
       } else {
         // Hide the section if no rules
         sepolicySection.style.display = 'none';
@@ -347,7 +341,7 @@
     logTextInput.addEventListener('input', () => adjustTextareaHeight(logTextInput));
     outputTextarea.addEventListener('input', () => adjustTextareaHeight(outputTextarea));
   </script>
-      <script>
+  <script>
     particlesJS("particles-js", {
       "particles": {
         "number": {
