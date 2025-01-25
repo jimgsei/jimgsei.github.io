@@ -35,8 +35,8 @@
       padding: 10px;
       font-family: 'Courier New', monospace;
       font-size: 14px;
-      resize: vertical;
-      overflow-x: auto; /* Prevent horizontal overflow */
+      resize: none; /* Disable manual resize */
+      overflow-y: auto; /* Add scroll if content is too long */
       white-space: pre-wrap; /* Preserve line breaks */
       word-wrap: break-word; /* Break long words */
       box-sizing: border-box; /* Include padding and border in width */
@@ -163,7 +163,10 @@
 
   <div class="section">
     <h2>Detected Errors</h2>
-    <textarea id="output" placeholder="Results will appear here..." readonly></textarea>
+    <div class="code-container">
+      <div class="line-numbers" id="errorLineNumbers"></div>
+      <textarea id="output" placeholder="Results will appear here..." readonly></textarea>
+    </div>
   </div>
 
   <div id="sepolicySection" class="section" style="display: none;">
@@ -181,6 +184,8 @@
   <script>
     const logFileInput = document.getElementById('logFile');
     const logTextInput = document.getElementById('logText');
+    const errorLineNumbers = document.getElementById('errorLineNumbers');
+    const outputTextarea = document.getElementById('output');
 
     // Process log when files are uploaded
     logFileInput.addEventListener('change', function(event) {
@@ -214,7 +219,10 @@
 
     function processLogContent(logContent) {
       const { uniqueErrors, sepolicyRules } = analyzePermissionDeniedErrors(logContent);
-      document.getElementById('output').value = uniqueErrors.join('\n');
+      const formattedErrors = uniqueErrors.map((error, index) => `${index + 1}. ${error}`).join('\n');
+      outputTextarea.value = formattedErrors;
+      updateErrorLineNumbers(uniqueErrors);
+      adjustTextareaHeight(outputTextarea);
       displaySepolicyRules(sepolicyRules);
     }
 
@@ -250,6 +258,16 @@
         uniqueErrors: Array.from(uniqueErrors),
         sepolicyRules,
       };
+    }
+
+    function updateErrorLineNumbers(errors) {
+      const lineNumbers = errors.map((_, index) => `${index + 1}`).join('<br>');
+      errorLineNumbers.innerHTML = lineNumbers;
+    }
+
+    function adjustTextareaHeight(textarea) {
+      textarea.style.height = 'auto'; // Reset height
+      textarea.style.height = `${textarea.scrollHeight}px`; // Adjust height to content
     }
 
     function displaySepolicyRules(sepolicyRules) {
@@ -307,6 +325,10 @@
         sepolicySection.style.display = 'none';
       }
     }
+
+    // Adjust textarea height on input
+    logTextInput.addEventListener('input', () => adjustTextareaHeight(logTextInput));
+    outputTextarea.addEventListener('input', () => adjustTextareaHeight(outputTextarea));
   </script>
 </body>
 </html>
