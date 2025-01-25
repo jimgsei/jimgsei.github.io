@@ -43,7 +43,7 @@
     }
 
     .section {
-      background-color: rgba(17, 34, 64, 0.01); /* Darker blue with more transparency */
+      background-color: rgba(17, 34, 64, 0.7); /* Darker blue with more transparency */
       border: 1px solid #233554; /* Subtle border */
       border-radius: 5px;
       padding: 20px;
@@ -148,8 +148,8 @@
   <div id="particles-js"></div>
   <h1>SELinux Log Analyzer</h1>
   <p style="text-align: center; max-width: 800px; margin: 0 auto;">
-  Upload one or more log files or paste the log content to analyze "Permission denied" errors and generate <code>sepolicy</code> rules.
-</p>
+    Upload one or more log files or paste the log content to analyze "Permission denied" errors and generate <code>sepolicy</code> rules.
+  </p>
 
   <div class="section">
     <h2>Input Log</h2>
@@ -160,7 +160,7 @@
   <div class="section">
     <h2>Detected Errors</h2>
     <div class="code-container">
-      <textarea id="output" placeholder="Results will appear here..." readonly></textarea>
+      <div id="output" class="code" contenteditable="true" placeholder="Results will appear here..."></div>
     </div>
   </div>
 
@@ -179,7 +179,7 @@
   <script>
     const logFileInput = document.getElementById('logFile');
     const logTextInput = document.getElementById('logText');
-    const outputTextarea = document.getElementById('output');
+    const outputDiv = document.getElementById('output');
 
     // Process log when files are uploaded
     logFileInput.addEventListener('change', function(event) {
@@ -213,9 +213,18 @@
 
     function processLogContent(logContent) {
       const { uniqueErrors, sepolicyRules } = analyzePermissionDeniedErrors(logContent);
-      const formattedErrors = uniqueErrors.map(error => error).join('\n');
-      outputTextarea.value = formattedErrors;
-      adjustTextareaHeight(outputTextarea);
+      const neverallowErrors = analyzeNeverallowErrors(logContent);
+
+      // Combine all errors
+      const formattedErrors = [
+        ...uniqueErrors.map(error => `Permission denied: ${error}`),
+        ...neverallowErrors,
+      ].join('\n\n');
+
+      outputDiv.innerHTML = formattedErrors;
+      adjustOutputHeight(outputDiv);
+
+      // Display SEPolicy rules
       displaySepolicyRules(sepolicyRules);
     }
 
@@ -273,9 +282,73 @@
       };
     }
 
-    function adjustTextareaHeight(textarea) {
-      textarea.style.height = 'auto'; // Reset height
-      textarea.style.height = `${textarea.scrollHeight}px`; // Adjust height to content
+function analyzeNeverallowErrors(logContent) {
+  const neverallowRegex = /neverallow check failed at (.+?):(\d+) from (.+?):(\d+)[\s\S]*?\(neverallow (.+?)\)[\s\S]*?allow at (.+?):(\d+)[\s\S]*?\(allow (.+?)\)/g;
+
+  let match;
+  const neverallowErrors = [];
+
+  while ((match = neverallowRegex.exec(logContent)) !== null) {
+    const [
+      _,
+      failedAtFile,
+      failedAtLine,
+      neverallowFile,
+      neverallowLine,
+      neverallowRule,
+      allowAtFile,
+      allowLine,
+      allowRule,
+    ] = match;
+
+    // Crear un mensaje con el error
+    const errorMessage = `Neverallow violation detected:\n` +
+      `- File with neverallow: ${neverallowFile} (line ${neverallowLine})\n` +
+      `- Neverallow rule: ${neverallowRule}\n` +
+      `- File with allow: ${allowAtFile} (line ${allowLine})\n` +
+      `- Allow rule: ${allowRule}`;
+
+    // Generar botones para copiar el error y abrir DeepSeek
+    const solution = `
+      <strong>Neverallow violation detected:</strong><br>
+      - File with neverallow: ${neverallowFile} (line ${neverallowLine})<br>
+      - Neverallow rule: ${neverallowRule}<br>
+      - File with allow: ${allowAtFile} (line ${allowLine})<br>
+      - Allow rule: ${allowRule}<br><br>
+      <div style="display: flex; gap: 10px; align-items: center;">
+        <button onclick="copyToClipboard('${errorMessage.replace(/\n/g, '\\n')}', this)" style="background: none; border: none; color: #64ffda; font-weight: bold; cursor: pointer; padding: 0;">
+          Copy
+        </button>
+        <span style="color: #64ffda;">|</span>
+        <button onclick="window.open('https://chat.deepseek.com', '_blank')" style="background: none; border: none; color: #64ffda; font-weight: bold; cursor: pointer; padding: 0;">
+          Open DeepSeek Chat
+        </button>
+      </div>
+      <br>
+      <em>After copying the error, paste it into DeepSeek Chat for solutions.</em>
+    `;
+
+    neverallowErrors.push(solution);
+  }
+
+  return neverallowErrors;
+}
+
+// Función para copiar texto al portapapeles
+function copyToClipboard(text, button) {
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = 'Copied';
+    setTimeout(() => {
+      button.textContent = 'Copy';
+    }, 2000); // Reset after 2 seconds
+  }).catch((err) => {
+    console.error('Failed to copy text: ', err);
+  });
+}
+
+    function adjustOutputHeight(element) {
+      element.style.height = 'auto'; // Reset height
+      element.style.height = `${element.scrollHeight}px`; // Adjust height to content
     }
 
     function displaySepolicyRules(sepolicyRules) {
@@ -338,8 +411,8 @@
     }
 
     // Adjust textarea height on input
-    logTextInput.addEventListener('input', () => adjustTextareaHeight(logTextInput));
-    outputTextarea.addEventListener('input', () => adjustTextareaHeight(outputTextarea));
+    logTextInput.addEventListener('input', () => adjustOutputHeight(logTextInput));
+    outputDiv.addEventListener('input', () => adjustOutputHeight(outputDiv));
   </script>
   <script>
     particlesJS("particles-js", {
