@@ -148,7 +148,7 @@
   <div id="particles-js"></div>
   <h1>SELinux Log Analyzer</h1>
   <p style="text-align: center; max-width: 800px; margin: 0 auto;">
-    Upload one or more log files or paste the log content to analyze "Permission denied" errors and generate <code>sepolicy</code> rules.
+    Upload one or more log files or paste the log content to analyze SELinux errors and generate <code>sepolicy</code> rules.
   </p>
 
   <div class="section">
@@ -211,22 +211,29 @@
       processLogContent(logContent);
     });
 
-    function processLogContent(logContent) {
-      const { uniqueErrors, sepolicyRules } = analyzePermissionDeniedErrors(logContent);
-      const neverallowErrors = analyzeNeverallowErrors(logContent);
+function processLogContent(logContent) {
+  const { uniqueErrors, sepolicyRules: permissionDeniedRules } = analyzePermissionDeniedErrors(logContent);
+  const neverallowErrors = analyzeNeverallowErrors(logContent);
+  const fileContextsErrors = analyzeFileContextsErrors(logContent);
+  const { avcDeniedErrors, sepolicyRules: avcDeniedRules } = analyzeAvcDeniedErrors(logContent);
 
-      // Combine all errors
-      const formattedErrors = [
-        ...uniqueErrors.map(error => `Permission denied: ${error}`),
-        ...neverallowErrors,
-      ].join('\n\n');
+  // Combine all errors
+  const formattedErrors = [
+    ...uniqueErrors.map(error => `Permission denied: ${error}`),
+    ...neverallowErrors,
+    ...fileContextsErrors,
+    ...avcDeniedErrors,
+  ].join('\n\n');
 
-      outputDiv.innerHTML = formattedErrors;
-      adjustOutputHeight(outputDiv);
+  outputDiv.innerHTML = formattedErrors;
+  adjustOutputHeight(outputDiv);
 
-      // Display SEPolicy rules
-      displaySepolicyRules(sepolicyRules);
-    }
+  // Combine all SEPolicy rules
+  const allSepolicyRules = [...permissionDeniedRules, ...avcDeniedRules];
+
+  // Display SEPolicy rules
+  displaySepolicyRules(allSepolicyRules);
+}
 
     function analyzePermissionDeniedErrors(logContent) {
       // Regex to find "Permission denied" errors
@@ -282,69 +289,151 @@
       };
     }
 
-function analyzeNeverallowErrors(logContent) {
-  const neverallowRegex = /neverallow check failed at (.+?):(\d+) from (.+?):(\d+)[\s\S]*?\(neverallow (.+?)\)[\s\S]*?allow at (.+?):(\d+)[\s\S]*?\(allow (.+?)\)/g;
+    function analyzeNeverallowErrors(logContent) {
+      const neverallowRegex = /neverallow check failed at (.+?):(\d+) from (.+?):(\d+)[\s\S]*?\(neverallow (.+?)\)[\s\S]*?allow at (.+?):(\d+)[\s\S]*?\(allow (.+?)\)/g;
+
+      let match;
+      const neverallowErrors = [];
+
+      while ((match = neverallowRegex.exec(logContent)) !== null) {
+        const [
+          _,
+          failedAtFile,
+          failedAtLine,
+          neverallowFile,
+          neverallowLine,
+          neverallowRule,
+          allowAtFile,
+          allowLine,
+          allowRule,
+        ] = match;
+
+        // Crear un mensaje con el error
+        const errorMessage = `Neverallow violation detected:\n` +
+          `- File with neverallow: ${neverallowFile} (line ${neverallowLine})\n` +
+          `- Neverallow rule: ${neverallowRule}\n` +
+          `- File with allow: ${allowAtFile} (line ${allowLine})\n` +
+          `- Allow rule: ${allowRule}`;
+
+        // Generar botones para copiar el error y abrir DeepSeek
+        const solution = `
+          <strong>Neverallow violation detected:</strong><br>
+          - File with neverallow: ${neverallowFile} (line ${neverallowLine})<br>
+          - Neverallow rule: ${neverallowRule}<br>
+          - File with allow: ${allowAtFile} (line ${allowLine})<br>
+          - Allow rule: ${allowRule}<br><br>
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <button onclick="copyToClipboard('${errorMessage.replace(/\n/g, '\\n')}', this)" style="background: none; border: none; color: #64ffda; font-weight: bold; cursor: pointer; padding: 0;">
+              Copy
+            </button>
+            <span style="color: #64ffda;">|</span>
+            <button onclick="window.open('https://chat.deepseek.com', '_blank')" style="background: none; border: none; color: #64ffda; font-weight: bold; cursor: pointer; padding: 0;">
+              Open DeepSeek Chat
+            </button>
+          </div>
+        `;
+
+        neverallowErrors.push(solution);
+      }
+
+      return neverallowErrors;
+    }
+
+    function analyzeFileContextsErrors(logContent) {
+      const fileContextsRegex = /(?:[^:]+: )?Multiple different specifications for (.+?) \((u:object_r:[^:]+):s0\) (?:and|&) \((u:object_r:[^:]+):s0\)/g;
+
+      let match;
+      const fileContextsErrors = [];
+
+      while ((match = fileContextsRegex.exec(logContent)) !== null) {
+        const [
+          _,
+          filePath,
+          context1,
+          context2,
+        ] = match;
+
+        // Generar solución recomendada
+        const solution = `
+          <strong>File contexts conflict detected:</strong><br>
+          - File: <code>${filePath}</code><br>
+          - Context 1: <code>${context1}:s0</code><br>
+          - Context 2: <code>${context2}:s0</code><br><br>
+          <strong>Solution:</strong><br>
+          Remove one of the conflicting contexts from <code>file_contexts</code>.<br>
+          For example, keep only:<br>
+          <code>${filePath} ${context1}:s0</code><br>
+          or<br>
+          <code>${filePath} ${context2}:s0</code><br><br>
+          <em>Recompile the SELinux policy after making changes.</em>
+        `;
+
+        fileContextsErrors.push(solution);
+      }
+
+      return fileContextsErrors;
+    }
+
+function analyzeAvcDeniedErrors(logContent) {
+  const avcDeniedRegex = /avc:\s+denied\s+\{\s*(\w+)\s*\}\s+for\s+interface=([^\s]+)\s+sid=([^\s]+)\s+pid=(\d+)\s+scontext=([^\s]+)\s+tcontext=([^\s]+)\s+tclass=([^\s]+)/g;
 
   let match;
-  const neverallowErrors = [];
+  const avcDeniedErrorsSet = new Set(); // Usar un Set para evitar duplicados
+  const sepolicyRulesSet = new Set();   // Usar un Set para evitar duplicados
 
-  while ((match = neverallowRegex.exec(logContent)) !== null) {
+  while ((match = avcDeniedRegex.exec(logContent)) !== null) {
     const [
       _,
-      failedAtFile,
-      failedAtLine,
-      neverallowFile,
-      neverallowLine,
-      neverallowRule,
-      allowAtFile,
-      allowLine,
-      allowRule,
+      permission,
+      interfaceName,
+      sid,
+      pid,
+      scontext,
+      tcontext,
+      tclass,
     ] = match;
 
-    // Crear un mensaje con el error
-    const errorMessage = `Neverallow violation detected:\n` +
-      `- File with neverallow: ${neverallowFile} (line ${neverallowLine})\n` +
-      `- Neverallow rule: ${neverallowRule}\n` +
-      `- File with allow: ${allowAtFile} (line ${allowLine})\n` +
-      `- Allow rule: ${allowRule}`;
+    // Extraer el dominio y el tipo de contexto
+    const sourceDomain = scontext.split(':')[2]; // Ejemplo: platform_app
+    const targetType = tcontext.split(':')[2];   // Ejemplo: default_android_hwservice
 
-    // Generar botones para copiar el error y abrir DeepSeek
-    const solution = `
-      <strong>Neverallow violation detected:</strong><br>
-      - File with neverallow: ${neverallowFile} (line ${neverallowLine})<br>
-      - Neverallow rule: ${neverallowRule}<br>
-      - File with allow: ${allowAtFile} (line ${allowLine})<br>
-      - Allow rule: ${allowRule}<br><br>
-      <div style="display: flex; gap: 10px; align-items: center;">
-        <button onclick="copyToClipboard('${errorMessage.replace(/\n/g, '\\n')}', this)" style="background: none; border: none; color: #64ffda; font-weight: bold; cursor: pointer; padding: 0;">
-          Copy
-        </button>
-        <span style="color: #64ffda;">|</span>
-        <button onclick="window.open('https://chat.deepseek.com', '_blank')" style="background: none; border: none; color: #64ffda; font-weight: bold; cursor: pointer; padding: 0;">
-          Open DeepSeek Chat
-        </button>
-      </div>
-      <br>
-      <em>After copying the error, paste it into DeepSeek Chat for solutions.</em>
-    `;
+    // Generar la regla de sepolicy
+    const rule = `allow ${sourceDomain} ${targetType}:${tclass} { ${permission} };`;
 
-    neverallowErrors.push(solution);
+    // Añadir la regla a la lista de reglas de sepolicy (usando Set para evitar duplicados)
+    sepolicyRulesSet.add(JSON.stringify({
+      file: `${sourceDomain}.te`, // Nombre del archivo .te
+      rule: rule,
+    }));
+
+    // Generar solución recomendada (solo Target Context)
+    const solution = ` - Target Context: <code>${tcontext}</code>`;
+
+    // Añadir la solución a la lista de errores (usando Set para evitar duplicados)
+    avcDeniedErrorsSet.add(solution);
   }
 
-  return neverallowErrors;
+  // Convertir los Sets de nuevo a arrays
+  const avcDeniedErrors = Array.from(avcDeniedErrorsSet);
+  const sepolicyRules = Array.from(sepolicyRulesSet).map(rule => JSON.parse(rule));
+
+  return {
+    avcDeniedErrors,
+    sepolicyRules,
+  };
 }
 
-// Función para copiar texto al portapapeles
-function copyToClipboard(text, button) {
-  navigator.clipboard.writeText(text).then(() => {
-    button.textContent = 'Copied';
-    setTimeout(() => {
-      button.textContent = 'Copy';
-    }, 2000); // Reset after 2 seconds
-  }).catch((err) => {
-    console.error('Failed to copy text: ', err);
-  });
-}
+    // Función para copiar texto al portapapeles
+    function copyToClipboard(text, button) {
+      navigator.clipboard.writeText(text).then(() => {
+        button.textContent = 'Copied';
+        setTimeout(() => {
+          button.textContent = 'Copy';
+        }, 2000); // Reset after 2 seconds
+      }).catch((err) => {
+        console.error('Failed to copy text: ', err);
+      });
+    }
 
     function adjustOutputHeight(element) {
       element.style.height = 'auto'; // Reset height
