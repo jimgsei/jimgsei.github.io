@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SELinux Log Analyzer by Jimgsey</title>
+  <title>SELinux Log Analyzer</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
     /* General Styles */
     body {
@@ -13,6 +14,9 @@
       margin: 0;
       padding: 20px;
       line-height: 1.6;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
     }
 
     h1 {
@@ -81,6 +85,30 @@
       user-select: none; /* Prevent selecting line numbers */
     }
 
+    /* Footer Styles */
+    footer {
+      margin-top: auto;
+      text-align: center;
+      padding: 20px 0;
+      color: #64ffda;
+    }
+
+    footer a {
+      color: #64ffda;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    footer i {
+      font-size: 1em; /* Same size as text */
+    }
+
     /* Responsive Design */
     @media (min-width: 768px) {
       body {
@@ -113,6 +141,12 @@
     <h2>Generated SEPolicy Rules</h2>
     <div id="sepolicyRules"></div>
   </div>
+
+  <footer>
+    <a href="https://github.com/jimgsey" target="_blank">
+      <i class="fab fa-github"></i> Power by Jimgsey
+    </a>
+  </footer>
 
   <script>
     const logFileInput = document.getElementById('logFile');
