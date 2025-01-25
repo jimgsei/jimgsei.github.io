@@ -56,15 +56,29 @@
       font-size: 14px;
     }
 
-    .code {
+    .code-container {
       background-color: #233554; /* Dark gray for code blocks */
-      color: #ffffff; /* White text for code */
-      padding: 10px;
       border-radius: 0 0 5px 5px;
-      font-family: 'Courier New', monospace;
       overflow-x: auto;
-      margin-top: -5px; /* Remove gap between title and code */
+      padding: 10px;
+      position: relative;
+    }
+
+    .code {
+      color: #ffffff; /* White text for code */
+      font-family: 'Courier New', monospace;
       white-space: pre-wrap; /* Preserve line breaks */
+      margin: 0;
+      padding-left: 40px; /* Space for line numbers */
+    }
+
+    .line-numbers {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      color: #64ffda; /* Teal for line numbers */
+      font-family: 'Courier New', monospace;
+      user-select: none; /* Prevent selecting line numbers */
     }
 
     /* Responsive Design */
@@ -82,11 +96,11 @@
 </head>
 <body>
   <h1>SELinux Log Analyzer</h1>
-  <p>Upload a log file or paste the log content to analyze "Permission denied" errors and generate <code>sepolicy</code> rules.</p>
+  <p>Upload one or more log files or paste the log content to analyze "Permission denied" errors and generate <code>sepolicy</code> rules.</p>
 
   <div class="section">
     <h2>Input Log</h2>
-    <input type="file" id="logFile" accept=".txt,.log">
+    <input type="file" id="logFile" accept=".txt,.log" multiple>
     <textarea id="logText" placeholder="Or paste your log content here..."></textarea>
   </div>
 
@@ -104,16 +118,27 @@
     const logFileInput = document.getElementById('logFile');
     const logTextInput = document.getElementById('logText');
 
-    // Process log when file is uploaded
+    // Process log when files are uploaded
     logFileInput.addEventListener('change', function(event) {
-      const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          const logContent = e.target.result;
-          processLogContent(logContent);
-        };
-        reader.readAsText(file);
+      const files = event.target.files;
+      if (files.length > 0) {
+        let combinedLogContent = '';
+        let filesProcessed = 0;
+
+        // Read each file and combine their content
+        Array.from(files).forEach(file => {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            combinedLogContent += e.target.result + '\n';
+            filesProcessed++;
+
+            // Process combined content when all files are read
+            if (filesProcessed === files.length) {
+              processLogContent(combinedLogContent);
+            }
+          };
+          reader.readAsText(file);
+        });
       }
     });
 
@@ -175,7 +200,7 @@
         sepolicyRulesElement.innerHTML = '';
 
         // Display each rule
-        sepolicyRules.forEach(rule => {
+        sepolicyRules.forEach((rule, index) => {
           const ruleContainer = document.createElement('div');
           ruleContainer.style.marginBottom = '20px';
 
@@ -185,12 +210,21 @@
           fileTitle.textContent = `File: ${rule.file}`;
           ruleContainer.appendChild(fileTitle);
 
-          // Code block
+          // Code block with line numbers
+          const codeContainer = document.createElement('div');
+          codeContainer.className = 'code-container';
+
+          const lineNumbers = document.createElement('div');
+          lineNumbers.className = 'line-numbers';
+          lineNumbers.innerHTML = Array.from({ length: rule.rule.split('\n').length }, (_, i) => `${i + 1}<br>`).join('');
+          codeContainer.appendChild(lineNumbers);
+
           const codeBlock = document.createElement('div');
           codeBlock.className = 'code';
           codeBlock.textContent = rule.rule;
-          ruleContainer.appendChild(codeBlock);
+          codeContainer.appendChild(codeBlock);
 
+          ruleContainer.appendChild(codeContainer);
           sepolicyRulesElement.appendChild(ruleContainer);
         });
       } else {
