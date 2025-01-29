@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Canales España</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="https://vjs.zencdn.net/7.15.4/video-js.css" rel="stylesheet">
     <style>
         /* Estilos generales */
         body {
@@ -20,14 +21,19 @@
             color: #fff;
         }
 
-        iframe {
+        .video-container {
             width: 60%;
-            height: 50vh;
-            margin: 20px 0;
+            height: 30vh;
+            margin: 10px 0;
             border-radius: 15px;
             max-width: 900px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            border: none;
+            overflow: hidden;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
         }
 
         h1 {
@@ -57,7 +63,7 @@
             gap: 10px;
             width: 80%;
             max-width: 600px;
-            max-height: 50vh;
+            max-height: 30vh;
             overflow-y: auto;
             padding: 10px;
             background: #444;
@@ -97,15 +103,30 @@
             max-width: 600px;
         }
 
+        #url-log {
+            width: 80%;
+            max-width: 900px;
+            margin: 20px 0;
+            padding: 10px;
+            background: #333;
+            border: 1px solid #666;
+            border-radius: 8px;
+            color: #fff;
+            font-family: monospace;
+            font-size: 12px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+
         @media (max-width: 768px) {
-            iframe {
+            .video-container {
                 width: 100%;
                 height: auto;
                 border-radius: 0;
             }
 
             #channel-list {
-                max-height: 30vh;
+                max-height: 20vh;
             }
         }
 
@@ -169,7 +190,21 @@
     </style>
 </head>
 <body>
-    <iframe id="video-iframe" src="about:blank"></iframe>
+    <!-- Reproductor 1: Video.js con HLS.js -->
+    <div class="video-container">
+        <video id="video-player-1" class="video-js" controls preload="auto" crossorigin="anonymous"></video>
+    </div>
+
+    <!-- Reproductor 2: hls.js directamente -->
+    <div class="video-container">
+        <video id="video-player-2" controls preload="auto" crossorigin="anonymous"></video>
+    </div>
+
+    <!-- Reproductor 3: Native HTML5 Video -->
+    <div class="video-container">
+        <video id="video-player-3" controls preload="auto" crossorigin="anonymous"></video>
+    </div>
+
     <div id="current-url"></div>
     <button id="source-toggle">OHA (pulsa para cambiar)</button>
     <div id="search-bar">
@@ -177,22 +212,29 @@
         <span id="clear-search" style="display: none;"><i class="fas fa-times"></i></span>
     </div>
     <div id="channel-list"></div>
+
+    <!-- Área para mostrar los enlaces -->
+    <div id="url-log"></div>
+
     <div id="github-link">
         <a href="https://github.com/jimgsey" target="_blank">
             <i class="fab fa-github github-icon"></i>By Jimgsey
         </a>
     </div>
 
+    <!-- Scripts -->
+    <script src="https://vjs.zencdn.net/7.15.4/video.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <script>
         const proxyUrl = 'https://koprulu1.global.ssl.fastly.net/yt2/index.php/?url=';
         const mainUrl = 'https://vavoo.to/channels';
-        const iframe = document.getElementById('video-iframe');
         const channelListContainer = document.getElementById('channel-list');
         const currentUrlDisplay = document.getElementById('current-url');
         const sourceToggle = document.getElementById('source-toggle');
         const searchInput = document.getElementById('search-input');
         const searchBar = document.getElementById('search-bar');
         const clearSearch = document.getElementById('clear-search');
+        const urlLog = document.getElementById('url-log');
 
         const sources = [
             { name: 'OHA', url: 'https://oha.to/play/' },
@@ -247,48 +289,63 @@
             });
         }
 
-        // Reproducir canal en el iframe usando AllOrigins como proxy
+        // Reproducir canal en los tres reproductores
         function playChannel(url) {
             const allOriginsProxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
-            const iframeSrc = `
-                <!DOCTYPE html>
-                <html lang="es">
-                <head>
-                    <meta charset="UTF-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>Reproductor</title>
-                    <link href="https://vjs.zencdn.net/7.15.4/video-js.css" rel="stylesheet">
-                    <style>
-                        body { margin: 0; padding: 0; background-color: #000; }
-                        .video-js { width: 100%; height: 100vh; }
-                    </style>
-                </head>
-                <body>
-                    <video id="video-player" class="video-js" controls preload="auto" crossorigin="anonymous">
-                        <source src="${allOriginsProxyUrl}" type="application/x-mpegURL">
-                    </video>
-                    <script src="https://vjs.zencdn.net/7.15.4/video.min.js"><\/script>
-                    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"><\/script>
-                    <script>
-                        const player = videojs('video-player');
-                        if (Hls.isSupported()) {
-                            const hls = new Hls();
-                            hls.loadSource('${allOriginsProxyUrl}');
-                            hls.attachMedia(player);
-                            hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                                player.play();
-                            });
-                        } else if (player.canPlayType('application/vnd.apple.mpegurl')) {
-                            player.src('${allOriginsProxyUrl}');
-                            player.addEventListener('loadedmetadata', () => {
-                                player.play();
-                            });
-                        }
-                    <\/script>
-                </body>
-                </html>
-            `;
-            iframe.srcdoc = iframeSrc;
+            logUrl(`Enlace original: ${url}`);
+            logUrl(`Enlace con AllOrigins: ${allOriginsProxyUrl}`);
+
+            // Reproductor 1: Video.js con HLS.js
+            const player1 = videojs('video-player-1');
+            if (Hls.isSupported()) {
+                const hls1 = new Hls();
+                hls1.loadSource(allOriginsProxyUrl);
+                hls1.attachMedia(player1);
+                hls1.on(Hls.Events.MANIFEST_PARSED, () => {
+                    player1.play();
+                    logUrl(`Enlace final (HLS.js): ${hls1.url}`);
+                });
+            } else if (player1.canPlayType('application/vnd.apple.mpegurl')) {
+                player1.src(allOriginsProxyUrl);
+                player1.addEventListener('loadedmetadata', () => {
+                    player1.play();
+                    logUrl(`Enlace final (Native HLS): ${allOriginsProxyUrl}`);
+                });
+            }
+
+            // Reproductor 2: hls.js directamente
+            const player2 = document.getElementById('video-player-2');
+            if (Hls.isSupported()) {
+                const hls2 = new Hls();
+                hls2.loadSource(allOriginsProxyUrl);
+                hls2.attachMedia(player2);
+                hls2.on(Hls.Events.MANIFEST_PARSED, () => {
+                    player2.play();
+                    logUrl(`Enlace final (HLS.js): ${hls2.url}`);
+                });
+            } else if (player2.canPlayType('application/vnd.apple.mpegurl')) {
+                player2.src = allOriginsProxyUrl;
+                player2.addEventListener('loadedmetadata', () => {
+                    player2.play();
+                    logUrl(`Enlace final (Native HLS): ${allOriginsProxyUrl}`);
+                });
+            }
+
+            // Reproductor 3: Native HTML5 Video
+            const player3 = document.getElementById('video-player-3');
+            player3.src = allOriginsProxyUrl;
+            player3.addEventListener('loadedmetadata', () => {
+                player3.play();
+                logUrl(`Enlace final (Native HTML5): ${allOriginsProxyUrl}`);
+            });
+        }
+
+        // Mostrar enlaces en el área de registro
+        function logUrl(message) {
+            const logEntry = document.createElement('div');
+            logEntry.textContent = message;
+            urlLog.appendChild(logEntry);
+            urlLog.scrollTop = urlLog.scrollHeight; // Desplazar al final
         }
 
         // Filtrar canales
