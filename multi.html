@@ -459,215 +459,180 @@
         });
     </script>
 
+
     <!-- Script para Deportes -->
 <script>
-// Función para actualizar el iframe con la opción seleccionada
-function updateDeportesIframeWithOption() {
-    const selectedChannel = document.getElementById('deportes-channel-select').value;
-    const selectedOption = document.getElementById('deportes-option-select').value;
-    const selectedNumber = document.getElementById('espn-number-select').value; // Número seleccionado
-    const iframe = document.getElementById('iframe-deportes');
-    const urlDisplay = document.getElementById('current-deportes-url');
+    // Proxy URL para evitar restricciones CORS o bloqueos
+    const PROXY_URL = "https://api.allorigins.win/raw?url="; // Puedes cambiarlo por tu propio proxy
 
-    let newUrl = "";
+    // Función para actualizar el iframe con la opción seleccionada
+    function updateDeportesIframeWithOption() {
+        const selectedChannel = document.getElementById('deportes-channel-select').value;
+        const selectedOption = document.getElementById('deportes-option-select').value;
+        const selectedNumber = document.getElementById('espn-number-select').value;
+        const iframe = document.getElementById('iframe-deportes');
+        const urlDisplay = document.getElementById('current-deportes-url');
 
-    // Verificar si el canal tiene una URL base definida en channelUrls
-    if (channelsData.channelUrls[selectedChannel]) {
-        newUrl = channelsData.channelUrls[selectedChannel];
-    } else if (channelsData.sportUrl) {
-        // Si no está en channelUrls, usar sportUrl y añadir el canal
-        newUrl = `${channelsData.sportUrl}${selectedChannel}`;
+        let newUrl = getBaseUrl(selectedChannel);
+
+        if (requiresNumber(selectedChannel)) {
+            newUrl = cleanUrlNumber(newUrl) + (selectedNumber || "1");
+        } else if (selectedNumber) {
+            newUrl += selectedNumber;
+        }
+
+        if (selectedOption) {
+            newUrl += selectedOption;
+        }
+
+        newUrl = PROXY_URL + encodeURIComponent(newUrl); // Aplica el proxy
+
+        updateIframe(newUrl, iframe, urlDisplay);
     }
 
-    // Comportamiento especial para eventos1, espnplus1, paramount1, peacock1
-    if (['eventos', 'espnplus', 'paramount', 'dazn', 'sportv', 'nba', 'max'].includes(selectedChannel)) {
-        if (selectedNumber && selectedNumber !== "") {
-            // Borrar el último número y añadir el nuevo seleccionado
-            newUrl = newUrl.replace(/\d+$/, ""); // Eliminar el número final
-            newUrl += selectedNumber; // Añadir el nuevo número
+    // Función para actualizar solo con el canal
+    function updateDeportesIframe() {
+        const selectedChannel = document.getElementById('deportes-channel-select').value;
+        const selectedNumber = document.getElementById('espn-number-select').value;
+        const iframe = document.getElementById('iframe-deportes');
+        const urlDisplay = document.getElementById('current-deportes-url');
+
+        let newUrl = getBaseUrl(selectedChannel);
+
+        if (requiresNumber(selectedChannel)) {
+            newUrl = cleanUrlNumber(newUrl) + (selectedNumber || "1");
+        } else if (selectedNumber) {
+            newUrl += selectedNumber;
+        }
+
+        newUrl = PROXY_URL + encodeURIComponent(newUrl); // Aplica el proxy
+
+        updateIframe(newUrl, iframe, urlDisplay);
+    }
+
+    // Función para obtener la URL base
+    function getBaseUrl(channel) {
+        return channelsData.channelUrls[channel] || `${channelsData.sportUrl}${channel}`;
+    }
+
+    // Verifica si el canal necesita un número adicional
+    function requiresNumber(channel) {
+        return ['eventos', 'espnplus', 'paramount', 'dazn', 'sportv', 'nba', 'max'].includes(channel);
+    }
+
+    // Limpia cualquier número final en una URL
+    function cleanUrlNumber(url) {
+        return url.replace(/\d+$/, "");
+    }
+
+    // Actualiza el iframe con la nueva URL
+    function updateIframe(url, iframe, urlDisplay) {
+        if (url) {
+            iframe.src = url;
+            urlDisplay.textContent = url;
+        }
+    }
+
+    // Actualiza los menús según el canal seleccionado
+    function updateMenusForSelectedChannel() {
+        const selectedChannel = document.getElementById('deportes-channel-select').value;
+        const espnNumberSelect = document.getElementById('espn-number-select');
+        const deportesOptionSelect = document.getElementById('deportes-option-select');
+
+        espnNumberSelect.innerHTML = '';
+        deportesOptionSelect.innerHTML = '';
+
+        if (requiresNumber(selectedChannel)) {
+            addNumberOptions(espnNumberSelect, 1, 8);
+        } else if (['espn', 'foxar', 'foxmx', 'deportestvc', 'hypermotion', 'premiere', 'mlaliga', 'mcampeones', 'disney', 'tigopy', 'espnmx', 'fanatiz'].includes(selectedChannel)) {
+            addNumberOptions(espnNumberSelect, 2, 7);
         } else {
-            // Por defecto, añadir "1" si no se ha seleccionado un número
-            newUrl = newUrl.replace(/\d+$/, ""); // Eliminar cualquier número previo
-            newUrl += "1";
+            espnNumberSelect.style.display = 'none';
         }
-    } else if (['espn', 'foxar', 'foxmx', 'deportestvc', 'hypermotion', 'premiere', 'mlaliga', 'mcampeones', 'disney', 'tigopy', 'espnmx', 'fanatiz'].includes(selectedChannel) && selectedNumber && selectedNumber !== "") {
-        // Comportamiento regular para otros canales con números
-        newUrl += selectedNumber;
-    }
 
-    // Si hay una opción seleccionada, añadirla al final de la URL
-    if (selectedOption && selectedOption !== "") {
-        newUrl += selectedOption;
-    }
-
-    // Verificar que la URL sea válida
-    if (newUrl) {
-        iframe.src = newUrl; // Actualizar el iframe
-        urlDisplay.textContent = newUrl; // Mostrar la URL
-    }
-}
-
-// Función para actualizar el iframe solo con el canal seleccionado
-function updateDeportesIframe() {
-    const selectedChannel = document.getElementById('deportes-channel-select').value;
-    const selectedNumber = document.getElementById('espn-number-select').value; // Número seleccionado
-    const iframe = document.getElementById('iframe-deportes');
-    const deportesOptionSelect = document.getElementById('deportes-option-select');
-    const urlDisplay = document.getElementById('current-deportes-url');
-
-    let newUrl = "";
-
-    // Verificar si la URL del canal está definida en channelUrls
-    if (channelsData.channelUrls[selectedChannel]) {
-        newUrl = channelsData.channelUrls[selectedChannel];
-    } else if (channelsData.sportUrl) {
-        // Si no está en channelUrls, usar sportUrl con el nombre del canal
-        newUrl = `${channelsData.sportUrl}${selectedChannel}`;
-    }
-
-    // Comportamiento especial para eventos1, espnplus1, paramount1, peacock1
-    if (['eventos', 'espnplus', 'paramount', 'dazn', 'sportv', 'nba', 'max'].includes(selectedChannel)) {
-        if (selectedNumber && selectedNumber !== "") {
-            newUrl = newUrl.replace(/\d+$/, ""); // Eliminar el número final
-            newUrl += selectedNumber; // Añadir el nuevo número
+        if (selectedChannel) {
+            addOptionSelections(deportesOptionSelect);
         } else {
-            // Por defecto, añadir "1" si no se ha seleccionado un número
-            newUrl = newUrl.replace(/\d+$/, ""); // Eliminar cualquier número previo
-            newUrl += "1";
-		}
-    } else if (['espn', 'foxar', 'foxmx', 'deportestvc', 'hypermotion', 'premiere', 'mlaliga', 'mcampeones', 'disney', 'tigopy', 'espnmx', 'fanatiz'].includes(selectedChannel) && selectedNumber && selectedNumber !== "") {
-        newUrl += selectedNumber;
-    }
-
-    // Verificar que la URL sea válida
-    if (newUrl) {
-        iframe.src = newUrl; // Actualizar el iframe
-        urlDisplay.textContent = newUrl; // Mostrar la URL
-    }
-}
-
-// Función para actualizar los menús según el canal seleccionado
-function updateMenusForSelectedChannel() {
-    const selectedChannel = document.getElementById('deportes-channel-select').value;
-
-    const espnNumberSelect = document.getElementById('espn-number-select');
-    const deportesOptionSelect = document.getElementById('deportes-option-select');
-
-    // Limpiar los menús
-    espnNumberSelect.innerHTML = '';
-    deportesOptionSelect.innerHTML = '';
-
-    // Agregar la opción de seleccionar número solo si es necesario
-    if (['espn', 'foxar', 'foxmx', 'deportestvc', 'hypermotion', 'premiere', 'mlaliga', 'mcampeones', 'disney', 'tigopy', 'espnmx', 'fanatiz'].includes(selectedChannel)) {
-        const defaultOption = document.createElement('option');
-        defaultOption.value = "";
-        defaultOption.textContent = "Más Canales";
-        espnNumberSelect.appendChild(defaultOption); // Dejar el valor vacío inicialmente
-
-        // Agregar la opción "Volver al canal base"
-        const resetOption = document.createElement('option');
-        resetOption.value = "reset";
-        resetOption.textContent = "Volver al canal base";
-        espnNumberSelect.appendChild(resetOption);
-
-        // Agregar las opciones de números (2-7)
-        for (let i = 2; i <= 7; i++) {
-            const option = document.createElement('option');
-            option.value = i;
-            option.textContent = i;
-            espnNumberSelect.appendChild(option);
+            deportesOptionSelect.style.display = 'none';
         }
-        espnNumberSelect.style.display = 'inline-block';
-    } else if (['eventos', 'espnplus', 'paramount', 'dazn', 'sportv', 'nba', 'max'].includes(selectedChannel)) {
-        const defaultOption = document.createElement('option');
-        defaultOption.value = "";
-        defaultOption.textContent = "Más canales";
-        espnNumberSelect.appendChild(defaultOption); // Dejar el valor vacío inicialmente
 
-        // Agregar la opción "Volver al canal base"
-        const resetOption = document.createElement('option');
-        resetOption.value = "reset";
-        resetOption.textContent = "Volver al canal base";
-        espnNumberSelect.appendChild(resetOption);
-
-        // Agregar las opciones de números (1-8)
-        for (let i = 1; i <= 8; i++) {
-            const option = document.createElement('option');
-            option.value = i;
-            option.textContent = i;
-            espnNumberSelect.appendChild(option);
+        if (['espn', 'dazn', 'premiere', 'mlaliga', 'mcampeones', 'disney', 'tigopy', 'espnmx', 'fanatiz', 'deportestvc', 'foxmx', 'foxar', 'eventos', 'espnplus', 'paramount'].includes(selectedChannel)) {
+            updateDeportesIframe();
         }
-        espnNumberSelect.style.display = 'inline-block';
-    } else {
-        espnNumberSelect.style.display = 'none';
     }
 
-    // Agregar opciones solo si el canal requiere opciones
-    if (selectedChannel) {
-        deportesOptionSelect.style.display = 'inline-block';
-        const defaultOption = document.createElement('option');
-        defaultOption.value = "";
-        defaultOption.textContent = "Op. Visual";
-        deportesOptionSelect.appendChild(defaultOption);
+    // Agrega opciones de números en un selector
+    function addNumberOptions(selectElement, min, max) {
+        selectElement.appendChild(new Option("Más Canales", ""));
+        selectElement.appendChild(new Option("Volver al canal base", "reset"));
 
-        const resetOption = document.createElement('option');
-        resetOption.value = "reset";
-        resetOption.textContent = "Volver a la opción base";
-        deportesOptionSelect.appendChild(resetOption);
+        for (let i = min; i <= max; i++) {
+            selectElement.appendChild(new Option(i, i));
+        }
+        selectElement.style.display = 'inline-block';
+    }
+
+    // Agrega opciones de visualización
+    function addOptionSelections(selectElement) {
+        selectElement.appendChild(new Option("Op. Visual", ""));
+        selectElement.appendChild(new Option("Volver a la opción base", "reset"));
 
         for (let i = 1; i <= 4; i++) {
-            const option = document.createElement('option');
-            option.value = `_${i}`;
-            option.textContent = `_${i}`;
-            deportesOptionSelect.appendChild(option);
+            selectElement.appendChild(new Option(`_${i}`, `_${i}`));
         }
-    } else {
-        deportesOptionSelect.style.display = 'none';
+        selectElement.style.display = 'inline-block';
     }
 
-    // Para canales especiales, cargar inicialmente la URL base
-    if (['espn', 'dazn', 'premiere', 'mlaliga', 'mcampeones', 'disney', 'tigopy', 'espnmx', 'fanatiz', 'deportestvc', 'foxmx', 'foxar', 'eventos', 'espnplus', 'paramount'].includes(selectedChannel)) {
-        updateDeportesIframe();
+    // Cargar canales y eventos
+    loadCanalJson().then(data => {
+        channelsData = data;
+        const deportesSelect = document.getElementById('deportes-channel-select');
+
+        channelsData.specialChannels.forEach(channel => {
+            deportesSelect.appendChild(new Option(channel, channel));
+        });
+
+        deportesSelect.addEventListener('change', () => {
+            updateMenusForSelectedChannel();
+            updateDeportesIframe();
+        });
+
+        document.getElementById('espn-number-select').addEventListener('change', function() {
+            this.value === 'reset' ? updateDeportesIframe() : updateDeportesIframeWithOption();
+        });
+
+        document.getElementById('deportes-option-select').addEventListener('change', function() {
+            this.value === 'reset' ? updateDeportesIframe() : updateDeportesIframeWithOption();
+        });
+    });
+
+    // Configurar Clappr con User-Agent, Referer y Proxy
+    function setupClapprPlayer(streamUrl) {
+        var proxiedUrl = PROXY_URL + encodeURIComponent(streamUrl); // Aplica el proxy
+
+        var player = new Clappr.Player({
+            source: proxiedUrl,
+            parentId: "#player",
+            width: "100%",
+            height: "100%",
+            autoPlay: true,
+            playback: {
+                hlsjsConfig: {
+                    xhrSetup: function(xhr, url) {
+                        xhr.setRequestHeader('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)');
+                        xhr.setRequestHeader('Referer', 'https://dazn.com'); // Ajusta el Referer según el origen del stream
+                    }
+                }
+            }
+        });
     }
-}
 
-// Llenar el selector de canales de deportes con los canales del JSON
-loadCanalJson().then(data => {
-    channelsData = data;
-    const deportesSelect = document.getElementById('deportes-channel-select');
-
-    // Agregar las opciones de los canales especiales
-    channelsData.specialChannels.forEach(channel => {
-        const option = document.createElement('option');
-        option.value = channel;
-        option.textContent = channel;
-        deportesSelect.appendChild(option);
-    });
-
-    deportesSelect.addEventListener('change', function() {
-        updateMenusForSelectedChannel();
-        updateDeportesIframe();
-    });
-
-    document.getElementById('espn-number-select').addEventListener('change', function() {
-        if (this.value === 'reset') {
-            document.getElementById('espn-number-select').selectedIndex = 0;
-            updateDeportesIframe();
-        } else {
-            updateDeportesIframeWithOption();
-        }
-    });
-
-    document.getElementById('deportes-option-select').addEventListener('change', function() {
-        if (this.value === 'reset') {
-            document.getElementById('deportes-option-select').selectedIndex = 0;
-            updateDeportesIframe();
-        } else {
-            updateDeportesIframeWithOption();
-        }
-    });
-});
+    // Llamar la función cuando sea necesario
+    function loadStream(streamUrl) {
+        setupClapprPlayer(streamUrl);
+    }
 </script>
+
 
 </body>
 
