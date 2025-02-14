@@ -364,16 +364,9 @@
         loadCanalJson().then(data => {
             channelsData = data;
 
-    // Asignar la URL de 'mixUrl' al iframe, aplicando el proxy si está definido
-    const iframeMix = document.getElementById('iframe-mix-1');
-    let mixUrl = channelsData.mixUrl; // URL base del mix
-
-    // Aplicar el proxy si está definido
-    if (channelsData.proxyUrl && mixUrl) {
-        mixUrl = `${channelsData.proxyUrl}${encodeURIComponent(mixUrl)}`;
-    }
-
-    iframeMix.src = mixUrl; // Asignar la URL (con proxy si es necesario)
+            // Asignamos la URL de 'mixUrl' al iframe
+            const iframeMix = document.getElementById('iframe-mix-1');
+            iframeMix.src = channelsData.mixUrl; // Aquí usamos la URL del JSON
 
             // Asignamos la URL base de TDT y el identificador
             const iframeTdt = document.getElementById('iframe-tdt-1');
