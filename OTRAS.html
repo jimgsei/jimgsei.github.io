@@ -528,6 +528,23 @@
 		.download-button i {
     		font-size: 16px;
 		}
+		.other-platforms-button {
+ 		   margin-top: 10px;
+ 		   padding: 8px 12px;
+ 		   background-color: #28a745; /* Color verde */
+ 		   color: white;
+  		  border: none;
+  		  border-radius: 5px;
+ 		   cursor: pointer;
+  		  font-size: 14px;
+  		  display: block; /* Para que ocupe toda la línea */
+  		  width: 100%; /* Ocupar todo el ancho disponible */
+  		  text-align: center; /* Centrar el texto */
+		}
+
+		.other-platforms-button:hover {
+ 		   background-color: #218838; /* Color verde oscuro al pasar el ratón */
+		}
 </style>
 </head>
 <body>
@@ -615,7 +632,9 @@
         </div>
 
         <div class="description">
-            La información se recoge de <a href="https://contrataciondelsectorpublico.gob.es/datosabiertos/especificacion-sindicacion.pdf" target="_blank" rel="noopener noreferrer">Códice</a> y es publicada en XML. Los Atoms se publican al día siguiente hábil a media tarde 
+            La información se recoge de <a href="https://contrataciondelsectorpublico.gob.es/datosabiertos/especificacion-sindicacion.pdf" target="_blank" rel="noopener noreferrer">Códice</a> y es publicada en XML. Los Atoms se publican al día siguiente hábil a media tarde
+            <button onclick="window.location.href='https://jimgsei.github.io/PLACE'" class="other-platforms-button">Historial PLACE</button>
+            <button onclick="window.location.href='https://jimgsei.github.io/OTRAS'" class="other-platforms-button">Historial plataformas Autonómicas</button>			
         </div>
 		<!-- Tarjeta para descargar Excel -->
 		<div class="download-box">
