@@ -183,8 +183,15 @@
                 margin: 0 auto;
             }
             .download-box {
-                width: 100%;
-                margin: 0 auto;
+                width: 90%; /* Ajustar el ancho de la tarjeta de descarga */
+                margin: 0 auto 20px auto; /* Centrar la tarjeta y añadir margen inferior */
+            }
+            #atomContainer {
+                width: 95%; /* Ajustar el ancho del contenedor de Atom */
+                margin: 0 auto 20px auto; /* Centrar el contenedor y añadir margen inferior */
+            }
+            .atom-list-box {
+                width: 100%; /* Asegurar que el contenedor de la lista ocupe todo el ancho disponible */
             }
         }
         .filters.visible, .load-more-container.visible {
@@ -295,13 +302,19 @@
             gap: 10px;
             margin: 10px 0;
         }
+		
         .card-details p {
             margin: 0;
             color: #555;
         }
         .card-details i {
             margin-right: 5px;
-            color: #777;
+        }
+        .fa-phone, .fa-envelope, .fa-map-marker-alt {
+            color: #6c8cff; 
+        }
+        .card-details .fa-map-marker-alt {
+            color: #6c8cff; 
         }
         .ver-licitacion-button {
             background-color: #28a745;
@@ -376,6 +389,27 @@
         .download-button i {
             font-size: 16px;
         }
+        .estado-anuncio {
+            background-color: #fff3cd; 
+            padding: 1px 4px;
+            border-radius: 6px; 
+            display: inline-block;
+        }
+
+        .estado-en-plazo {
+            background-color: #d4edda; 
+            padding: 1px 4px;
+            border-radius: 6px; 
+            display: inline-block;
+        }
+
+        .estado-otros {
+            background-color: #f8d7da; 
+            padding: 1px 4px;
+            border-radius: 6px; 
+            display: inline-block;
+        }
+
     </style>
 </head>
 <body>
@@ -462,7 +496,7 @@
             </div>
 
             <div class="description">
-				La información se recoge de <a href="https://contrataciondelsectorpublico.gob.es/datosabiertos/especificacion-sindicacion.pdf" target="_blank" rel="noopener noreferrer">Códice</a> y es publicada en XML. Los Atoms se publican al día siguiente hábil a media tarde
+				La información se recoge de <a href="https://contrataciondelsectorpublico.gob.es/datosabiertos/especificacion-sindicacion.pdf" target="_blank" rel="noopener noreferrer">Códice</a> y es publicada en XML. 
 				<button onclick="window.location.href='https://jimgsei.github.io/PLACE'" class="other-platforms-button">Historial PLACE</button>
 				<button onclick="window.location.href='https://jimgsei.github.io/OTRAS'" class="other-platforms-button">Historial plataformas Autonómicas</button>		
             </div>
@@ -1001,28 +1035,28 @@
                             ? `<p class="lote"><strong>Lotes:</strong><br>${lotes.map(lote => `Lote ${lote.idLote}: ${lote.precio}`).join("<br>")}</p>`
                             : "";
 
-                        cardsContent += `<div class="card">
-                            <div class="card-header">
-                                <div class="expediente"><strong>Nº Exp: ${contractNotification}</strong></div>
-                                <span class="actualizado">Actualizado: ${formatShortDate(updated)}</span>
-                            </div>
-                            <p class="tipo"><strong>${tipo}</strong></p>
-                            <p class="objeto">${title}</p>
-                            ${lotesHTML}
-                            <p class="cpv">CPV: ${cpvsHTML} ${cpvsHiddenHTML}</p>
-                            <p class="cliente"><i class="fas fa-building"></i> ${clienteName} <span class="ver-perfil">${buyerProfile}</span></p>
-                            ${contactoHTML}
-                            <hr class="divider">
-                            <div class="card-details">
-                                <p><i class="fas fa-box"></i> ${procedureCode}</p>
-                                <p><i class="fas fa-info-circle"></i> <span class="${estadoClass}">${estado}</span></p>
-                                <p><i class="fas fa-credit-card"></i> ${formattedImporte}</p>
-                                <p><i class="fas fa-calendar-alt"></i> ${fechaFinal} <i class="fas fa-clock" style="color: #777;"></i> ${horaFinal}</p>
-                                <p><i class="fas fa-map-marker-alt"></i> ${ciudad}</p>
-                            </div>
-                            <a href='${link}' target='_blank' class='ver-licitacion-button'>Ver Licitación</a>
-                            ${documentosHTML}
-                        </div>`;
+						cardsContent += `<div class="card">
+ 						   <div class="card-header">
+ 						       <div class="expediente"><strong>Nº Exp: ${contractNotification}</strong></div>
+ 						       <span class="actualizado">Actualizado: ${formatShortDate(updated)}</span>
+ 						   </div>
+ 						   <p class="tipo"><strong>${tipo}</strong></p>
+ 						   <p class="objeto">${title}</p>
+						    ${lotesHTML}
+ 						   <p class="cpv">CPV: ${cpvsHTML} ${cpvsHiddenHTML}</p>
+ 						   <p class="cliente"><i class="fas fa-building"></i> ${clienteName} <span class="ver-perfil">${buyerProfile}</span></p>
+ 						   ${contactoHTML}
+ 						   <hr class="divider">
+ 						   <div class="card-details">
+ 						       <p><i class="fas fa-box"></i> ${procedureCode}</p>
+ 						       <p><i class="fas fa-info-circle"></i> <span class="${estadoClass}">${estado}</span></p>
+ 						       <p><i class="fas fa-credit-card"></i> ${formattedImporte}</p>
+  						      <p><i class="fas fa-calendar-alt"></i> ${fechaFinal} <i class="fas fa-clock" style="color: #777;"></i> ${horaFinal}</p>
+  						      <p><i class="fas fa-map-marker-alt"></i> ${ciudad}</p>
+ 						   </div>
+  						  <a href='${link}' target='_blank' class='ver-licitacion-button'>Ver Licitación</a>
+ 						   ${documentosHTML}
+						</div>`;
                     }
                 });
                 document.getElementById("licitacionesContainer").innerHTML = cardsContent;
