@@ -261,7 +261,7 @@
         }
 
         function fetchData(date) {
-            const url = `https://www.boe.es/datosabiertos/api/boe/sumario/${date}`;
+            const url = `https://corsmirror.com/v1?url=https://www.boe.es/datosabiertos/api/boe/sumario/${date}`;
             fetch(url, {
                 headers: {
                     'Accept': 'application/xml'
@@ -293,7 +293,7 @@
         }
 
         function fetchDetailedData(identifier, titulo, expediente, pdfUrl, htmlUrl) {
-            const url = `https://www.boe.es/diario_boe/xml.php?id=${identifier}`;
+            const url = `https://corsmirror.com/v1?url=https://www.boe.es/diario_boe/xml.php?id=${identifier}`;
             fetch(url)
             .then(response => response.text())
             .then(str => new window.DOMParser().parseFromString(str, "application/xml"))
