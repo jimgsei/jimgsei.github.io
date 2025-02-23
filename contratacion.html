@@ -29,8 +29,8 @@
     }
     .title {
       font-size: 2em;
-      margin-bottom: 20px;
-      text-align: center; /* Centra el texto */
+      margin-bottom: 10px;
+      text-align: center; 
     }
     .button-group {
       display: flex;
@@ -133,12 +133,14 @@
     /* Estilos para pantallas pequeñas (móviles) */
     @media (max-width: 600px) {
       .button-group {
-        flex-direction: column;
-      }
+		flex-direction: column;
+		align-items: center; /* Centra los botones horizontalmente */
+		width: 100%; /* Asegura que el contenedor ocupe todo el ancho */
+	  }
       .button {
-        margin: 10px 0;
+        margin: 10px auto; /* Centra los botones horizontalmente */
         width: 70%;
-      }
+	  }
       .submenu {
         position: relative;
         margin-top: 5px;
@@ -156,13 +158,13 @@
 <body>
   <div id="particles-js"></div>
   <div class="container">
-    <div class="title">Contratación Pública</div>
+    <div class="title">Contración Pública</div>
     <div class="button-group">
       <div>
         <button class="button" onclick="toggleMenu('PLACES', this)">Plataforma Contratación Estado</button>
         <div id="PLACES" class="submenu">
-          <a href="PLACE.html">PLACE</a>
-          <a href="MENOR.html">Contratos Menores</a>
+          <a href="PLACE.html">Excepto menores</a>
+          <a href="MENOR.html">Menores</a>
         </div>
       </div>
       <div>
