@@ -111,6 +111,8 @@
       padding: 5px;
       margin-top: 5px;
       border-radius: 5px;
+      max-height: 200px; /* Altura máxima con scroll */
+      overflow-y: auto; /* Scroll vertical */
     }
 
     .submenu button {
@@ -143,7 +145,7 @@
       <button class="dropbtn">Seleccionar Canal</button>
       <div class="dropdown-content">
         <!-- Menú de TV -->
-        <button onclick="toggleSubmenu('tv', ['deportes'])" id="tv-button">TV ▼</button>
+        <button onclick="toggleSubmenu('tv', ['deportes', 'otros'])" id="tv-button">TV ▼</button>
         <div id="tv" class="submenu">
           <button onclick="loadVideo('tve1/embed.php')">La 1</button>
           <button onclick="loadVideo('antena-3/embed.php')">Antena 3</button>
@@ -154,7 +156,7 @@
         </div>
 
         <!-- Menú de Deportes -->
-        <button onclick="toggleSubmenu('deportes', ['tv'])" id="deportes-button">Deportes ▼</button>
+        <button onclick="toggleSubmenu('deportes', ['tv', 'otros'])" id="deportes-button">Deportes ▼</button>
         <div id="deportes" class="submenu">
           <!-- Submenú DAZN -->
           <button onclick="toggleSubmenu('dazn', ['movistar'])" id="dazn-button">DAZN ▼</button>
@@ -176,16 +178,66 @@
             <button onclick="loadVideo('m-campeones/embed2.php')">Movistar Campeones</button>
           </div>
         </div>
+
+        <!-- Menú de Otros -->
+        <button onclick="toggleSubmenu('otros', ['tv', 'deportes'])" id="otros-button">Otros ▼</button>
+        <div id="otros" class="submenu">
+          <button onclick="loadOtherChannel('daznf1')">DAZN F1</button>
+          <button onclick="loadOtherChannel('dazn')">DAZN</button>
+          <button onclick="loadOtherChannel('daznlaliga')">DAZN LaLiga</button>
+          <button onclick="loadOtherChannel('laligabar')">LaLiga Bar</button>
+          <button onclick="loadOtherChannel('liga1max')">Liga 1 Max</button>
+          <button onclick="loadOtherChannel('mlaliga')">M. LaLiga</button>
+          <button onclick="loadOtherChannel('mplus')">M+</button>
+          <button onclick="loadOtherChannel('mcampeones')">M. Campeones</button>
+          <button onclick="loadOtherChannel('mcopadelrey')">M. Copa del Rey</button>
+          <button onclick="loadOtherChannel('premiere')">Premiere</button>
+          <button onclick="loadOtherChannel('espn')">ESPN</button>
+          <button onclick="loadOtherChannel('espnplus')">ESPN+</button>
+          <button onclick="loadOtherChannel('espnpremium')">ESPN Premium</button>
+          <button onclick="loadOtherChannel('espndeportes')">ESPN Deportes</button>
+          <button onclick="loadOtherChannel('espnmx')">ESPN MX</button>
+          <button onclick="loadOtherChannel('sportv')">Sportv</button>
+          <button onclick="loadOtherChannel('dsports')">DSports</button>
+          <button onclick="loadOtherChannel('nba')">NBA</button>
+          <button onclick="loadOtherChannel('nfl1')">NFL 1</button>
+          <button onclick="loadOtherChannel('disney')">Disney</button>
+          <button onclick="loadOtherChannel('max')">Max</button>
+          <button onclick="loadOtherChannel('deportestvc')">Deportes TVC</button>
+          <button onclick="loadOtherChannel('goltv')">Gol TV</button>
+          <button onclick="loadOtherChannel('paramount')">Paramount</button>
+          <button onclick="loadOtherChannel('hypermotion')">Hypermotion</button>
+          <button onclick="loadOtherChannel('eventos')">Eventos</button>
+          <button onclick="loadOtherChannel('tyc')">TyC</button>
+          <button onclick="loadOtherChannel('tntar')">TNT Argentina</button>
+          <button onclick="loadOtherChannel('tntpremium')">TNT Premium</button>
+          <button onclick="loadOtherChannel('tudnusa')">TUDN USA</button>
+          <button onclick="loadOtherChannel('tudnmx')">TUDN MX</button>
+          <button onclick="loadOtherChannel('foxdeportes')">Fox Deportes</button>
+          <button onclick="loadOtherChannel('foxmx')">Fox MX</button>
+          <button onclick="loadOtherChannel('futv')">Futv</button>
+          <button onclick="loadOtherChannel('foxar')">Fox Argentina</button>
+          <button onclick="loadOtherChannel('foxpremium')">Fox Premium</button>
+          <button onclick="loadOtherChannel('winsportsplus')">Win Sports+</button>
+          <button onclick="loadOtherChannel('winsports')">Win Sports</button>
+        </div>
       </div>
     </div>
   </div>
 
   <script>
     const baseUrl = 'https://deporte-libre.fans/en-vivo-online/';
+    const otherBaseUrl = 'https://corsmirror.com/v1?url=https://streamdz1.xyz/player/embed2.php?channel=';
 
     function loadVideo(path) {
       const videoFrame = document.getElementById('videoFrame');
       videoFrame.src = baseUrl + path;
+      hideDropdown(); // Ocultar el botón al cambiar de canal
+    }
+
+    function loadOtherChannel(channel) {
+      const videoFrame = document.getElementById('videoFrame');
+      videoFrame.src = otherBaseUrl + channel;
       hideDropdown(); // Ocultar el botón al cambiar de canal
     }
 
