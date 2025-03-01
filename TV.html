@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>F1 | Jimgsey</title>
+  <title>Directo | Jimgsey</title>
   <style>
     body {
       margin: 0;
@@ -137,25 +137,24 @@
     </div>
 
     <div class="dropdown" id="dropdown">
-      <button class="dropbtn">Seleccionar Canal</button>
-      <div class="dropdown-content">
+      <button class="dropbtn" onclick="toggleMenu()">Seleccionar Canal</button>
+      <div class="dropdown-content" id="dropdownContent">
         <!-- Menú de TV -->
         <button onclick="toggleSubmenu('tv', ['deportes', 'otros'])" id="tv-button">TV ▼</button>
         <div id="tv" class="submenu">
-          <button onclick="loadVideo('LA1')">La 1</button>
-          <button onclick="loadVideo('LA2')">La 2</button>
-          <button onclick="loadVideo('ANTENA3')">Antena 3</button>
-          <button onclick="loadVideo('CUATRO')">La Cuatro</button>
-          <button onclick="loadVideo('TELECINCO')">Telecinco</button>
-          <button onclick="loadVideo('LASEXTA')">La Sexta</button>
-          <button onclick="loadVideo('MEGA')">Mega</button>
-          <button onclick="loadVideo('HISTORIA')">Historia</button>
-          <button onclick="loadVideo('FDF')">FDF</button>
-          <button onclick="loadVideo('AMC_BREAK')">AMC Break</button>
-          <button onclick="loadVideo('DARK')">Dark</button>
-          <button onclick="loadVideo('D_KISS')">DKiss</button>
-          <button onclick="loadVideo('ODISEA')">Odisea</button>
-          <button onclick="loadVideo('B_MAD')">B.Mad</button>
+          <button onclick="selectChannel('LA1')">La 1</button>
+          <button onclick="selectChannel('LA2')">La 2</button>
+          <button onclick="selectChannel('ANTENA3')">Antena 3</button>
+          <button onclick="selectChannel('CUATRO')">La Cuatro</button>
+          <button onclick="selectChannel('TELECINCO')">Telecinco</button>
+          <button onclick="selectChannel('LASEXTA')">La Sexta</button>
+          <button onclick="selectChannel('MEGA')">Mega</button>
+          <button onclick="selectChannel('HISTORIA')">Historia</button>
+          <button onclick="selectChannel('FDF')">FDF</button>
+          <button onclick="selectChannel('AMC_BREAK')">AMC Break</button>
+          <button onclick="selectChannel('DARK')">Dark</button>
+          <button onclick="selectChannel('D_KISS')">DKiss</button>
+          <button onclick="selectChannel('ODISEA')">Odisea</button>
         </div>
 
         <!-- Menú de Deportes -->
@@ -164,82 +163,106 @@
           <!-- Submenú DAZN -->
           <button onclick="toggleSubmenu('dazn', ['movistar'])" id="dazn-button">DAZN ▼</button>
           <div id="dazn" class="submenu">
-            <button onclick="loadVideo('dazn-formula-1-es/embed.php')">DAZN F1</button>
-            <button onclick="loadVideo('dazn-1-es/embed.php')">DAZN 1</button>
-            <button onclick="loadVideo('dazn-2-es/embed.php')">DAZN 2</button>
-            <button onclick="loadVideo('dazn-4-es/embed2.php')">DAZN 4</button>
-            <button onclick="loadVideo('dazn-laliga/embed.php')">DAZN LaLiga</button>
+            <button onclick="selectSportsChannel('dazn-formula-1-es/embed.php')">DAZN F1</button>
+            <button onclick="selectSportsChannel('dazn-1-es/embed.php')">DAZN 1</button>
+            <button onclick="selectSportsChannel('dazn-2-es/embed.php')">DAZN 2</button>
+            <button onclick="selectSportsChannel('dazn-4-es/embed2.php')">DAZN 4</button>
+            <button onclick="selectSportsChannel('dazn-laliga/embed.php')">DAZN LaLiga</button>
           </div>
 
           <!-- Submenú Movistar -->
           <button onclick="toggleSubmenu('movistar', ['dazn'])" id="movistar-button">Movistar ▼</button>
           <div id="movistar" class="submenu">
-            <button onclick="loadVideo('m-deportes-2/embed2.php')">Movistar D. 2</button>
-            <button onclick="loadVideo('m-deportes-3/embed2.php')">Movistar D. 3</button>
-            <button onclick="loadVideo('m-deportes-4/embed2.php')">Movistar D. 4</button>
-            <button onclick="loadVideo('laliga/embed2.php')">Movistar LaLiga</button>
-            <button onclick="loadVideo('m-campeones/embed2.php')">Movistar Campeones</button>
+            <button onclick="selectSportsChannel('m-deportes-2/embed2.php')">Movistar D. 2</button>
+            <button onclick="selectSportsChannel('m-deportes-3/embed2.php')">Movistar D. 3</button>
+            <button onclick="selectSportsChannel('m-deportes-4/embed2.php')">Movistar D. 4</button>
+            <button onclick="selectSportsChannel('laliga/embed2.php')">Movistar LaLiga</button>
+            <button onclick="selectSportsChannel('m-campeones/embed2.php')">Movistar Campeones</button>
           </div>
         </div>
 
         <!-- Menú de Otros -->
         <button onclick="toggleSubmenu('otros', ['tv', 'deportes'])" id="otros-button">Otros ▼</button>
         <div id="otros" class="submenu">
-          <button onclick="loadOtherChannel('daznf1')">DAZN F1</button>
-          <button onclick="loadOtherChannel('dazn')">DAZN</button>
-          <button onclick="loadOtherChannel('daznlaliga')">DAZN LaLiga</button>
-          <button onclick="loadOtherChannel('laligabar')">LaLiga Bar</button>
-          <button onclick="loadOtherChannel('liga1max')">Liga 1 Max</button>
-          <button onclick="loadOtherChannel('mlaliga')">M. LaLiga</button>
-          <button onclick="loadOtherChannel('mplus')">M+</button>
-          <button onclick="loadOtherChannel('mcampeones')">M. Campeones</button>
-          <button onclick="loadOtherChannel('mcopadelrey')">M. Copa del Rey</button>
-          <button onclick="loadOtherChannel('premiere')">Premiere</button>
-          <button onclick="loadOtherChannel('espn')">ESPN</button>
-          <button onclick="loadOtherChannel('espnplus')">ESPN+</button>
-          <button onclick="loadOtherChannel('espnpremium')">ESPN Premium</button>
-          <button onclick="loadOtherChannel('espndeportes')">ESPN Deportes</button>
-          <button onclick="loadOtherChannel('espnmx')">ESPN MX</button>
-          <button onclick="loadOtherChannel('sportv')">Sportv</button>
-          <button onclick="loadOtherChannel('dsports')">DSports</button>
-          <button onclick="loadOtherChannel('nba')">NBA</button>
-          <button onclick="loadOtherChannel('nfl1')">NFL 1</button>
-          <button onclick="loadOtherChannel('disney')">Disney</button>
-          <button onclick="loadOtherChannel('max')">Max</button>
-          <button onclick="loadOtherChannel('deportestvc')">Deportes TVC</button>
-          <button onclick="loadOtherChannel('goltv')">Gol TV</button>
-          <button onclick="loadOtherChannel('paramount')">Paramount</button>
-          <button onclick="loadOtherChannel('hypermotion')">Hypermotion</button>
-          <button onclick="loadOtherChannel('eventos')">Eventos</button>
-          <button onclick="loadOtherChannel('tyc')">TyC</button>
-          <button onclick="loadOtherChannel('tntar')">TNT Argentina</button>
-          <button onclick="loadOtherChannel('tntpremium')">TNT Premium</button>
-          <button onclick="loadOtherChannel('tudnusa')">TUDN USA</button>
-          <button onclick="loadOtherChannel('tudnmx')">TUDN MX</button>
-          <button onclick="loadOtherChannel('foxdeportes')">Fox Deportes</button>
-          <button onclick="loadOtherChannel('foxmx')">Fox MX</button>
-          <button onclick="loadOtherChannel('futv')">Futv</button>
-          <button onclick="loadOtherChannel('foxar')">Fox Argentina</button>
-          <button onclick="loadOtherChannel('foxpremium')">Fox Premium</button>
-          <button onclick="loadOtherChannel('winsportsplus')">Win Sports+</button>
-          <button onclick="loadOtherChannel('winsports')">Win Sports</button>
+          <button onclick="selectOtherChannel('daznf1')">DAZN F1</button>
+          <button onclick="selectOtherChannel('dazn')">DAZN</button>
+          <button onclick="selectOtherChannel('daznlaliga')">DAZN LaLiga</button>
+          <button onclick="selectOtherChannel('laligabar')">LaLiga Bar</button>
+          <button onclick="selectOtherChannel('liga1max')">Liga 1 Max</button>
+          <button onclick="selectOtherChannel('mlaliga')">M. LaLiga</button>
+          <button onclick="selectOtherChannel('mplus')">M+</button>
+          <button onclick="selectOtherChannel('mcampeones')">M. Campeones</button>
+          <button onclick="selectOtherChannel('mcopadelrey')">M. Copa del Rey</button>
+          <button onclick="selectOtherChannel('premiere')">Premiere</button>
+          <button onclick="selectOtherChannel('espn')">ESPN</button>
+          <button onclick="selectOtherChannel('espnplus')">ESPN+</button>
+          <button onclick="selectOtherChannel('espnpremium')">ESPN Premium</button>
+          <button onclick="selectOtherChannel('espndeportes')">ESPN Deportes</button>
+          <button onclick="selectOtherChannel('espnmx')">ESPN MX</button>
+          <button onclick="selectOtherChannel('sportv')">Sportv</button>
+          <button onclick="selectOtherChannel('dsports')">DSports</button>
+          <button onclick="selectOtherChannel('nba')">NBA</button>
+          <button onclick="selectOtherChannel('nfl1')">NFL 1</button>
+          <button onclick="selectOtherChannel('disney')">Disney</button>
+          <button onclick="selectOtherChannel('max')">Max</button>
+          <button onclick="selectOtherChannel('deportestvc')">Deportes TVC</button>
+          <button onclick="selectOtherChannel('goltv')">Gol TV</button>
+          <button onclick="selectOtherChannel('paramount')">Paramount</button>
+          <button onclick="selectOtherChannel('hypermotion')">Hypermotion</button>
+          <button onclick="selectOtherChannel('eventos')">Eventos</button>
+          <button onclick="selectOtherChannel('tyc')">TyC</button>
+          <button onclick="selectOtherChannel('tntar')">TNT Argentina</button>
+          <button onclick="selectOtherChannel('tntpremium')">TNT Premium</button>
+          <button onclick="selectOtherChannel('tudnusa')">TUDN USA</button>
+          <button onclick="selectOtherChannel('tudnmx')">TUDN MX</button>
+          <button onclick="selectOtherChannel('foxdeportes')">Fox Deportes</button>
+          <button onclick="selectOtherChannel('foxmx')">Fox MX</button>
+          <button onclick="selectOtherChannel('futv')">Futv</button>
+          <button onclick="selectOtherChannel('foxar')">Fox Argentina</button>
+          <button onclick="selectOtherChannel('foxpremium')">Fox Premium</button>
+          <button onclick="selectOtherChannel('winsportsplus')">Win Sports+</button>
+          <button onclick="selectOtherChannel('winsports')">Win Sports</button>
         </div>
       </div>
     </div>
   </div>
 
   <script>
-    const baseUrl = 'https://nebunexa.co/clappr/?id=';
+    const baseUrlTV = 'https://nebunexa.co/clappr/?id=';
+    const baseUrlSports = 'https://deporte-libre.fans/en-vivo-online/';
     const otherBaseUrl = 'https://corsmirror.com/v1?url=https://streamdz1.xyz/player/embed2.php?channel=';
 
-    function loadVideo(path) {
+    // Cargar un canal de TV
+    function selectChannel(path) {
       const videoFrame = document.getElementById('videoFrame');
-      videoFrame.src = baseUrl + path;
+      videoFrame.src = baseUrlTV + path;
+      closeMenu(); // Cerrar el menú al seleccionar un canal
     }
 
-    function loadOtherChannel(channel) {
+    // Cargar un canal de Deportes
+    function selectSportsChannel(path) {
+      const videoFrame = document.getElementById('videoFrame');
+      videoFrame.src = baseUrlSports + path;
+      closeMenu(); // Cerrar el menú al seleccionar un canal
+    }
+
+    // Cargar un canal de "Otros"
+    function selectOtherChannel(channel) {
       const videoFrame = document.getElementById('videoFrame');
       videoFrame.src = otherBaseUrl + channel;
+      closeMenu(); // Cerrar el menú al seleccionar un canal
+    }
+
+    // Cerrar el menú
+    function closeMenu() {
+      const dropdownContent = document.getElementById('dropdownContent');
+      dropdownContent.style.display = 'none'; // Ocultar el menú
+    }
+
+    // Alternar la visibilidad del menú principal
+    function toggleMenu() {
+      const dropdownContent = document.getElementById('dropdownContent');
+      dropdownContent.style.display = dropdownContent.style.display === 'block' ? 'none' : 'block';
     }
 
     // Alternar la visibilidad de los submenús
@@ -270,7 +293,7 @@
 
     // Cargar LA1 por defecto
     window.onload = function() {
-      loadVideo('LA1'); // Cargará La 1 al iniciar
+      selectChannel('LA1'); // Cargará La 1 al iniciar
     };
   </script>
 </body>
