@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>F1 | Jimgsey</title>
+  <title>Directo | Jimgsey</title>
   <style>
     body {
       margin: 0;
@@ -111,7 +111,7 @@
       padding: 5px;
       margin-top: 5px;
       border-radius: 5px;
-      max-height: 400px; /* Altura máxima con scroll */
+      max-height: 200px; /* Altura máxima con scroll */
       overflow-y: auto; /* Scroll vertical */
     }
 
@@ -147,12 +147,20 @@
         <!-- Menú de TV -->
         <button onclick="toggleSubmenu('tv', ['deportes', 'otros'])" id="tv-button">TV ▼</button>
         <div id="tv" class="submenu">
-          <button onclick="loadVideo('tve1/embed.php')">La 1</button>
-          <button onclick="loadVideo('antena-3/embed.php')">Antena 3</button>
-          <button onclick="loadVideo('la-cuatro/embed.php')">La Cuatro</button>
-          <button onclick="loadVideo('telecinco/embed.php')">Telecinco</button>
-          <button onclick="loadVideo('la-sexta/embed.php')">La Sexta</button>
-          <button onclick="loadVideo('mega/embed.php')">Mega</button>
+          <button onclick="loadVideo('LA1')">La 1</button>
+          <button onclick="loadVideo('LA2')">La 2</button>
+          <button onclick="loadVideo('ANTENA3')">Antena 3</button>
+          <button onclick="loadVideo('CUATRO')">La Cuatro</button>
+          <button onclick="loadVideo('TELECINCO')">Telecinco</button>
+          <button onclick="loadVideo('LASEXTA')">La Sexta</button>
+          <button onclick="loadVideo('MEGA')">Mega</button>
+          <button onclick="loadVideo('HISTORIA')">Historia</button>
+          <button onclick="loadVideo('FDF')">FDF</button>
+          <button onclick="loadVideo('AMC_BREAK')">AMC Break</button>
+          <button onclick="loadVideo('DARK')">Dark</button>
+          <button onclick="loadVideo('D_KISS')">DKiss</button>
+          <button onclick="loadVideo('ODISEA')">Odisea</button>
+          <button onclick="loadVideo('B_MAD')">B.Mad</button>
         </div>
 
         <!-- Menú de Deportes -->
@@ -171,9 +179,9 @@
           <!-- Submenú Movistar -->
           <button onclick="toggleSubmenu('movistar', ['dazn'])" id="movistar-button">Movistar ▼</button>
           <div id="movistar" class="submenu">
-            <button onclick="loadVideo('m-deportes-2/embed2.php')">Movistar Deportes 2</button>
-            <button onclick="loadVideo('m-deportes-3/embed2.php')">Movistar Deportes 3</button>
-            <button onclick="loadVideo('m-deportes-4/embed2.php')">Movistar Deportes 4</button>
+            <button onclick="loadVideo('m-deportes-2/embed2.php')">Movistar D. 2</button>
+            <button onclick="loadVideo('m-deportes-3/embed2.php')">Movistar D. 3</button>
+            <button onclick="loadVideo('m-deportes-4/embed2.php')">Movistar D. 4</button>
             <button onclick="loadVideo('laliga/embed2.php')">Movistar LaLiga</button>
             <button onclick="loadVideo('m-campeones/embed2.php')">Movistar Campeones</button>
           </div>
@@ -226,22 +234,18 @@
   </div>
 
   <script>
-    const baseUrl = 'https://deporte-libre.fans/en-vivo-online/';
+    const baseUrl = 'https://nebunexa.co/clappr/?id=';
     const otherBaseUrl = 'https://corsmirror.com/v1?url=https://streamdz1.xyz/player/embed2.php?channel=';
 
     function loadVideo(path) {
       const videoFrame = document.getElementById('videoFrame');
-      const fullUrl = baseUrl + path;
-      console.log('Cargando:', fullUrl); // Depuración
-      videoFrame.src = fullUrl;
+      videoFrame.src = baseUrl + path;
       hideDropdown(); // Ocultar el botón al cambiar de canal
     }
 
     function loadOtherChannel(channel) {
       const videoFrame = document.getElementById('videoFrame');
-      const fullUrl = otherBaseUrl + channel;
-      console.log('Cargando:', fullUrl); // Depuración
-      videoFrame.src = fullUrl;
+      videoFrame.src = otherBaseUrl + channel;
       hideDropdown(); // Ocultar el botón al cambiar de canal
     }
 
@@ -287,9 +291,9 @@
     document.addEventListener('mousemove', showDropdown);
     document.addEventListener('touchstart', showDropdown);
 
-    // Cargar la primera opción por defecto
+    // Cargar LA1 por defecto
     window.onload = function() {
-      loadVideo('dazn-formula-1-es/embed.php');
+      loadVideo('LA1'); // Cargará La 1 al iniciar
     };
   </script>
 </body>
