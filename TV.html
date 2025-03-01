@@ -44,25 +44,12 @@
 
     .dropdown {
       position: fixed;
-      bottom: 20px;
+      bottom: 50px; /* Subir un poco el botón */
       z-index: 1000;
       background-color: rgba(0, 0, 0, 0.8);
       border-radius: 10px;
       padding: 10px;
-      transition: opacity 0.3s ease;
-      opacity: 0;
-    }
-
-    /* Mostrar siempre el botón en móviles */
-    @media (hover: none) and (pointer: coarse) {
-      .dropdown {
-        opacity: 1; /* Siempre visible en móviles */
-        bottom: 50px; /* Subir un poco el botón */
-      }
-    }
-
-    .dropdown.visible {
-      opacity: 1;
+      opacity: 1; /* Siempre visible */
     }
 
     .dropbtn {
@@ -248,29 +235,11 @@
     function loadVideo(path) {
       const videoFrame = document.getElementById('videoFrame');
       videoFrame.src = baseUrl + path;
-      hideDropdown(); // Ocultar el botón al cambiar de canal
     }
 
     function loadOtherChannel(channel) {
       const videoFrame = document.getElementById('videoFrame');
       videoFrame.src = otherBaseUrl + channel;
-      hideDropdown(); // Ocultar el botón al cambiar de canal
-    }
-
-    // Ocultar el botón al cargar la página (solo en ordenadores)
-    function hideDropdown() {
-      if (!isMobileDevice()) {
-        const dropdown = document.getElementById('dropdown');
-        dropdown.classList.remove('visible');
-      }
-    }
-
-    // Mostrar el botón al pasar el ratón o tocar la pantalla (solo en ordenadores)
-    function showDropdown() {
-      if (!isMobileDevice()) {
-        const dropdown = document.getElementById('dropdown');
-        dropdown.classList.add('visible');
-      }
     }
 
     // Alternar la visibilidad de los submenús
@@ -297,16 +266,6 @@
       if (buttonToShow) {
         buttonToShow.classList.toggle('selected', submenuToShow.style.display === 'block');
       }
-    }
-
-    // Detectar si es un dispositivo móvil
-    function isMobileDevice() {
-      return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
-    }
-
-    // Eventos para mostrar/ocultar el botón (solo en ordenadores)
-    if (!isMobileDevice()) {
-      document.addEventListener('mousemove', showDropdown);
     }
 
     // Cargar LA1 por defecto
