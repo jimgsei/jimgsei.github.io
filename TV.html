@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Directo | Jimgsey</title>
+  <title>F1 | Jimgsey</title>
   <style>
     body {
       margin: 0;
@@ -51,6 +51,14 @@
       padding: 10px;
       transition: opacity 0.3s ease;
       opacity: 0;
+    }
+
+    /* Mostrar siempre el botón en móviles */
+    @media (hover: none) and (pointer: coarse) {
+      .dropdown {
+        opacity: 1; /* Siempre visible en móviles */
+        bottom: 50px; /* Subir un poco el botón */
+      }
     }
 
     .dropdown.visible {
@@ -160,7 +168,6 @@
           <button onclick="loadVideo('DARK')">Dark</button>
           <button onclick="loadVideo('D_KISS')">DKiss</button>
           <button onclick="loadVideo('ODISEA')">Odisea</button>
-          <button onclick="loadVideo('B_MAD')">B.Mad</button>
         </div>
 
         <!-- Menú de Deportes -->
@@ -249,16 +256,20 @@
       hideDropdown(); // Ocultar el botón al cambiar de canal
     }
 
-    // Ocultar el botón al cargar la página
+    // Ocultar el botón al cargar la página (solo en ordenadores)
     function hideDropdown() {
-      const dropdown = document.getElementById('dropdown');
-      dropdown.classList.remove('visible');
+      if (!isMobileDevice()) {
+        const dropdown = document.getElementById('dropdown');
+        dropdown.classList.remove('visible');
+      }
     }
 
-    // Mostrar el botón al pasar el ratón o tocar la pantalla
+    // Mostrar el botón al pasar el ratón o tocar la pantalla (solo en ordenadores)
     function showDropdown() {
-      const dropdown = document.getElementById('dropdown');
-      dropdown.classList.add('visible');
+      if (!isMobileDevice()) {
+        const dropdown = document.getElementById('dropdown');
+        dropdown.classList.add('visible');
+      }
     }
 
     // Alternar la visibilidad de los submenús
@@ -287,9 +298,15 @@
       }
     }
 
-    // Eventos para mostrar/ocultar el botón
-    document.addEventListener('mousemove', showDropdown);
-    document.addEventListener('touchstart', showDropdown);
+    // Detectar si es un dispositivo móvil
+    function isMobileDevice() {
+      return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
+    }
+
+    // Eventos para mostrar/ocultar el botón (solo en ordenadores)
+    if (!isMobileDevice()) {
+      document.addEventListener('mousemove', showDropdown);
+    }
 
     // Cargar LA1 por defecto
     window.onload = function() {
