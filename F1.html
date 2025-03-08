@@ -623,48 +623,51 @@
     }
 
     /* Contenedor del desplegable */
+/* Estilos para el contenedor del desplegable */
+.dropdown-container {
+    display: none;
+    position: absolute; /* Posición absoluta para que flote */
+    top: 100%; /* Posicionar justo debajo del botón */
+    left: 50%; /* Centrar horizontalmente */
+    transform: translateX(-50%); /* Ajustar para centrar correctamente */
+    width: auto; /* Ancho automático (se ajusta al contenido) */
+    min-width: 200px; /* Ancho mínimo para que no sea demasiado estrecho */
+    background-color: rgba(0, 0, 0, 0.9); /* Fondo oscuro semi-transparente */
+    border: 1px solid #006F62; /* Borde granate */
+    border-radius: 5px; /* Bordes redondeados */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra */
+    z-index: 1000; /* Asegurar que esté por encima de otros elementos */
+    flex-direction: column;
+    align-items: center;
+    padding: 10px;
+    margin-top: 5px; /* Espacio entre el botón y el menú */
+}
+
+/* Botones del desplegable */
+.dropdown-button {
+    width: 100%; /* Ancho completo dentro del contenedor */
+    padding: 10px;
+    margin: 5px 0;
+    cursor: pointer;
+    background-color: #006F62; /* Color granate */
+    color: white; /* Letras blancas */
+    border: 2px solid white; /* Filo blanco */
+    border-radius: 5px;
+    text-align: center;
+    transition: background-color 0.3s, transform 0.3s; /* Transiciones suaves */
+}
+
+.dropdown-button:hover {
+    background-color: #005f52; /* Color granate más oscuro al pasar el ratón */
+}
+
+/* Ajustes para pantallas pequeñas */
+@media (max-width: 600px) {
     .dropdown-container {
-        display: none;
-        position: absolute; /* Posición absoluta para que flote */
-        top: 125%; /* Posicionar justo debajo del botón */
-        left: 50%;
-        transform: translate(-50%, 0); /* Centrar horizontalmente */
-        flex-direction: column;
-        align-items: center;
-        background-color: transparent; /* Fondo transparente */
-        border: none;
-        border-radius: 5px;
-        padding: 10px;
-        max-width: 90%;
-        max-height: 80%;
-        overflow-y: auto;
-        z-index: 1000;
+        width: 90%; /* Ancho casi completo en móviles */
+        min-width: unset; /* Eliminar el ancho mínimo en móviles */
     }
-
-    /* Botones del desplegable */
-    .dropdown-button {
-        padding: 10px 20px;
-        margin: 5px 0;
-        cursor: pointer;
-        background-color: #006F62; /* Color granate */
-        color: white; /* Letras blancas */
-        border: 2px solid white; /* Filo blanco */
-        border-radius: 5px;
-        width: 100%;
-        text-align: center;
-    }
-    .dropdown-button:hover {
-        background-color: #006F62; /* Color granate más claro al pasar el ratón */
-    }
-
-    /* Ajustes para pantallas pequeñas */
-    @media (max-width: 600px) {
-        .dropdown-container {
-            top: 108%; /* Asegurar que el menú aparezca justo debajo del botón */
-            transform: translate(-50%, 0); /* Ajustar la posición para pantallas pequeñas */
-        }
-    }
-
+}
 
 		
 	/* Proximos circuitos */
