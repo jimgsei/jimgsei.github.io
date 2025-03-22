@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SELinux by Jimgsey</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    /* General Styles */
+    body {
+      background-color: #0a192f; /* Dark blue */
+      color: #ffffff; /* White text */
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 20px;
+      line-height: 1.6;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    h1 {
+      color: #64ffda; /* Teal for headings */
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 150px;
+      background-color: #112240; /* Darker blue */
+      color: #ffffff; /* White text */
+      border: 1px solid #233554; /* Subtle border */
+      border-radius: 5px;
+      padding: 10px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      resize: none; /* Disable manual resize */
+      overflow-y: auto; /* Add scroll if content is too long */
+      white-space: pre-wrap; /* Preserve line breaks */
+      word-wrap: break-word; /* Break long words */
+      box-sizing: border-box; /* Include padding and border in width */
+    }
+
+    .section {
+      background-color: rgba(17, 34, 64, 0.01); /* Darker blue with more transparency */
+      border: 1px solid #233554; /* Subtle border */
+      border-radius: 5px;
+      padding: 20px;
+      margin: 20px auto; /* Centered with margin */
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); /* Soft shadow for floating effect */
+      backdrop-filter: blur(10px); /* Stronger blur effect */
+      width: 90%; /* Default width for smaller screens */
+      max-width: 800px; /* Limit maximum width for larger screens */
+      box-sizing: border-box; /* Include padding and border in width */
+    }
+
+    .section h2 {
+      color: #ffffff; /* White for section headings */
+      margin-top: 0;
+    }
+
+    .file-title {
+      background-color: #1f2a48; /* Dark blue for file title */
+      color: #64ffda; /* Teal for file title text */
+      padding: 10px;
+      border-radius: 5px 5px 0 0;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+    }
+
+    .code-container {
+      background-color: rgba(35, 53, 84, 0.9); /* Dark gray for code blocks with transparency */
+      border-radius: 0 0 5px 5px;
+      overflow-x: auto;
+      padding: 10px;
+      position: relative;
+      backdrop-filter: blur(5px); /* Blur effect */
+    }
+
+    .code {
+      color: #ffffff; /* White text for code */
+      font-family: 'Courier New', monospace;
+      white-space: pre-wrap; /* Preserve line breaks */
+      margin: 0;
+      padding-left: 10px; /* Space for line numbers */
+      word-wrap: break-word; /* Break long words */
+    }
+
+    .copy-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: none; /* No background */
+      border: none;
+      color: #64ffda; /* Teal text */
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .copy-button.copied {
+      color: #ffffff; /* White text when copied */
+    }
+
+    /* Footer Styles */
+    footer {
+      margin-top: auto;
+      text-align: center;
+      padding: 20px 0;
+      color: #ffffff; /* White text */
+    }
+
+    footer a {
+      color: #ffffff; /* White text */
+      text-decoration: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    footer i {
+      font-size: 2em; /* Larger icon */
+      color: #ffffff; /* White color for the icon */
+    }
+
+    footer span {
+      font-size: 0.9em; /* Smaller text */
+    }
+
+    /* Fondo de partículas */
+    #particles-js {
+      position: fixed; /* Fixed to cover the entire screen */
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      z-index: -1; /* Ensure particles are behind everything */
+    }
+  </style>
+</head>
+<body>
+  <div id="particles-js"></div>
+  <h1>SELinux Log Analyzer</h1>
+  <p style="text-align: center; max-width: 800px; margin: 0 auto;">
+    Upload one or more log files or paste the log content to analyze SELinux errors and generate <code>sepolicy</code> rules.
+  </p>
+
+  <div class="section">
+    <h2>Input Log</h2>
+    <input type="file" id="logFile" accept="*" multiple>
+    <textarea id="logText" placeholder="Or paste your log content here..."></textarea>
+  </div>
+
+  <div class="section">
+    <h2>Detected Errors</h2>
+    <div class="code-container">
+      <div id="output" class="code" contenteditable="true" placeholder="Results will appear here..."></div>
+    </div>
+  </div>
+
+  <div id="sepolicySection" class="section" style="display: none;">
+    <h2>Generated SEPolicy Rules</h2>
+    <div id="sepolicyRules"></div>
+  </div>
+
+  <footer>
+    <a href="https://github.com/jimgsey" target="_blank">
+      <i class="fab fa-github"></i>
+      <span>Power by Jimgsey</span>
+    </a>
+  </footer>
+  <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+  <script>
+    const logFileInput = document.getElementById('logFile');
+    const logTextInput = document.getElementById('logText');
+    const outputDiv = document.getElementById('output');
+
+    // Process log when files are uploaded
+    logFileInput.addEventListener('change', function(event) {
+      const files = event.target.files;
+      if (files.length > 0) {
+        let combinedLogContent = '';
+        let filesProcessed = 0;
+
+        // Read each file and combine their content
+        Array.from(files).forEach(file => {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            combinedLogContent += e.target.result + '\n';
+            filesProcessed++;
+
+            // Process combined content when all files are read
+            if (filesProcessed === files.length) {
+              processLogContent(combinedLogContent);
+            }
+          };
+          reader.readAsText(file);
+        });
+      }
+    });
+
+    // Process log when text is pasted
+    logTextInput.addEventListener('input', function() {
+      const logContent = logTextInput.value;
+      processLogContent(logContent);
+    });
+
+function processLogContent(logContent) {
+  const { uniqueErrors, sepolicyRules: permissionDeniedRules } = analyzePermissionDeniedErrors(logContent);
+  const neverallowErrors = analyzeNeverallowErrors(logContent);
+  const fileContextsErrors = analyzeFileContextsErrors(logContent);
+  const { avcDeniedErrors, sepolicyRules: avcDeniedRules } = analyzeAvcDeniedErrors(logContent);
+
+  // Combine all errors
+  const formattedErrors = [
+    ...uniqueErrors.map(error => `Permission denied: ${error}`),
+    ...neverallowErrors,
+    ...fileContextsErrors,
+    ...avcDeniedErrors,
+  ].join('\n\n');
+
+  outputDiv.innerHTML = formattedErrors;
+  adjustOutputHeight(outputDiv);
+
+  // Combine all SEPolicy rules
+  const allSepolicyRules = [...permissionDeniedRules, ...avcDeniedRules];
+
+  // Display SEPolicy rules
+  displaySepolicyRules(allSepolicyRules);
+}
+
+    function analyzePermissionDeniedErrors(logContent) {
+      // Regex to find "Permission denied" errors
+      const permissionDeniedRegex = /(\/.*?): open failed: EACCES \(Permission denied\)/g;
+      // Regex to find "avc: denied" errors
+      const avcDeniedRegex = /avc: denied { (\w+) } for .*? scontext=u:r:([^:]+):s0 tcontext=u:object_r:([^:]+):s0 tclass=(\w+)/g;
+
+      let match;
+      const uniqueErrors = new Set(); // Avoid duplicates
+      const sepolicyRules = [];
+
+      // Find "Permission denied" errors
+      while ((match = permissionDeniedRegex.exec(logContent)) !== null) {
+        const filePath = match[1]; // File path
+
+        // Process only unique errors
+        if (!uniqueErrors.has(filePath)) {
+          uniqueErrors.add(filePath);
+
+          // Extract context from the file path (e.g., "hbm" or "gpu")
+          const context = filePath.split('/').pop().toUpperCase();
+
+          // Generate sepolicy rule (assuming domain is "system_app")
+          const rule = `# ${context}\nallow system_app file:file { read open };`;
+          sepolicyRules.push({
+            file: 'system_app.te', // Default file name
+            rule: rule,
+          });
+        }
+      }
+
+      // Find "avc: denied" errors
+      while ((match = avcDeniedRegex.exec(logContent)) !== null) {
+        const [_, permission, scontext, tcontext, tclass] = match;
+
+        // Process only unique errors
+        const errorKey = `${scontext}:${tcontext}:${tclass}:${permission}`;
+        if (!uniqueErrors.has(errorKey)) {
+          uniqueErrors.add(errorKey);
+
+          // Generate sepolicy rule
+          const rule = `allow ${scontext} ${tcontext}:${tclass} { ${permission} };`;
+          sepolicyRules.push({
+            file: `${scontext}.te`, // Dynamic file name based on scontext
+            rule: rule,
+          });
+        }
+      }
+
+      return {
+        uniqueErrors: Array.from(uniqueErrors),
+        sepolicyRules,
+      };
+    }
+
+    function analyzeNeverallowErrors(logContent) {
+      const neverallowRegex = /neverallow check failed at (.+?):(\d+) from (.+?):(\d+)[\s\S]*?\(neverallow (.+?)\)[\s\S]*?allow at (.+?):(\d+)[\s\S]*?\(allow (.+?)\)/g;
+
+      let match;
+      const neverallowErrors = [];
+
+      while ((match = neverallowRegex.exec(logContent)) !== null) {
+        const [
+          _,
+          failedAtFile,
+          failedAtLine,
+          neverallowFile,
+          neverallowLine,
+          neverallowRule,
+          allowAtFile,
+          allowLine,
+          allowRule,
+        ] = match;
+
+        // Crear un mensaje con el error
+        const errorMessage = `Neverallow violation detected:\n` +
+          `- File with neverallow: ${neverallowFile} (line ${neverallowLine})\n` +
+          `- Neverallow rule: ${neverallowRule}\n` +
+          `- File with allow: ${allowAtFile} (line ${allowLine})\n` +
+          `- Allow rule: ${allowRule}`;
+
+        // Generar botones para copiar el error y abrir DeepSeek
+        const solution = `
+          <strong>Neverallow violation detected:</strong><br>
+          - File with neverallow: ${neverallowFile} (line ${neverallowLine})<br>
+          - Neverallow rule: ${neverallowRule}<br>
+          - File with allow: ${allowAtFile} (line ${allowLine})<br>
+          - Allow rule: ${allowRule}<br><br>
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <button onclick="copyToClipboard('${errorMessage.replace(/\n/g, '\\n')}', this)" style="background: none; border: none; color: #64ffda; font-weight: bold; cursor: pointer; padding: 0;">
+              Copy
+            </button>
+            <span style="color: #64ffda;">|</span>
+            <button onclick="window.open('https://chat.deepseek.com', '_blank')" style="background: none; border: none; color: #64ffda; font-weight: bold; cursor: pointer; padding: 0;">
+              Open DeepSeek Chat
+            </button>
+          </div>
+        `;
+
+        neverallowErrors.push(solution);
+      }
+
+      return neverallowErrors;
+    }
+
+    function analyzeFileContextsErrors(logContent) {
+      const fileContextsRegex = /(?:[^:]+: )?Multiple different specifications for (.+?) \((u:object_r:[^:]+):s0\) (?:and|&) \((u:object_r:[^:]+):s0\)/g;
+
+      let match;
+      const fileContextsErrors = [];
+
+      while ((match = fileContextsRegex.exec(logContent)) !== null) {
+        const [
+          _,
+          filePath,
+          context1,
+          context2,
+        ] = match;
+
+        // Generar solución recomendada
+        const solution = `
+          <strong>File contexts conflict detected:</strong><br>
+          - File: <code>${filePath}</code><br>
+          - Context 1: <code>${context1}:s0</code><br>
+          - Context 2: <code>${context2}:s0</code><br><br>
+          <strong>Solution:</strong><br>
+          Remove one of the conflicting contexts from <code>file_contexts</code>.<br>
+          For example, keep only:<br>
+          <code>${filePath} ${context1}:s0</code><br>
+          or<br>
+          <code>${filePath} ${context2}:s0</code><br><br>
+          <em>Recompile the SELinux policy after making changes.</em>
+        `;
+
+        fileContextsErrors.push(solution);
+      }
+
+      return fileContextsErrors;
+    }
+
+function analyzeAvcDeniedErrors(logContent) {
+  const avcDeniedRegex = /avc:\s+denied\s+\{\s*(\w+)\s*\}\s+for\s+interface=([^\s]+)\s+sid=([^\s]+)\s+pid=(\d+)\s+scontext=([^\s]+)\s+tcontext=([^\s]+)\s+tclass=([^\s]+)/g;
+
+  let match;
+  const avcDeniedErrorsSet = new Set(); // Usar un Set para evitar duplicados
+  const sepolicyRulesSet = new Set();   // Usar un Set para evitar duplicados
+
+  while ((match = avcDeniedRegex.exec(logContent)) !== null) {
+    const [
+      _,
+      permission,
+      interfaceName,
+      sid,
+      pid,
+      scontext,
+      tcontext,
+      tclass,
+    ] = match;
+
+    // Extraer el dominio y el tipo de contexto
+    const sourceDomain = scontext.split(':')[2]; // Ejemplo: platform_app
+    const targetType = tcontext.split(':')[2];   // Ejemplo: default_android_hwservice
+
+    // Generar la regla de sepolicy
+    const rule = `allow ${sourceDomain} ${targetType}:${tclass} { ${permission} };`;
+
+    // Añadir la regla a la lista de reglas de sepolicy (usando Set para evitar duplicados)
+    sepolicyRulesSet.add(JSON.stringify({
+      file: `${sourceDomain}.te`, // Nombre del archivo .te
+      rule: rule,
+    }));
+
+    // Generar solución recomendada (solo Target Context)
+    const solution = ` - Target Context: <code>${tcontext}</code>`;
+
+    // Añadir la solución a la lista de errores (usando Set para evitar duplicados)
+    avcDeniedErrorsSet.add(solution);
+  }
+
+  // Convertir los Sets de nuevo a arrays
+  const avcDeniedErrors = Array.from(avcDeniedErrorsSet);
+  const sepolicyRules = Array.from(sepolicyRulesSet).map(rule => JSON.parse(rule));
+
+  return {
+    avcDeniedErrors,
+    sepolicyRules,
+  };
+}
+
+    // Función para copiar texto al portapapeles
+    function copyToClipboard(text, button) {
+      navigator.clipboard.writeText(text).then(() => {
+        button.textContent = 'Copied';
+        setTimeout(() => {
+          button.textContent = 'Copy';
+        }, 2000); // Reset after 2 seconds
+      }).catch((err) => {
+        console.error('Failed to copy text: ', err);
+      });
+    }
+
+    function adjustOutputHeight(element) {
+      element.style.height = 'auto'; // Reset height
+      element.style.height = `${element.scrollHeight}px`; // Adjust height to content
+    }
+
+    function displaySepolicyRules(sepolicyRules) {
+      const sepolicySection = document.getElementById('sepolicySection');
+      const sepolicyRulesElement = document.getElementById('sepolicyRules');
+
+      if (sepolicyRules.length > 0) {
+        // Show the section
+        sepolicySection.style.display = 'block';
+
+        // Clear previous content
+        sepolicyRulesElement.innerHTML = '';
+
+        // Display each rule
+        sepolicyRules.forEach((rule, index) => {
+          const ruleContainer = document.createElement('div');
+          ruleContainer.style.marginBottom = '20px';
+
+          // File title
+          const fileTitle = document.createElement('div');
+          fileTitle.className = 'file-title';
+          fileTitle.textContent = `File: ${rule.file}`;
+          ruleContainer.appendChild(fileTitle);
+
+          // Code block
+          const codeContainer = document.createElement('div');
+          codeContainer.className = 'code-container';
+
+          const codeBlock = document.createElement('div');
+          codeBlock.className = 'code';
+          codeBlock.textContent = rule.rule;
+          codeContainer.appendChild(codeBlock);
+
+          // Copy button
+          const copyButton = document.createElement('button');
+          copyButton.className = 'copy-button';
+          copyButton.textContent = 'Copy';
+          copyButton.addEventListener('click', () => {
+            navigator.clipboard.writeText(rule.rule).then(() => {
+              copyButton.textContent = 'Copied';
+              copyButton.classList.add('copied');
+              setTimeout(() => {
+                copyButton.textContent = 'Copy';
+                copyButton.classList.remove('copied');
+              }, 2000); // Reset after 2 seconds
+            });
+          });
+          codeContainer.appendChild(copyButton);
+
+          ruleContainer.appendChild(codeContainer);
+          sepolicyRulesElement.appendChild(ruleContainer);
+        });
+
+        // Scroll to the sepolicy section
+        sepolicySection.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        // Hide the section if no rules
+        sepolicySection.style.display = 'none';
+      }
+    }
+
+    // Adjust textarea height on input
+    logTextInput.addEventListener('input', () => adjustOutputHeight(logTextInput));
+    outputDiv.addEventListener('input', () => adjustOutputHeight(outputDiv));
+  </script>
+  <script>
+    particlesJS("particles-js", {
+      "particles": {
+        "number": {
+          "value": 100,
+          "density": {
+            "enable": true,
+            "value_area": 800
+          }
+        },
+        "color": {
+          "value": "#ffffff"
+        },
+        "shape": {
+          "type": "circle",
+          "stroke": {
+            "width": 0,
+            "color": "#000000"
+          },
+          "polygon": {
+            "nb_sides": 5
+          },
+          "image": {
+            "src": "img/github.svg",
+            "width": 100,
+            "height": 100
+          }
+        },
+        "opacity": {
+          "value": 0.5,
+          "random": false,
+          "anim": {
+            "enable": false,
+            "speed": 1,
+            "opacity_min": 0.1,
+            "sync": false
+          }
+        },
+        "size": {
+          "value": 3,
+          "random": true,
+          "anim": {
+            "enable": false,
+            "speed": 40,
+            "size_min": 0.1,
+            "sync": false
+          }
+        },
+        "line_linked": {
+          "enable": true,
+          "distance": 150,
+          "color": "#ffffff",
+          "opacity": 0.4,
+          "width": 1
+        },
+        "move": {
+          "enable": true,
+          "speed": 6,
+          "direction": "none",
+          "random": false,
+          "straight": false,
+          "out_mode": "out",
+          "bounce": false,
+          "attract": {
+            "enable": false,
+            "rotateX": 600,
+            "rotateY": 1200
+          }
+        }
+      },
+      "interactivity": {
+        "detect_on": "canvas",
+        "events": {
+          "onhover": {
+            "enable": true,
+            "mode": "grab"
+          },
+          "onclick": {
+            "enable": true,
+            "mode": "push"
+          },
+          "resize": true
+        },
+        "modes": {
+          "grab": {
+            "distance": 140,
+            "line_linked": {
+              "opacity": 1
+            }
+          },
+          "bubble": {
+            "distance": 400,
+            "size": 40,
+            "duration": 2,
+            "opacity": 8,
+            "speed": 3
+          },
+          "repulse": {
+            "distance": 200,
+            "duration": 0.4
+          },
+          "push": {
+            "particles_nb": 4
+          },
+          "remove": {
+            "particles_nb": 2
+          }
+        }
+      },
+      "retina_detect": true
+    });
+  </script>
+</body>
+</html>

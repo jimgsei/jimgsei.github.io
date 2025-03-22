@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jimgsey</title>
+  <link rel="stylesheet" href="styles.css">
+ <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #000;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: rgba(128, 128, 128, 0.1);
+            border-radius: 10px;
+            width: 90%;
+            max-width: 700px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.7);
+            text-align: center;
+        }
+        .title {
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .button {
+            background-color: transparent;
+            color: #fff;
+            border: 1px solid #aaa; /* Borde blanco fino */
+            padding: 10px;
+            font-size: 1em;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            text-align: center;
+        }
+        .button:hover {
+            border: 1px solid #fff;
+        }
+        .button.active {
+            border: 1px solid #fff;
+            box-shadow: 0 0 15px 3px rgba(255, 255, 255, 0.6);
+        }
+        .submenu {
+            display: none;
+            background-color: rgba(128, 128, 128, 0.9);
+            border-radius: 5px;
+            padding: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            text-align: left;
+            margin-top: 5px;
+            width: fit-content;
+        }
+        .submenu a {
+            color: #fff;
+            text-decoration: none;
+            display: block;
+            padding: 5px 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            background-color: #555;
+            transition: background-color 0.3s ease;
+            text-align: center;
+        }
+        .submenu a:hover {
+            background-color: #777;
+        }
+        .credits {
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #ddd;
+        }
+		.creditos {
+          margin-top: 20px;
+        }
+		.creditos img {
+		  width: 30px;
+		  vertical-align: middle;
+		  filter: invert(1);
+        }
+
+        /* Animación fadeIn */
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+
+        /* Fondo de partículas */
+        #particles-js {
+         position: absolute;
+         width: 100%;
+         height: 100%;
+         top: 0;
+         left: 0;
+         z-index: 0;
+        }
+
+        /* Estilos para pantallas grandes */
+        @media (min-width: 601px) {
+            .button-group {
+                flex-direction: row;
+                justify-content: center;
+            }
+            .button {
+                flex: 1;
+                margin: 5px;
+                text-align: center;
+            }
+            .submenu {
+                position: relative;
+                text-align: left;
+                margin-top: 5px;
+                width: fit-content;
+                padding: 5px 15px;
+                display: none;
+            }
+        }
+
+        /* Estilos para pantallas pequeñas (móviles) */
+        @media (max-width: 600px) {
+            .button-group {
+                flex-direction: column;
+            }
+            .button {
+                margin: 10px 0;
+                width: 70%;
+            }
+            .submenu {
+                position: relative;
+                margin-top: 5px;
+                width: auto;  /* El ancho es ahora auto para ajustarse al contenido */
+                max-width: 70%; /* Controla la anchura máxima para hacerlo más estrecho */
+                padding: 5px 10px;
+                display: none;
+                margin-left: auto; /* Centra el submenú */
+                margin-right: auto; /* Centra el submenú */
+            }
+        }
+
+    </style>
+</head>
+<link rel="icon" href="UP.ico" type="image/x-icon">
+<body>
+  <div id="particles-js"></div>
+    <div class="container">
+        <div class="title">Webs</div>
+        <div class="button-group">
+            <div>
+                <button class="button" onclick="toggleMenu('menuF1', this)">F1</button>
+                <div id="menuF1" class="submenu">
+                 <a href="F1.html">Web Datos</a>
+                </div>
+            </div>
+            <div>
+                <button class="button" onclick="toggleMenu('menuDev', this)">Device</button>
+                <div id="menuDev" class="submenu">
+	      	      <a href="device.html">Redmi note 10 and Redmi note 7</a>
+                </div>
+            </div>
+
+	    <div>
+                <button class="button" onclick="toggleMenu('menuAgenda', this)">Sepolice</button>
+                <div id="menuAgenda" class="submenu">
+	              <a href="sepolice.html">Sepolice</a>
+                </div>
+            </div>
+        </div>
+        <div class="creditos">
+         <span>Creado por Jimgsey</span>
+           <a href="https://github.com/jimgsey" target="_blank">
+        <img src="https://img.icons8.com/ios/50/000000/github.png" alt="Github">
+      </a>
+    </div>
+   <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+  <script>
+    function toggleMenu(menuId, button) {
+        // Cierra todos los menús y elimina la clase 'active' de todos los botones
+        const menus = document.querySelectorAll('.submenu');
+        const buttons = document.querySelectorAll('.button');
+        
+        // Solo oculta los menús si no son el que estamos pulsando
+        menus.forEach(menu => {
+            if (menu.id !== menuId) {
+                menu.style.display = 'none';
+            }
+        });
+
+        buttons.forEach(btn => {
+            btn.classList.remove('active');
+        });
+
+        // Activa el submenú seleccionado
+        const menu = document.getElementById(menuId);
+        if (menu.style.display === "block") {
+            menu.style.display = "none"; // Si está visible, se oculta
+        } else {
+            menu.style.display = "block"; // Si está oculto, se muestra
+            button.classList.add('active'); // Marca el botón como activo
+        }
+    }
+</script>
+    <script>
+    particlesJS("particles-js", {
+      "particles": {
+        "number": {
+          "value": 100,
+          "density": {
+            "enable": true,
+            "value_area": 800
+          }
+        },
+        "color": {
+          "value": "#ffffff"
+        },
+        "shape": {
+          "type": "circle",
+          "stroke": {
+            "width": 0,
+            "color": "#000000"
+          },
+          "polygon": {
+            "nb_sides": 5
+          },
+          "image": {
+            "src": "img/github.svg",
+            "width": 100,
+            "height": 100
+          }
+        },
+        "opacity": {
+          "value": 0.5,
+          "random": false,
+          "anim": {
+            "enable": false,
+            "speed": 1,
+            "opacity_min": 0.1,
+            "sync": false
+          }
+        },
+        "size": {
+          "value": 3,
+          "random": true,
+          "anim": {
+            "enable": false,
+            "speed": 40,
+            "size_min": 0.1,
+            "sync": false
+          }
+        },
+        "line_linked": {
+          "enable": true,
+          "distance": 150,
+          "color": "#ffffff",
+          "opacity": 0.4,
+          "width": 1
+        },
+        "move": {
+          "enable": true,
+          "speed": 6,
+          "direction": "none",
+          "random": false,
+          "straight": false,
+          "out_mode": "out",
+          "bounce": false,
+          "attract": {
+            "enable": false,
+            "rotateX": 600,
+            "rotateY": 1200
+          }
+        }
+      },
+      "interactivity": {
+        "detect_on": "canvas",
+        "events": {
+          "onhover": {
+            "enable": true,
+            "mode": "grab"
+          },
+          "onclick": {
+            "enable": true,
+            "mode": "push"
+          },
+          "resize": true
+        },
+        "modes": {
+          "grab": {
+            "distance": 140,
+            "line_linked": {
+              "opacity": 1
+            }
+          },
+          "bubble": {
+            "distance": 400,
+            "size": 40,
+            "duration": 2,
+            "opacity": 8,
+            "speed": 3
+          },
+          "repulse": {
+            "distance": 200,
+            "duration": 0.4
+          },
+          "push": {
+            "particles_nb": 4
+          },
+          "remove": {
+            "particles_nb": 2
+          }
+        }
+      },
+      "retina_detect": true
+    });
+  </script>
+</body>
+</html>
