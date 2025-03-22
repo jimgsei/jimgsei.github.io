@@ -95,20 +95,7 @@
         .url-item button:hover {
             background-color: #666;
         }
-        .add-url-button {
-            background-color: #006400;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            padding: 8px 12px;
-            font-size: 14px;
-            cursor: pointer;
-            display: block;
-            margin: 10px auto 0;
-        }
-        .add-url-button:hover {
-            background-color: #008000;
-        }
+
         .channel-info-card {
             display: flex;
             justify-content: space-between;
@@ -222,6 +209,31 @@
             display: block;
             margin: 5px auto 0;
         }
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .add-url-button, .upload-button {
+            flex: 1;
+            max-width: 200px;
+            background-color: #006400;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 12px;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        .add-url-button:hover, .upload-button:hover {
+            background-color: #008000;
+        }
     </style>
 </head>
 <body>
@@ -232,7 +244,10 @@
         </div>
         <div class="card">
             <div class="url-container" id="url-container"></div>
-            <button class="add-url-button" id="add-url-button">➕ Añadir nueva URL</button>
+            <div class="button-container">
+                <button class="add-url-button" id="add-url-button">➕ Añadir nueva URL</button>
+                <button class="upload-button" id="upload-button">📁 Subir archivo</button>
+            </div>
         </div>
         <div class="card channel-info-card">
             <span id="current-channel-info">Canal: No seleccionado | URL: No seleccionada</span>
@@ -262,6 +277,7 @@
         const searchChannelInput = document.getElementById('search-channel');
         const currentChannelInfo = document.getElementById('current-channel-info');
         const addUrlButton = document.getElementById('add-url-button');
+        const uploadButton = document.getElementById('upload-button');
 
         let channels = [];
         let savedUrls = JSON.parse(localStorage.getItem('savedUrls')) || [];
@@ -277,7 +293,7 @@
             const urlItem = document.createElement('div');
             urlItem.className = 'url-item';
             urlItem.innerHTML = `
-				<button onclick="loadChannels(this)">🔄</button>
+                <button onclick="loadChannels(this)">🔄</button>
                 <input type="text" value="${url}" placeholder="Introduce la URL de la lista M3U8">
                 <button onclick="removeUrlCard(this)">🗑️</button>
             `;
@@ -370,6 +386,39 @@
         addUrlButton.addEventListener('click', () => {
             addUrlCard();
         });
+
+        uploadButton.addEventListener('click', () => {
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = '.m3u, .m3u8';
+            fileInput.onchange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const content = event.target.result;
+                        processM3UContent(content);
+                    };
+                    reader.readAsText(file);
+                }
+            };
+            fileInput.click();
+        });
+
+        function processM3UContent(content) {
+            const lines = content.split('\n');
+            channels = [];
+            for (let i = 0; i < lines.length; i++) {
+                if (lines[i].startsWith('#EXTINF:')) {
+                    const channelInfo = lines[i].split(',')[1].trim();
+                    const channelUrl = lines[i + 1].trim();
+                    const logoMatch = lines[i].match(/tvg-logo="([^"]+)"/);
+                    const logo = logoMatch ? logoMatch[1] : null;
+                    channels.push({ name: channelInfo, url: channelUrl, logo });
+                }
+            }
+            displayChannels();
+        }
 
         function copyChannelInfo() {
             const text = currentChannelInfo.textContent;
