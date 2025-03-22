@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reproductor de Listas M3U8</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #1a1a1a;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .container {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+        }
+        .card {
+            background-color: #2a2a2a;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            width: 100%;
+        }
+        video {
+            width: 100%;
+            height: auto;
+            background-color: transparent;
+            border-radius: 10px;
+            margin: 0 auto;
+            display: block;
+        }
+        .url-container {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 200px;
+            overflow-y: auto;
+            width: 100%;
+        }
+        .url-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        .url-container::-webkit-scrollbar-track {
+            background: #444;
+            border-radius: 4px;
+        }
+        .url-container::-webkit-scrollbar-thumb {
+            background: #666;
+            border-radius: 4px;
+        }
+        .url-container::-webkit-scrollbar-thumb:hover {
+            background: #888;
+        }
+        .url-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background-color: #333;
+            padding: 10px;
+            border-radius: 5px;
+            width: 97%;
+        }
+        .url-item input {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 5px;
+            background-color: #444;
+            color: #fff;
+            font-size: 14px;
+        }
+        .url-item button {
+            padding: 8px;
+            border: none;
+            border-radius: 5px;
+            background-color: #555;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .url-item button:hover {
+            background-color: #666;
+        }
+        .add-url-button {
+            background-color: #006400;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 12px;
+            font-size: 14px;
+            cursor: pointer;
+            display: block;
+            margin: 10px auto 0;
+        }
+        .add-url-button:hover {
+            background-color: #008000;
+        }
+        .channel-info-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            font-size: 14px;
+            background-color: #333;
+            border-radius: 5px;
+            overflow-x: auto;
+            white-space: nowrap;
+            gap: 10px;
+        }
+        .channel-info-card span {
+            color: #ccc;
+        }
+        .channel-info-card button {
+            background: none;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .channel-info-card button:hover {
+            color: #ddd;
+        }
+        .channel-list-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+        }
+        .search-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background-color: #333;
+            border-radius: 5px;
+        }
+        .search-container input {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 5px;
+            background-color: #444;
+            color: #fff;
+            font-size: 14px;
+        }
+        .search-container span {
+            font-size: 18px;
+            color: #ccc;
+            cursor: pointer;
+        }
+        .channel-list {
+            background-color: #333;
+            padding: 10px;
+            border-radius: 5px;
+            max-height: 300px;
+            overflow-y: auto;
+            width: calc(100% - 20px);
+        }
+        .channel-list::-webkit-scrollbar {
+            width: 8px;
+        }
+        .channel-list::-webkit-scrollbar-track {
+            background: #444;
+            border-radius: 4px;
+        }
+        .channel-list::-webkit-scrollbar-thumb {
+            background: #666;
+            border-radius: 4px;
+        }
+        .channel-list::-webkit-scrollbar-thumb:hover {
+            background: #888;
+        }
+        .channel-item {
+            cursor: pointer;
+            padding: 8px;
+            border-bottom: 1px solid #444;
+            background-color: #444;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            color: #fff;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .channel-item img {
+            width: 30px;
+            height: 30px;
+            border-radius: 5px;
+        }
+        .channel-item:hover {
+            background-color: #555;
+        }
+        .creditos {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: #ccc;
+        }
+        .creditos a {
+            color: #fff;
+            text-decoration: none;
+        }
+        .creditos a:hover {
+            text-decoration: underline;
+        }
+        .creditos img {
+            display: block;
+            margin: 5px auto 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Cargador lista IPTV</h1>
+        <div class="card" style="background-color: transparent; box-shadow: none;">
+            <video id="video" controls></video>
+        </div>
+        <div class="card">
+            <div class="url-container" id="url-container"></div>
+            <button class="add-url-button" id="add-url-button">➕ Añadir nueva URL</button>
+        </div>
+        <div class="card channel-info-card">
+            <span id="current-channel-info">Canal: No seleccionado | URL: No seleccionada</span>
+            <button onclick="copyChannelInfo()">📋</button>
+        </div>
+        <div class="card channel-list-container">
+            <div class="search-container">
+                <input type="text" id="search-channel" placeholder="Buscar canal...">
+                <span>🔍</span>
+            </div>
+            <div class="channel-list" id="channel-list"></div>
+        </div>
+    </div>
+
+    <div class="creditos">
+        <span>Creado por Jimgsey</span>
+        <a href="https://github.com/jimgsey" target="_blank">
+            <img src="https://img.icons8.com/ios/50/FFFFFF/github.png" alt="Github" style="width: 25px; height: auto;">
+        </a>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script>
+        const video = document.getElementById('video');
+        const channelList = document.getElementById('channel-list');
+        const urlContainer = document.getElementById('url-container');
+        const searchChannelInput = document.getElementById('search-channel');
+        const currentChannelInfo = document.getElementById('current-channel-info');
+        const addUrlButton = document.getElementById('add-url-button');
+
+        let channels = [];
+        let savedUrls = JSON.parse(localStorage.getItem('savedUrls')) || [];
+
+        function loadSavedUrls() {
+            savedUrls.forEach(url => {
+                addUrlCard(url);
+                loadChannelsFromUrl(url);
+            });
+        }
+
+        function addUrlCard(url = '') {
+            const urlItem = document.createElement('div');
+            urlItem.className = 'url-item';
+            urlItem.innerHTML = `
+				<button onclick="loadChannels(this)">🔄</button>
+                <input type="text" value="${url}" placeholder="Introduce la URL de la lista M3U8">
+                <button onclick="removeUrlCard(this)">🗑️</button>
+            `;
+            urlContainer.appendChild(urlItem);
+        }
+
+        function removeUrlCard(button) {
+            const urlItem = button.parentElement;
+            const input = urlItem.querySelector('input');
+            const url = input.value;
+            savedUrls = savedUrls.filter(u => u !== url);
+            localStorage.setItem('savedUrls', JSON.stringify(savedUrls));
+            urlItem.remove();
+        }
+
+        function loadChannels(button) {
+            const urlItem = button.parentElement;
+            const input = urlItem.querySelector('input');
+            const m3u8Url = input.value.trim();
+            if (!m3u8Url) return;
+            loadChannelsFromUrl(m3u8Url);
+        }
+
+        function loadChannelsFromUrl(m3u8Url) {
+            fetch(m3u8Url)
+                .then(response => response.text())
+                .then(data => {
+                    const lines = data.split('\n');
+                    channels = [];
+                    for (let i = 0; i < lines.length; i++) {
+                        if (lines[i].startsWith('#EXTINF:')) {
+                            const channelInfo = lines[i].split(',')[1].trim();
+                            const channelUrl = lines[i + 1].trim();
+                            const logoMatch = lines[i].match(/tvg-logo="([^"]+)"/);
+                            const logo = logoMatch ? logoMatch[1] : null;
+                            channels.push({ name: channelInfo, url: channelUrl, logo });
+                        }
+                    }
+                    displayChannels();
+                    if (!savedUrls.includes(m3u8Url)) {
+                        savedUrls.push(m3u8Url);
+                        localStorage.setItem('savedUrls', JSON.stringify(savedUrls));
+                    }
+                })
+                .catch(error => console.error('Error al cargar la lista M3U8:', error));
+        }
+
+        function displayChannels(filter = '') {
+            channelList.innerHTML = '';
+            channels
+                .filter(channel => channel.name.toLowerCase().includes(filter.toLowerCase()))
+                .forEach((channel, index) => {
+                    const channelItem = document.createElement('div');
+                    channelItem.className = 'channel-item';
+                    if (channel.logo) {
+                        const img = document.createElement('img');
+                        img.src = channel.logo;
+                        img.alt = channel.name;
+                        channelItem.appendChild(img);
+                    }
+                    channelItem.appendChild(document.createTextNode(channel.name));
+                    channelItem.addEventListener('click', () => {
+                        playChannel(channel.url);
+                        currentChannelInfo.textContent = `Canal: ${channel.name} | URL: ${channel.url}`;
+                    });
+                    channelList.appendChild(channelItem);
+                });
+        }
+
+        function playChannel(url) {
+            if (Hls.isSupported()) {
+                const hls = new Hls();
+                hls.loadSource(url);
+                hls.attachMedia(video);
+                hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                    video.play();
+                });
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = url;
+                video.addEventListener('loadedmetadata', () => {
+                    video.play();
+                });
+            }
+        }
+
+        searchChannelInput.addEventListener('input', () => {
+            displayChannels(searchChannelInput.value);
+        });
+
+        addUrlButton.addEventListener('click', () => {
+            addUrlCard();
+        });
+
+        function copyChannelInfo() {
+            const text = currentChannelInfo.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Información del canal copiada al portapeles');
+            });
+        }
+
+        loadSavedUrls();
+    </script>
+</body>
+</html>
