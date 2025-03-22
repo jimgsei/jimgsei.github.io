@@ -211,6 +211,14 @@
             display: block;
             margin: 5px auto 0;
         }
+        video {
+            width: 100%;
+            height: auto;
+            background-color: transparent;
+            border-radius: 10px;
+            margin: 0 auto;
+            display: block;
+        }
         .button-container {
             display: flex;
             justify-content: center;
@@ -218,9 +226,9 @@
             width: 100%;
             margin-top: 10px;
         }
-        .add-url-button, .upload-button {
+        .add-url-button, .upload-button, .add-channel-button {
             flex: 1;
-            max-width: 200px;
+            max-width: 300px;
             background-color: #006400;
             color: #fff;
             border: none;
@@ -233,16 +241,46 @@
             justify-content: center;
             gap: 5px;
         }
-        .add-url-button:hover, .upload-button:hover {
+        .add-url-button:hover, .upload-button:hover, .add-channel-button:hover {
             background-color: #008000;
         }
-        video {
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
-            height: auto;
-            background-color: transparent;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #2a2a2a;
+            padding: 20px;
             border-radius: 10px;
-            margin: 0 auto;
-            display: block;
+            width: 300px;
+            text-align: center;
+        }
+        .modal-content input {
+            width: 100%;
+            padding: 8px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            background-color: #444;
+            color: #fff;
+        }
+        .modal-content button {
+            background-color: #006400;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 12px;
+            cursor: pointer;
+        }
+        .modal-content button:hover {
+            background-color: #008000;
         }
     </style>
 </head>
@@ -258,6 +296,7 @@
             <div class="button-container">
                 <button class="add-url-button" id="add-url-button">➕ Añadir nueva URL</button>
                 <button class="upload-button" id="upload-button">📁 Subir archivo</button>
+                <button class="add-channel-button" id="add-channel-button">📺 Añadir canal</button>
             </div>
         </div>
         <div class="card channel-info-card">
@@ -270,6 +309,17 @@
                 <span>🔍</span>
             </div>
             <div class="channel-list" id="channel-list"></div>
+        </div>
+    </div>
+
+    <!-- Modal para añadir canales -->
+    <div id="add-channel-modal" class="modal">
+        <div class="modal-content">
+            <h3>Añadir canal</h3>
+            <input type="text" id="channel-name" placeholder="Nombre del canal">
+            <input type="text" id="channel-url" placeholder="URL del stream">
+            <button onclick="addManualChannel()">Añadir</button>
+            <button onclick="closeModal()">Cerrar</button>
         </div>
     </div>
 
@@ -290,15 +340,28 @@
         const currentChannelInfo = document.getElementById('current-channel-info');
         const addUrlButton = document.getElementById('add-url-button');
         const uploadButton = document.getElementById('upload-button');
+        const addChannelButton = document.getElementById('add-channel-button');
+        const addChannelModal = document.getElementById('add-channel-modal');
+        const channelNameInput = document.getElementById('channel-name');
+        const channelUrlInput = document.getElementById('channel-url');
 
         let channels = [];
         let savedUrls = JSON.parse(localStorage.getItem('savedUrls')) || [];
+        let savedChannels = JSON.parse(localStorage.getItem('savedChannels')) || [];
 
         function loadSavedUrls() {
             savedUrls.forEach(url => {
                 addUrlCard(url);
                 loadChannelsFromUrl(url);
             });
+        }
+
+        function loadSavedChannels() {
+            savedChannels.forEach(channel => {
+                addChannelCard(channel);
+                channels.push(channel);
+            });
+            displayChannels();
         }
 
         function addUrlCard(url = '') {
@@ -312,6 +375,17 @@
             urlContainer.appendChild(urlItem);
         }
 
+        function addChannelCard(channel) {
+            const channelItem = document.createElement('div');
+            channelItem.className = 'url-item';
+            channelItem.innerHTML = `
+                <button onclick="playChannel('${channel.url}')">▶️</button>
+                <input type="text" value="${channel.name}" readonly>
+                <button onclick="removeChannelCard(this, '${channel.url}')">🗑️</button>
+            `;
+            urlContainer.appendChild(channelItem);
+        }
+
         function removeUrlCard(button) {
             const urlItem = button.parentElement;
             const input = urlItem.querySelector('input');
@@ -319,6 +393,15 @@
             savedUrls = savedUrls.filter(u => u !== url);
             localStorage.setItem('savedUrls', JSON.stringify(savedUrls));
             urlItem.remove();
+        }
+
+        function removeChannelCard(button, url) {
+            const channelItem = button.parentElement;
+            savedChannels = savedChannels.filter(channel => channel.url !== url);
+            localStorage.setItem('savedChannels', JSON.stringify(savedChannels));
+            channels = channels.filter(channel => channel.url !== url);
+            channelItem.remove();
+            displayChannels();
         }
 
         function loadChannels(button) {
@@ -334,7 +417,6 @@
                 .then(response => response.text())
                 .then(data => {
                     const lines = data.split('\n');
-                    channels = [];
                     for (let i = 0; i < lines.length; i++) {
                         if (lines[i].startsWith('#EXTINF:')) {
                             const channelInfo = lines[i].split(',')[1].trim();
@@ -424,9 +506,34 @@
             fileInput.click();
         });
 
+        addChannelButton.addEventListener('click', () => {
+            addChannelModal.style.display = 'flex';
+        });
+
+        function closeModal() {
+            addChannelModal.style.display = 'none';
+        }
+
+        function addManualChannel() {
+            const name = channelNameInput.value.trim();
+            const url = channelUrlInput.value.trim();
+            if (name && url) {
+                const channel = { name, url, logo: null };
+                channels.push(channel);
+                savedChannels.push(channel);
+                localStorage.setItem('savedChannels', JSON.stringify(savedChannels));
+                addChannelCard(channel);
+                displayChannels();
+                channelNameInput.value = '';
+                channelUrlInput.value = '';
+                closeModal();
+            } else {
+                alert('Por favor, completa todos los campos.');
+            }
+        }
+
         function processM3UContent(content) {
             const lines = content.split('\n');
-            channels = [];
             for (let i = 0; i < lines.length; i++) {
                 if (lines[i].startsWith('#EXTINF:')) {
                     const channelInfo = lines[i].split(',')[1].trim();
@@ -446,7 +553,9 @@
             });
         }
 
+        // Cargar listas y canales guardados al iniciar
         loadSavedUrls();
+        loadSavedChannels();
     </script>
 </body>
 </html>
