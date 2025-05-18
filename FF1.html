@@ -30,8 +30,24 @@
             width: 100%;
             max-width: 500px;
             margin-bottom: 15px;
+            position: relative;
         }
-        #channel-search, #custom-link {
+        #channel-select {
+            width: 100%;
+            padding: 12px 15px;
+            font-size: 1rem;
+            border: 1px solid #333;
+            border-radius: 8px;
+            background-color: #1E1E1E;
+            color: white;
+            -webkit-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 20px;
+        }
+        #custom-link {
             width: 100%;
             padding: 12px 15px;
             font-size: 1rem;
@@ -40,26 +56,6 @@
             background-color: #1E1E1E;
             color: white;
             margin-bottom: 5px;
-            -webkit-appearance: none;
-        }
-        #channel-select {
-            width: 100%;
-            max-height: 200px;
-            overflow-y: auto;
-            border: 1px solid #333;
-            border-radius: 8px;
-            background-color: #1E1E1E;
-            color: white;
-            display: none;
-            position: absolute;
-            z-index: 10;
-        }
-        #channel-select option {
-            padding: 10px 15px;
-            border-bottom: 1px solid #333;
-        }
-        #channel-select option:last-child {
-            border-bottom: none;
         }
         #load-custom-link {
             width: 100%;
@@ -110,7 +106,7 @@
             h1 {
                 font-size: 1.3rem;
             }
-            #channel-search, #custom-link, #load-custom-link {
+            #channel-select, #custom-link, #load-custom-link {
                 padding: 10px 12px;
                 font-size: 0.9rem;
             }
@@ -118,10 +114,11 @@
     </style>
 </head>
 <body>
-    <h1>Canales Deportes</h1>
+    <h1>Canales</h1>
     <div class="search-container">
-        <input type="text" id="channel-search" placeholder="Buscar canal F1...">
-        <select id="channel-select" multiple></select>
+        <select id="channel-select">
+            <option value="" selected disabled>Selecciona un canal...</option>
+        </select>
     </div>
     <div class="custom-link-container">
         <input type="text" id="custom-link" placeholder="https://ejemplo.com/stream">
@@ -140,7 +137,6 @@
             let eventInfo = "";
 
             // Elementos del DOM
-            const channelSearch = document.getElementById('channel-search');
             const channelSelect = document.getElementById('channel-select');
             const customLink = document.getElementById('custom-link');
             const loadCustomBtn = document.getElementById('load-custom-link');
@@ -203,13 +199,48 @@
             }
 
             function fillChannelSelect(channels) {
-                channelSelect.innerHTML = '';
                 channels.forEach(channel => {
                     const option = document.createElement('option');
                     option.value = channel.id;
                     option.textContent = `${channel.name} (CH${channel.id})`;
                     channelSelect.appendChild(option);
                 });
+
+                // Agregar funcionalidad de búsqueda
+                const searchOption = document.createElement('option');
+                searchOption.disabled = true;
+                searchOption.textContent = "--- Buscar canal ---";
+                channelSelect.appendChild(searchOption);
+
+                const searchInput = document.createElement('input');
+                searchInput.type = "text";
+                searchInput.placeholder = "Escribe para filtrar...";
+                searchInput.style.width = "90%";
+                searchInput.style.margin = "5px auto";
+                searchInput.style.padding = "5px";
+                searchInput.style.display = "none";
+
+                channelSelect.addEventListener('click', function() {
+                    if (this.options[this.selectedIndex] === searchOption) {
+                        searchInput.style.display = "block";
+                        searchInput.focus();
+                    } else {
+                        searchInput.style.display = "none";
+                    }
+                });
+
+                searchInput.addEventListener('input', function() {
+                    const filter = this.value.toUpperCase();
+                    const options = channelSelect.options;
+                    
+                    for (let i = 0; i < options.length; i++) {
+                        if (options[i] === searchOption) continue;
+                        const txtValue = options[i].textContent || options[i].innerText;
+                        options[i].style.display = txtValue.toUpperCase().includes(filter) ? "" : "none";
+                    }
+                });
+
+                channelSelect.parentNode.insertBefore(searchInput, channelSelect.nextSibling);
             }
 
             function loadVideoFromUrl(videoUrl, customName = "Enlace personalizado") {
@@ -220,40 +251,12 @@
                 videoContainer.scrollIntoView({ behavior: 'smooth' });
             }
 
-            function showDropdown() {
-                channelSelect.style.display = 'block';
-                channelSelect.size = Math.min(channelSelect.length, 5);
-            }
-
-            function hideDropdown() {
-                setTimeout(() => {
-                    if (!channelSelect.matches(':focus')) {
-                        channelSelect.style.display = 'none';
-                    }
-                }, 200);
-            }
-
-            function filterChannels() {
-                const filter = channelSearch.value.toUpperCase();
-                const options = channelSelect.options;
-
-                for (let i = 0; i < options.length; i++) {
-                    const txtValue = options[i].textContent || options[i].innerText;
-                    options[i].style.display = txtValue.toUpperCase().includes(filter) ? "" : "none";
-                }
-            }
-
             // Event listeners
-            channelSearch.addEventListener('focus', showDropdown);
-            channelSearch.addEventListener('blur', hideDropdown);
-            channelSearch.addEventListener('input', filterChannels);
-            
             channelSelect.addEventListener('change', function() {
                 if (this.value) {
                     const channelName = this.options[this.selectedIndex].text;
                     loadVideoFromUrl(`https://rereyano.ru/player/3/${this.value}`, channelName);
                 }
-                this.style.display = 'none';
             });
 
             loadCustomBtn.addEventListener('click', loadCustomLink);
@@ -273,13 +276,6 @@
                     alert("Por favor, introduce un enlace válido");
                 }
             }
-
-            // Manejo del teclado virtual en móviles
-            document.addEventListener('click', function(e) {
-                if (!channelSelect.contains(e.target) && e.target !== channelSearch) {
-                    channelSelect.style.display = 'none';
-                }
-            });
         });
     </script>
 </body>
