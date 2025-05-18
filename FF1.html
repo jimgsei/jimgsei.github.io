@@ -205,46 +205,23 @@
                     option.textContent = `${channel.name} (CH${channel.id})`;
                     channelSelect.appendChild(option);
                 });
-
-                // Agregar funcionalidad de búsqueda
-                const searchOption = document.createElement('option');
-                searchOption.disabled = true;
-                searchOption.textContent = "--- Buscar canal ---";
-                channelSelect.appendChild(searchOption);
-
-                const searchInput = document.createElement('input');
-                searchInput.type = "text";
-                searchInput.placeholder = "Escribe para filtrar...";
-                searchInput.style.width = "90%";
-                searchInput.style.margin = "5px auto";
-                searchInput.style.padding = "5px";
-                searchInput.style.display = "none";
-
-                channelSelect.addEventListener('click', function() {
-                    if (this.options[this.selectedIndex] === searchOption) {
-                        searchInput.style.display = "block";
-                        searchInput.focus();
-                    } else {
-                        searchInput.style.display = "none";
-                    }
-                });
-
-                searchInput.addEventListener('input', function() {
-                    const filter = this.value.toUpperCase();
-                    const options = channelSelect.options;
-                    
-                    for (let i = 0; i < options.length; i++) {
-                        if (options[i] === searchOption) continue;
-                        const txtValue = options[i].textContent || options[i].innerText;
-                        options[i].style.display = txtValue.toUpperCase().includes(filter) ? "" : "none";
-                    }
-                });
-
-                channelSelect.parentNode.insertBefore(searchInput, channelSelect.nextSibling);
             }
 
             function loadVideoFromUrl(videoUrl, customName = "Enlace personalizado") {
-                videoContainer.innerHTML = `<iframe src="${videoUrl}" allowfullscreen></iframe>`;
+                // Limpiar contenedor primero
+                videoContainer.innerHTML = '';
+                
+                // Crear iframe con los atributos necesarios
+                const iframe = document.createElement('iframe');
+                iframe.src = videoUrl;
+                iframe.setAttribute('allowfullscreen', '');
+                iframe.setAttribute('allow', 'autoplay; fullscreen');
+                iframe.setAttribute('frameborder', '0');
+                
+                // Agregar iframe al contenedor
+                videoContainer.appendChild(iframe);
+                
+                // Mostrar información del enlace
                 linkInfo.innerHTML = `Canal: ${customName}<br>Enlace: <a href="${videoUrl}" target="_blank">${videoUrl}</a>`;
                 
                 // Scroll suave al reproductor
@@ -255,27 +232,26 @@
             channelSelect.addEventListener('change', function() {
                 if (this.value) {
                     const channelName = this.options[this.selectedIndex].text;
-                    loadVideoFromUrl(`https://rereyano.ru/player/3/${this.value}`, channelName);
+                    const videoUrl = `https://rereyano.ru/player/3/${this.value}`;
+                    loadVideoFromUrl(videoUrl, channelName);
                 }
             });
 
-            loadCustomBtn.addEventListener('click', loadCustomLink);
-            customLink.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') loadCustomLink();
-            });
-
-            function loadCustomLink() {
+            loadCustomBtn.addEventListener('click', function() {
                 const link = customLink.value.trim();
                 if (link) {
-                    if (!link.startsWith('http')) {
-                        loadVideoFromUrl(`https://${link}`);
-                    } else {
-                        loadVideoFromUrl(link);
-                    }
+                    const finalUrl = link.startsWith('http') ? link : `https://${link}`;
+                    loadVideoFromUrl(finalUrl);
                 } else {
                     alert("Por favor, introduce un enlace válido");
                 }
-            }
+            });
+
+            customLink.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    loadCustomBtn.click();
+                }
+            });
         });
     </script>
 </body>
