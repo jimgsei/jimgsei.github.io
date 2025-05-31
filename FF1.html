@@ -84,12 +84,14 @@
     <script>
         const encodedUrls = {
             "Opción 0": "aHR0cHM6Ly9kdHZsaXZlZ3JhdGlzLmNvbS9jbi5waHA/aWQ9REFaTkYxRVM=",
-            "Opción 1": "aHR0cHM6Ly9kZXBvcnRlLWxpYnJlLmZhbnMvZW4tdmlyby1vbmxpbmUvZGF6bi1mb3JtdWxhLTEtZXMvZW1iZWQucGhw",
             "Opción 2": "aHR0cHM6Ly9taXp0di50b3AvdG90YWwvc3RyZWFtLTUzNy5waHA=",
             "Opción 3": "aHR0cHM6Ly9hbnRlbmFjZW50cmFsLnN0b3JlL2Rhem5mMS5waHA=",
             "Opción 4": "aHR0cHM6Ly9kYWRkeWxpdmUuZGFkL2VtYmVkL3N0cmVhbS01MzcucGhw",
             "Opción 5": "aHR0cHM6Ly9uZWJ1bmV4YS5jby9yZWQvP2dldD1odHRwczolM0ElMkYlMkZlbWJlZC5zZGZnbmtzYm91bmNlLmNvbSUyRmVtYmVkMiUyRmRhem5mMS5odG1s",
-            "Opción 6": "aHR0cHM6Ly9yZXJleWFuby5ydS9wbGF5ZXIvMy82MA=="
+            "Opción 6": "aHR0cHM6Ly9yZXJleWFuby5ydS9wbGF5ZXIvMy82MA==",
+            "Ext 1": "aHR0cHM6Ly9kZXBvcnRlLWxpYnJlLmZhbnMvZW4tdmlyby1vbmxpbmUvZGF6bi1mb3JtdWxhLTEtZXMvZW1iZWQucGhw",
+            "Ext 2": "aHR0cHM6Ly9kZXBvcnRlLWxpYnJlLmZhbnMvZW4tdmlyby1vbmxpbmUvZGF6bi1mb3JtdWxhLTEtZXMv",
+            "Ext 3": "aHR0cHM6Ly93d3cuY2FibGVvcy5jb20vZXMtZGF6bi1mb3JtdWxhLTE="
         };
 
         const channelSelect = document.getElementById('channel-select');
@@ -113,19 +115,35 @@
             videoContainer.appendChild(iframe);
         }
 
+        function openInNewTab(url) {
+            window.open(url, '_blank');
+        }
+
         channelSelect.addEventListener('change', () => {
-            const url = atob(channelSelect.value);
-            if (url) loadVideo(url);
+            const selectedValue = channelSelect.value;
+            if (selectedValue) {
+                const url = atob(selectedValue);
+                if (url.includes('deporte-libre') || url.includes('kableos')) {
+                    openInNewTab(url);
+                } else {
+                    loadVideo(url);
+                }
+            }
         });
 
         loadCustomBtn.addEventListener('click', () => {
             const url = customLink.value.trim();
-            if (url) loadVideo(url.startsWith('http') ? url : `https://${url}`);
-            else alert("Por favor, introduce un enlace válido");
+            if (url) {
+                loadVideo(url.startsWith('http') ? url : `https://${url}`);
+            } else {
+                alert("Por favor, introduce un enlace válido");
+            }
         });
 
         customLink.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') loadCustomBtn.click();
+            if (e.key === 'Enter') {
+                loadCustomBtn.click();
+            }
         });
 
         loadVideo(atob("aHR0cHM6Ly9kdHZsaXZlZ3JhdGlzLmNvbS9jbi5waHA/aWQ9REFaTkYxRVM="));
