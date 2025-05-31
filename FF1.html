@@ -20,26 +20,29 @@
             flex-direction: column;
             align-items: center;
         }
+        .container {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 15px;
+        }
         h1 {
             font-size: 1.5rem;
             margin: 10px 0 20px;
             text-align: center;
             color: #E10600;
         }
-        .search-container, .custom-link-container {
+        #channel-select, #custom-link, #load-custom-link {
             width: 100%;
-            max-width: 500px;
-            margin-bottom: 15px;
-            position: relative;
-        }
-        #channel-select {
-            width: 100%;
-            padding: 12px 15px;
+            padding: 12px;
             font-size: 1rem;
             border: 1px solid #333;
             border-radius: 8px;
             background-color: #1E1E1E;
             color: white;
+            margin-bottom: 15px;
+        }
+        #channel-select {
             -webkit-appearance: none;
             appearance: none;
             background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
@@ -47,41 +50,20 @@
             background-position: right 10px center;
             background-size: 20px;
         }
-        #custom-link {
-            width: 100%;
-            padding: 12px 15px;
-            font-size: 1rem;
-            border: 1px solid #333;
-            border-radius: 8px;
-            background-color: #1E1E1E;
-            color: white;
-            margin-bottom: 5px;
-        }
         #load-custom-link {
-            width: 100%;
-            padding: 12px;
-            font-size: 1rem;
             border: none;
-            border-radius: 8px;
             background-color: #E10600;
-            color: white;
             font-weight: bold;
             cursor: pointer;
-            transition: background-color 0.2s;
-        }
-        #load-custom-link:active {
-            background-color: #B70500;
         }
         #video-container {
             width: 100%;
-            max-width: 500px;
-            margin: 15px 0;
             aspect-ratio: 16/9;
             background-color: #000;
             border-radius: 8px;
             overflow: hidden;
         }
-        iframe, video {
+        iframe {
             width: 100%;
             height: 100%;
             border: none;
@@ -89,83 +71,64 @@
     </style>
 </head>
 <body>
-    <h1>Canales</h1>
-    <div class="search-container">
+    <div class="container">
+        <h1>Canales</h1>
         <select id="channel-select">
             <option value="" selected disabled>Selecciona un canal...</option>
         </select>
-    </div>
-    <div class="custom-link-container">
         <input type="text" id="custom-link" placeholder="https://ejemplo.com/stream">
         <button id="load-custom-link">CARGAR ENLACE</button>
+        <div id="video-container"></div>
     </div>
-    <div id="video-container"></div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const encodedUrls = {
-                "opc1": "aHR0cHM6Ly9kZXBvcnRlLWxpYnJlLmZhbnMvZW4tdmlyby1vbmxpbmUvZGF6bi1mb3JtdWxhLTEtZXMvZW1iZWQucGhw",
-                "opc2": "aHR0cHM6Ly9taXp0di50b3AvdG90YWwvc3RyZWFtLTUzNy5waHA=",
-                "opc3": "aHR0cHM6Ly9hbnRlbmFjZW50cmFsLnN0b3JlL2Rhem5mMS5waHA=",
-                "opc4": "aHR0cHM6Ly9kYWRkeWxpdmUuZGFkL2VtYmVkL3N0cmVhbS01MzcucGhw",
-                "opc5": "aHR0cHM6Ly9uZWJ1bmV4YS5jby9yZWQvP2dldD1odHRwczolM0ElMkYlMkZlbWJlZC5zZGZnbmtzYm91bmNlLmNvbSUyRmVtYmVkMiUyRmRhem5mMS5odG1s",
-                "opc6": "aHR0cHM6Ly9yZXJleWFuby5ydS9wbGF5ZXIvMy82MA=="
-            };
+        const encodedUrls = {
+            "Opción 0": "aHR0cHM6Ly9kdHZsaXZlZ3JhdGlzLmNvbS9jbi5waHA/aWQ9REFaTkYxRVM=",
+            "Opción 1": "aHR0cHM6Ly9kZXBvcnRlLWxpYnJlLmZhbnMvZW4tdmlyby1vbmxpbmUvZGF6bi1mb3JtdWxhLTEtZXMvZW1iZWQucGhw",
+            "Opción 2": "aHR0cHM6Ly9taXp0di50b3AvdG90YWwvc3RyZWFtLTUzNy5waHA=",
+            "Opción 3": "aHR0cHM6Ly9hbnRlbmFjZW50cmFsLnN0b3JlL2Rhem5mMS5waHA=",
+            "Opción 4": "aHR0cHM6Ly9kYWRkeWxpdmUuZGFkL2VtYmVkL3N0cmVhbS01MzcucGhw",
+            "Opción 5": "aHR0cHM6Ly9uZWJ1bmV4YS5jby9yZWQvP2dldD1odHRwczolM0ElMkYlMkZlbWJlZC5zZGZnbmtzYm91bmNlLmNvbSUyRmVtYmVkMiUyRmRhem5mMS5odG1s",
+            "Opción 6": "aHR0cHM6Ly9yZXJleWFuby5ydS9wbGF5ZXIvMy82MA=="
+        };
 
-            const channelSelect = document.getElementById('channel-select');
-            const customLink = document.getElementById('custom-link');
-            const loadCustomBtn = document.getElementById('load-custom-link');
-            const videoContainer = document.getElementById('video-container');
+        const channelSelect = document.getElementById('channel-select');
+        const customLink = document.getElementById('custom-link');
+        const loadCustomBtn = document.getElementById('load-custom-link');
+        const videoContainer = document.getElementById('video-container');
 
-            function fillChannelSelect() {
-                channelSelect.innerHTML = '<option value="" selected disabled>Selecciona un canal...</option>';
-
-                for (const [key, value] of Object.entries(encodedUrls)) {
-                    const option = document.createElement('option');
-                    option.value = value;
-                    option.textContent = key;
-                    channelSelect.appendChild(option);
-                }
-            }
-
-            function loadVideoFromUrl(videoUrl) {
-                videoContainer.innerHTML = '';
-
-                const iframe = document.createElement('iframe');
-                iframe.src = videoUrl;
-                iframe.setAttribute('allowfullscreen', '');
-                iframe.setAttribute('allow', 'autoplay; fullscreen');
-                iframe.setAttribute('frameborder', '0');
-
-                videoContainer.appendChild(iframe);
-                videoContainer.scrollIntoView({ behavior: 'smooth' });
-            }
-
-            channelSelect.addEventListener('change', function() {
-                if (this.value) {
-                    const decodedUrl = atob(this.value);
-                    loadVideoFromUrl(decodedUrl);
-                }
-            });
-
-            loadCustomBtn.addEventListener('click', function() {
-                const link = customLink.value.trim();
-                if (link) {
-                    const finalUrl = link.startsWith('http') ? link : `https://${link}`;
-                    loadVideoFromUrl(finalUrl);
-                } else {
-                    alert("Por favor, introduce un enlace válido");
-                }
-            });
-
-            customLink.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    loadCustomBtn.click();
-                }
-            });
-
-            fillChannelSelect();
+        Object.entries(encodedUrls).forEach(([key, value]) => {
+            const option = document.createElement('option');
+            option.value = value;
+            option.textContent = key;
+            channelSelect.appendChild(option);
         });
+
+        function loadVideo(url) {
+            videoContainer.innerHTML = '';
+            const iframe = document.createElement('iframe');
+            iframe.src = url;
+            iframe.setAttribute('allowfullscreen', '');
+            iframe.setAttribute('allow', 'autoplay; fullscreen');
+            videoContainer.appendChild(iframe);
+        }
+
+        channelSelect.addEventListener('change', () => {
+            const url = atob(channelSelect.value);
+            if (url) loadVideo(url);
+        });
+
+        loadCustomBtn.addEventListener('click', () => {
+            const url = customLink.value.trim();
+            if (url) loadVideo(url.startsWith('http') ? url : `https://${url}`);
+            else alert("Por favor, introduce un enlace válido");
+        });
+
+        customLink.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') loadCustomBtn.click();
+        });
+
+        loadVideo(atob("aHR0cHM6Ly9kdHZsaXZlZ3JhdGlzLmNvbS9jbi5waHA/aWQ9REFaTkYxRVM="));
     </script>
 </body>
 </html>
