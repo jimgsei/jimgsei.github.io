@@ -65,7 +65,7 @@
         .button-group button {
             flex: 1;
         }
-        #load-custom-link, #load-default-link {
+        #load-custom-link {
             width: 100%;
             padding: 12px;
             font-size: 1rem;
@@ -77,14 +77,8 @@
             cursor: pointer;
             transition: background-color 0.2s;
         }
-        #load-default-link {
-            background-color: #1E88E5;
-        }
         #load-custom-link:active {
             background-color: #B70500;
-        }
-        #load-default-link:active {
-            background-color: #1565C0;
         }
         #video-container {
             width: 100%;
@@ -120,7 +114,7 @@
             h1 {
                 font-size: 1.3rem;
             }
-            #channel-select, #custom-link, #load-custom-link, #load-default-link {
+            #channel-select, #custom-link, #load-custom-link {
                 padding: 10px 12px;
                 font-size: 0.9rem;
             }
@@ -136,10 +130,7 @@
     </div>
     <div class="custom-link-container">
         <input type="text" id="custom-link" placeholder="https://ejemplo.com/stream">
-        <div class="button-group">
-            <button id="load-custom-link">CARGAR ENLACE</button>
-            <button id="load-default-link">REPRODUCIR PROPIO</button>
-        </div>
+        <button id="load-custom-link">CARGAR ENLACE</button>
     </div>
     <div id="event-info"></div>
     <div id="video-container"></div>
@@ -152,12 +143,18 @@
             let channels = [];
             let eventInfo = "";
 
-            const defaultEncodedUrl = "aHR0cHM6Ly9kdHZsaXZlZ3JhdGlzLmNvbS9jbi5waHA/aWQ9REFaTkYxRVM=";
+            const encodedUrls = {
+                "opc1": "aHR0cHM6Ly9kZXBvcnRlLWxpYnJlLmZhbnMvZW4tdmlyby1vbmxpbmUvZGF6bi1mb3JtdWxhLTEtZXMvZW1iZWQucGhw",
+                "opc2": "aHR0cHM6Ly9taXp0di50b3AvdG90YWwvc3RyZWFtLTUzNy5waHA=",
+                "opc3": "aHR0cHM6Ly9hbnRlbmFjZW50cmFsLnN0b3JlL2Rhem5mMS5waHA=",
+                "opc4": "aHR0cHM6Ly9kYWRkeWxpdmUuZGFkL2VtYmVkL3N0cmVhbS01MzcucGhw",
+                "opc5": "aHR0cHM6Ly9uZWJ1bmV4YS5jby9yZWQvP2dldD1odHRwczolM0ElMkYlMkZlbWJlZC5zZGZnbmtzYm91bmNlLmNvbSUyRmVtYmVkMiUyRmRhem5mMS5odG1s",
+                "default": "aHR0cHM6Ly9kdHZsaXZlZ3JhdGlzLmNvbS9jbi5waHA/aWQ9REFaTkYxRVM="
+            };
 
             const channelSelect = document.getElementById('channel-select');
             const customLink = document.getElementById('custom-link');
             const loadCustomBtn = document.getElementById('load-custom-link');
-            const loadDefaultBtn = document.getElementById('load-default-link');
             const videoContainer = document.getElementById('video-container');
             const linkInfo = document.getElementById('link-info');
             const eventInfoDiv = document.getElementById('event-info');
@@ -178,12 +175,7 @@
                         }
                     });
 
-                    // Ordenar canales (ES DAZN F1 primero)
-                    channels.sort((a, b) => {
-                        if (a.name.includes("ES DAZN F1")) return -1;
-                        if (b.name.includes("ES DAZN F1")) return 1;
-                        return 0;
-                    });
+                    channels = channels.filter(channel => channel.name.includes("DAZN F1"));
 
                     fillChannelSelect(channels);
                     if (eventInfo) eventInfoDiv.textContent = eventInfo;
@@ -198,7 +190,7 @@
                     if (line.includes("formula 1")) {
                         const eventMatch = line.match(/(.*formula 1\s*:\s*.*)/);
                         if (eventMatch) result.eventInfo = eventMatch[1].trim();
-                        
+
                         const chMatches = line.matchAll(/\(CH(\d+)es\)/g);
                         for (const match of chMatches) {
                             result.channels.push({ id: match[1], name: "Formula 1" });
@@ -215,6 +207,15 @@
             }
 
             function fillChannelSelect(channels) {
+                channelSelect.innerHTML = '<option value="" selected disabled>Selecciona un canal...</option>';
+
+                for (const [key, value] of Object.entries(encodedUrls)) {
+                    const option = document.createElement('option');
+                    option.value = value;
+                    option.textContent = key;
+                    channelSelect.appendChild(option);
+                }
+
                 channels.forEach(channel => {
                     const option = document.createElement('option');
                     option.value = channel.id;
@@ -223,29 +224,41 @@
                 });
             }
 
-            function loadVideoFromUrl(videoUrl, customName = "Enlace personalizado") {
+            function loadVideoFromUrl(videoUrl, customName = "") {
                 videoContainer.innerHTML = '';
-                
+
                 const iframe = document.createElement('iframe');
                 iframe.src = videoUrl;
                 iframe.setAttribute('allowfullscreen', '');
                 iframe.setAttribute('allow', 'autoplay; fullscreen');
                 iframe.setAttribute('frameborder', '0');
-                
+
                 videoContainer.appendChild(iframe);
-                
-                linkInfo.innerHTML = `Canal: ${customName}<br>Enlace: <a href="${videoUrl}" target="_blank">${videoUrl}</a>`;
-                
-                // Scroll suave al reproductor
+
+                if (customName && !customName.includes("Stream predeterminado")) {
+                    linkInfo.innerHTML = `Canal: ${customName}`;
+                } else {
+                    linkInfo.innerHTML = '';
+                }
+
                 videoContainer.scrollIntoView({ behavior: 'smooth' });
             }
 
-            // Event listeners
+            function loadDefaultChannel() {
+                const defaultUrl = atob(encodedUrls.default);
+                loadVideoFromUrl(defaultUrl, "ES DAZN F1 (CH60)");
+            }
+
             channelSelect.addEventListener('change', function() {
                 if (this.value) {
-                    const channelName = this.options[this.selectedIndex].text;
-                    const videoUrl = `https://rereyano.ru/player/3/${this.value}`;
-                    loadVideoFromUrl(videoUrl, channelName);
+                    if (Object.values(encodedUrls).includes(this.value)) {
+                        const decodedUrl = atob(this.value);
+                        loadVideoFromUrl(decodedUrl, this.options[this.selectedIndex].text);
+                    } else {
+                        const channelName = this.options[this.selectedIndex].text;
+                        const videoUrl = `https://rereyano.ru/player/3/${this.value}`;
+                        loadVideoFromUrl(videoUrl, channelName);
+                    }
                 }
             });
 
@@ -259,17 +272,13 @@
                 }
             });
 
-            loadDefaultBtn.addEventListener('click', function() {
-                // Decodificar URL ofuscada
-                const defaultUrl = atob(defaultEncodedUrl);
-                loadVideoFromUrl(defaultUrl, "Stream predeterminado");
-            });
-
             customLink.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     loadCustomBtn.click();
                 }
             });
+
+            loadDefaultChannel();
         });
     </script>
 </body>
