@@ -38,11 +38,18 @@
             border-radius: 8px;
             overflow: hidden;
             transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            height: 200px;
         }
         
         iframe {
             width: 100%;
-            height: 200px;
+            height: 100%;
             border: none;
         }
         
@@ -93,7 +100,7 @@
             max-width: 80px;
         }
         
-        .delete-btn {
+        .delete-btn, .pip-btn {
             background: transparent;
             color: #aaa;
             border: 1px solid #444;
@@ -106,6 +113,7 @@
             justify-content: center;
             font-weight: bold;
             transition: all 0.2s ease;
+            margin-left: 5px;
         }
         
         .delete-btn:hover {
@@ -114,9 +122,48 @@
             border-color: #ff3333;
         }
         
+        .pip-btn:hover {
+            color: #fff;
+            background: #3333ff;
+            border-color: #3333ff;
+        }
+        
+        .pip-video {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 300px;
+            height: 169px;
+            background: #000;
+            z-index: 1000;
+            border: 2px solid #3333ff;
+            border-radius: 8px;
+            overflow: hidden;
+            display: none;
+        }
+        
+        .pip-close {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #ff3333;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+            z-index: 1001;
+        }
+        
         @media (max-width: 768px) {
             .container.single .video-container {
                 width: 100%;
+            }
+            
+            .pip-video {
+                width: 200px;
+                height: 113px;
             }
         }
     </style>
@@ -124,11 +171,19 @@
 <body>
     <div class="container single" id="videoContainer"></div>
     <button class="add-btn" id="addBtn">Añadir reproductor</button>
+    <div class="pip-video" id="pipVideo">
+        <button class="pip-close" id="pipClose">×</button>
+        <iframe id="pipIframe" allowfullscreen></iframe>
+    </div>
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const container = document.getElementById('videoContainer');
             const addBtn = document.getElementById('addBtn');
+            const pipVideo = document.getElementById('pipVideo');
+            const pipIframe = document.getElementById('pipIframe');
+            const pipClose = document.getElementById('pipClose');
+            let currentPipPlayer = null;
             
             const orderedChannels = [
                 {number: 533, name: "VFZF", url: "aHR0cHM6Ly9taXp0di50b3AvdG90YWwvc3RyZWFtLTUzMy5waHA="},
@@ -150,9 +205,33 @@
                 }
             }
 
+            function togglePip(player) {
+                if (currentPipPlayer === player) {
+                    // Cerrar PiP
+                    pipVideo.style.display = 'none';
+                    pipIframe.src = '';
+                    currentPipPlayer = null;
+                } else {
+                    // Abrir PiP
+                    const iframe = player.querySelector('iframe');
+                    pipIframe.src = iframe.src;
+                    pipVideo.style.display = 'block';
+                    currentPipPlayer = player;
+                }
+            }
+
+            pipClose.addEventListener('click', () => {
+                pipVideo.style.display = 'none';
+                pipIframe.src = '';
+                currentPipPlayer = null;
+            });
+
             function addPlayer(defaultChannel = 537) {
                 const player = document.createElement('div');
                 player.className = 'video-container';
+                
+                const videoWrapper = document.createElement('div');
+                videoWrapper.className = 'video-wrapper';
                 
                 const controls = document.createElement('div');
                 controls.className = 'controls';
@@ -182,12 +261,21 @@
                 deleteBtn.innerHTML = '×';
                 deleteBtn.addEventListener('click', () => {
                     if (container.children.length > 1) {
+                        if (currentPipPlayer === player) {
+                            pipVideo.style.display = 'none';
+                            currentPipPlayer = null;
+                        }
                         player.remove();
                         updateLayout();
                     } else {
                         alert("Debe haber al menos un reproductor");
                     }
                 });
+                
+                const pipBtn = document.createElement('button');
+                pipBtn.className = 'pip-btn';
+                pipBtn.innerHTML = 'PIP';
+                pipBtn.addEventListener('click', () => togglePip(player));
                 
                 const iframe = document.createElement('iframe');
                 const defaultChannelObj = orderedChannels.find(c => c.number == defaultChannel) || orderedChannels[5];
@@ -202,6 +290,9 @@
                     } else {
                         const selectedChannel = orderedChannels.find(c => c.number == this.value);
                         iframe.src = decodeBase64(selectedChannel.url);
+                        if (currentPipPlayer === player) {
+                            pipIframe.src = iframe.src;
+                        }
                     }
                 });
                 
@@ -210,6 +301,9 @@
                         iframe.src = `https://miztv.top/total/stream-${this.value}.php`;
                         select.style.display = "block";
                         numberInput.style.display = "none";
+                        if (currentPipPlayer === player) {
+                            pipIframe.src = iframe.src;
+                        }
                     }
                 });
                 
@@ -222,9 +316,12 @@
                 
                 controls.appendChild(select);
                 controls.appendChild(numberInput);
+                controls.appendChild(pipBtn);
                 controls.appendChild(deleteBtn);
+                
+                videoWrapper.appendChild(iframe);
                 player.appendChild(controls);
-                player.appendChild(iframe);
+                player.appendChild(videoWrapper);
                 container.appendChild(player);
                 
                 updateLayout();
