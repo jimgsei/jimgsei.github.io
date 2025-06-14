@@ -5,8 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reproductor de Video</title>
     <style>
+        :root {
+            --bg-color: #121212;
+            --container-bg: #1e1e1e;
+            --control-bg: #2a2a2a;
+            --border-color: #444;
+            --text-color: #eee;
+            --primary-hover: #3a3a3a;
+            --danger-color: #ff3333;
+            --danger-hover: #ff5555;
+            --info-color: #3333ff;
+            --info-hover: #5555ff;
+            --border-radius: 8px;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
         body {
-            background-color: #000;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 20px;
             display: flex;
@@ -21,6 +43,7 @@
             gap: 20px;
             width: 100%;
             max-width: 1200px;
+            margin-bottom: 20px;
         }
         
         .container.single {
@@ -34,101 +57,109 @@
         }
         
         .video-container {
-            background-color: #111;
-            border-radius: 8px;
+            background-color: var(--container-bg);
+            border-radius: var(--border-radius);
             overflow: hidden;
-            transition: all 0.3s ease;
-            position: relative;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
         }
         
         .video-wrapper {
             position: relative;
             width: 100%;
-            height: 200px;
+            height: 0;
+            padding-bottom: 56.25%;
         }
         
         iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
             border: none;
         }
         
         .add-btn {
-            margin: 30px auto;
+            margin: 20px auto;
             padding: 12px 30px;
-            background-color: #222;
-            color: #fff;
-            border: 1px solid #444;
-            border-radius: 8px;
+            background-color: var(--control-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
             cursor: pointer;
             font-size: 16px;
-            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
         
         .add-btn:hover {
-            background-color: #333;
+            background-color: var(--primary-hover);
         }
         
         .controls {
             display: flex;
-            padding: 10px;
-            background: #1a1a1a;
+            padding: 12px;
+            background: var(--control-bg);
             align-items: center;
+            gap: 8px;
         }
         
         select {
-            flex-grow: 1;
             padding: 8px 12px;
-            background: #222;
-            color: #fff;
-            border: 1px solid #444;
+            background: var(--container-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
             border-radius: 6px;
-            margin-right: 10px;
             font-size: 14px;
-            max-width: 200px;
+            width: 100%;
         }
         
         input {
-            flex-grow: 1;
             padding: 8px 12px;
-            background: #222;
-            color: #fff;
-            border: 1px solid #444;
+            background: var(--container-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
             border-radius: 6px;
-            margin-right: 10px;
             font-size: 14px;
-            max-width: 80px;
+            display: none;
         }
         
-        .delete-btn, .pip-btn {
+        .btn {
             background: transparent;
-            color: #aaa;
-            border: 1px solid #444;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
             border-radius: 6px;
-            width: 30px;
-            height: 30px;
+            width: 36px;
+            height: 36px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            transition: all 0.2s ease;
-            margin-left: 5px;
         }
         
-        .delete-btn:hover {
+        .btn-delete {
+            color: var(--danger-color);
+            border-color: var(--danger-color);
+        }
+        
+        .btn-delete:hover {
             color: #fff;
-            background: #ff3333;
-            border-color: #ff3333;
+            background: var(--danger-color);
         }
         
-        .pip-btn:hover {
+        .btn-pip {
+            color: var(--info-color);
+            border-color: var(--info-color);
+        }
+        
+        .btn-pip:hover {
             color: #fff;
-            background: #3333ff;
-            border-color: #3333ff;
+            background: var(--info-color);
         }
         
-        .pip-video {
+        .pip-container {
             position: fixed;
             bottom: 20px;
             right: 20px;
@@ -136,24 +167,39 @@
             height: 169px;
             background: #000;
             z-index: 1000;
-            border: 2px solid #3333ff;
-            border-radius: 8px;
+            border: 2px solid var(--info-color);
+            border-radius: var(--border-radius);
             overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
             display: none;
         }
         
-        .pip-close {
+        .pip-header {
             position: absolute;
-            top: 5px;
-            right: 5px;
-            background: #ff3333;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 30px;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 0 8px;
+            z-index: 1001;
+        }
+        
+        .btn-close {
+            background: var(--danger-color);
             color: white;
             border: none;
             border-radius: 50%;
-            width: 25px;
-            height: 25px;
+            width: 20px;
+            height: 20px;
             cursor: pointer;
-            z-index: 1001;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
         }
         
         @media (max-width: 768px) {
@@ -161,9 +207,22 @@
                 width: 100%;
             }
             
-            .pip-video {
+            .pip-container {
                 width: 200px;
                 height: 113px;
+            }
+            
+            .controls {
+                flex-wrap: nowrap;
+            }
+            
+            select {
+                width: 80%;
+            }
+            
+            .btn {
+                width: 30px;
+                height: 30px;
             }
         }
     </style>
@@ -171,8 +230,10 @@
 <body>
     <div class="container single" id="videoContainer"></div>
     <button class="add-btn" id="addBtn">Añadir reproductor</button>
-    <div class="pip-video" id="pipVideo">
-        <button class="pip-close" id="pipClose">×</button>
+    <div class="pip-container" id="pipContainer">
+        <div class="pip-header">
+            <button class="btn-close" id="pipClose">×</button>
+        </div>
         <iframe id="pipIframe" allowfullscreen></iframe>
     </div>
     
@@ -180,12 +241,12 @@
         document.addEventListener('DOMContentLoaded', function() {
             const container = document.getElementById('videoContainer');
             const addBtn = document.getElementById('addBtn');
-            const pipVideo = document.getElementById('pipVideo');
+            const pipContainer = document.getElementById('pipContainer');
             const pipIframe = document.getElementById('pipIframe');
             const pipClose = document.getElementById('pipClose');
             let currentPipPlayer = null;
             
-            const orderedChannels = [
+            const channels = [
                 {number: 533, name: "VFZF", url: "aHR0cHM6Ly9taXp0di50b3AvdG90YWwvc3RyZWFtLTUzMy5waHA="},
                 {number: 531, name: "QW50ZW5hIDM=", url: "aHR0cHM6Ly9taXp0di50b3AvdG90YWwvc3RyZWFtLTUzMS5waHA="},
                 {number: 535, name: "Q3VhdHJv", url: "aHR0cHM6Ly9taXp0di50b3AvdG90YWwvc3RyZWFtLTUzNS5waHA="},
@@ -206,27 +267,26 @@
             }
 
             function togglePip(player) {
+                const iframe = player.querySelector('iframe');
+                
                 if (currentPipPlayer === player) {
-                    // Cerrar PiP
-                    pipVideo.style.display = 'none';
+                    pipContainer.style.display = 'none';
                     pipIframe.src = '';
                     currentPipPlayer = null;
                 } else {
-                    // Abrir PiP
-                    const iframe = player.querySelector('iframe');
                     pipIframe.src = iframe.src;
-                    pipVideo.style.display = 'block';
+                    pipContainer.style.display = 'block';
                     currentPipPlayer = player;
                 }
             }
 
             pipClose.addEventListener('click', () => {
-                pipVideo.style.display = 'none';
+                pipContainer.style.display = 'none';
                 pipIframe.src = '';
                 currentPipPlayer = null;
             });
 
-            function addPlayer(defaultChannel = 537) {
+            function createPlayer(defaultChannel = 537) {
                 const player = document.createElement('div');
                 player.className = 'video-container';
                 
@@ -238,17 +298,17 @@
                 
                 const select = document.createElement('select');
                 
-                orderedChannels.forEach(channel => {
+                channels.forEach(channel => {
                     const option = document.createElement('option');
                     option.value = channel.number;
-                    option.text = `${channel.number} - ${decodeBase64(channel.name)}`;
+                    option.textContent = `${channel.number} - ${decodeBase64(channel.name)}`;
                     if (channel.number == defaultChannel) option.selected = true;
                     select.appendChild(option);
                 });
                 
                 const manualOption = document.createElement('option');
                 manualOption.value = "manual";
-                manualOption.text = "Introducir número...";
+                manualOption.textContent = "Introducir número...";
                 select.appendChild(manualOption);
                 
                 const numberInput = document.createElement('input');
@@ -256,13 +316,18 @@
                 numberInput.placeholder = "Número";
                 numberInput.style.display = "none";
                 
+                const pipBtn = document.createElement('button');
+                pipBtn.className = 'btn btn-pip';
+                pipBtn.innerHTML = 'PIP';
+                pipBtn.addEventListener('click', () => togglePip(player));
+                
                 const deleteBtn = document.createElement('button');
-                deleteBtn.className = 'delete-btn';
+                deleteBtn.className = 'btn btn-delete';
                 deleteBtn.innerHTML = '×';
                 deleteBtn.addEventListener('click', () => {
                     if (container.children.length > 1) {
                         if (currentPipPlayer === player) {
-                            pipVideo.style.display = 'none';
+                            pipContainer.style.display = 'none';
                             currentPipPlayer = null;
                         }
                         player.remove();
@@ -272,13 +337,8 @@
                     }
                 });
                 
-                const pipBtn = document.createElement('button');
-                pipBtn.className = 'pip-btn';
-                pipBtn.innerHTML = 'PIP';
-                pipBtn.addEventListener('click', () => togglePip(player));
-                
                 const iframe = document.createElement('iframe');
-                const defaultChannelObj = orderedChannels.find(c => c.number == defaultChannel) || orderedChannels[5];
+                const defaultChannelObj = channels.find(c => c.number == defaultChannel) || channels[5];
                 iframe.src = decodeBase64(defaultChannelObj.url);
                 iframe.allowFullscreen = true;
                 
@@ -288,7 +348,7 @@
                         numberInput.style.display = "block";
                         numberInput.focus();
                     } else {
-                        const selectedChannel = orderedChannels.find(c => c.number == this.value);
+                        const selectedChannel = channels.find(c => c.number == this.value);
                         iframe.src = decodeBase64(selectedChannel.url);
                         if (currentPipPlayer === player) {
                             pipIframe.src = iframe.src;
@@ -320,10 +380,15 @@
                 controls.appendChild(deleteBtn);
                 
                 videoWrapper.appendChild(iframe);
-                player.appendChild(controls);
                 player.appendChild(videoWrapper);
-                container.appendChild(player);
+                player.appendChild(controls);
                 
+                return player;
+            }
+            
+            function addPlayer(defaultChannel = 537) {
+                const player = createPlayer(defaultChannel);
+                container.appendChild(player);
                 updateLayout();
             }
             
