@@ -11,18 +11,9 @@
             --control-bg: #2a2a2a;
             --border-color: #444;
             --text-color: #eee;
-            --primary-hover: #3a3a3a;
             --danger-color: #ff3333;
-            --danger-hover: #ff5555;
             --info-color: #3333ff;
-            --info-hover: #5555ff;
             --border-radius: 8px;
-        }
-        
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
         }
         
         body {
@@ -44,16 +35,6 @@
             width: 100%;
             max-width: 1200px;
             margin-bottom: 20px;
-        }
-        
-        .container.single {
-            display: flex;
-            justify-content: center;
-        }
-        
-        .container.single .video-container {
-            width: 80%;
-            max-width: 800px;
         }
         
         .video-container {
@@ -90,11 +71,6 @@
             border-radius: var(--border-radius);
             cursor: pointer;
             font-size: 16px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-        
-        .add-btn:hover {
-            background-color: var(--primary-hover);
         }
         
         .controls {
@@ -112,7 +88,7 @@
             border: 1px solid var(--border-color);
             border-radius: 6px;
             font-size: 14px;
-            width: 100%;
+            flex-grow: 1;
         }
         
         input {
@@ -127,8 +103,6 @@
         
         .btn {
             background: transparent;
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
             border-radius: 6px;
             width: 36px;
             height: 36px;
@@ -137,6 +111,7 @@
             align-items: center;
             justify-content: center;
             font-weight: bold;
+            border: 1px solid;
         }
         
         .btn-delete {
@@ -144,33 +119,23 @@
             border-color: var(--danger-color);
         }
         
-        .btn-delete:hover {
-            color: #fff;
-            background: var(--danger-color);
-        }
-        
         .btn-pip {
             color: var(--info-color);
             border-color: var(--info-color);
         }
         
-        .btn-pip:hover {
-            color: #fff;
-            background: var(--info-color);
-        }
-        
-        .pip-container {
+        .pip-window {
             position: fixed;
             bottom: 20px;
             right: 20px;
             width: 300px;
             height: 169px;
             background: #000;
-            z-index: 1000;
+            z-index: 9999;
             border: 2px solid var(--info-color);
             border-radius: var(--border-radius);
             overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            resize: both;
             display: none;
         }
         
@@ -185,10 +150,11 @@
             justify-content: flex-end;
             align-items: center;
             padding: 0 8px;
-            z-index: 1001;
+            z-index: 1000;
+            cursor: move;
         }
         
-        .btn-close {
+        .pip-close {
             background: var(--danger-color);
             color: white;
             border: none;
@@ -199,19 +165,15 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
+        }
+        
+        .pip-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
         }
         
         @media (max-width: 768px) {
-            .container.single .video-container {
-                width: 100%;
-            }
-            
-            .pip-container {
-                width: 200px;
-                height: 113px;
-            }
-            
             .controls {
                 flex-wrap: nowrap;
             }
@@ -224,27 +186,35 @@
                 width: 30px;
                 height: 30px;
             }
+            
+            .pip-window {
+                width: 200px;
+                height: 113px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container single" id="videoContainer"></div>
+    <div class="container" id="videoContainer"></div>
     <button class="add-btn" id="addBtn">Añadir reproductor</button>
-    <div class="pip-container" id="pipContainer">
-        <div class="pip-header">
-            <button class="btn-close" id="pipClose">×</button>
+    <div class="pip-window" id="pipWindow">
+        <div class="pip-header" id="pipHeader">
+            <button class="pip-close" id="pipClose">×</button>
         </div>
-        <iframe id="pipIframe" allowfullscreen></iframe>
+        <iframe class="pip-iframe" id="pipIframe" allowfullscreen></iframe>
     </div>
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const container = document.getElementById('videoContainer');
             const addBtn = document.getElementById('addBtn');
-            const pipContainer = document.getElementById('pipContainer');
+            const pipWindow = document.getElementById('pipWindow');
+            const pipHeader = document.getElementById('pipHeader');
             const pipIframe = document.getElementById('pipIframe');
             const pipClose = document.getElementById('pipClose');
             let currentPipPlayer = null;
+            let isDragging = false;
+            let offsetX, offsetY;
             
             const channels = [
                 {number: 533, name: "VFZF", url: "aHR0cHM6Ly9taXp0di50b3AvdG90YWwvc3RyZWFtLTUzMy5waHA="},
@@ -266,22 +236,48 @@
                 }
             }
 
+            function makePipDraggable() {
+                pipHeader.addEventListener('mousedown', startDrag);
+                document.addEventListener('mousemove', drag);
+                document.addEventListener('mouseup', endDrag);
+
+                function startDrag(e) {
+                    isDragging = true;
+                    const rect = pipWindow.getBoundingClientRect();
+                    offsetX = e.clientX - rect.left;
+                    offsetY = e.clientY - rect.top;
+                    pipWindow.style.cursor = 'grabbing';
+                    e.preventDefault();
+                }
+
+                function drag(e) {
+                    if (!isDragging) return;
+                    pipWindow.style.left = (e.clientX - offsetX) + 'px';
+                    pipWindow.style.top = (e.clientY - offsetY) + 'px';
+                }
+
+                function endDrag() {
+                    isDragging = false;
+                    pipWindow.style.cursor = 'move';
+                }
+            }
+
             function togglePip(player) {
                 const iframe = player.querySelector('iframe');
                 
                 if (currentPipPlayer === player) {
-                    pipContainer.style.display = 'none';
+                    pipWindow.style.display = 'none';
                     pipIframe.src = '';
                     currentPipPlayer = null;
                 } else {
                     pipIframe.src = iframe.src;
-                    pipContainer.style.display = 'block';
+                    pipWindow.style.display = 'block';
                     currentPipPlayer = player;
                 }
             }
 
             pipClose.addEventListener('click', () => {
-                pipContainer.style.display = 'none';
+                pipWindow.style.display = 'none';
                 pipIframe.src = '';
                 currentPipPlayer = null;
             });
@@ -327,11 +323,10 @@
                 deleteBtn.addEventListener('click', () => {
                     if (container.children.length > 1) {
                         if (currentPipPlayer === player) {
-                            pipContainer.style.display = 'none';
+                            pipWindow.style.display = 'none';
                             currentPipPlayer = null;
                         }
                         player.remove();
-                        updateLayout();
                     } else {
                         alert("Debe haber al menos un reproductor");
                     }
@@ -389,19 +384,11 @@
             function addPlayer(defaultChannel = 537) {
                 const player = createPlayer(defaultChannel);
                 container.appendChild(player);
-                updateLayout();
-            }
-            
-            function updateLayout() {
-                if (container.children.length === 1) {
-                    container.classList.add('single');
-                } else {
-                    container.classList.remove('single');
-                }
             }
             
             addPlayer(537);
             addBtn.addEventListener('click', () => addPlayer());
+            makePipDraggable();
         });
     </script>
 </body>
