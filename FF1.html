@@ -53,7 +53,7 @@
             padding-bottom: 56.25%;
         }
         
-        iframe {
+        .main-iframe {
             position: absolute;
             top: 0;
             left: 0;
@@ -262,15 +262,32 @@
                 }
             }
 
-            function togglePip(player) {
-                const iframe = player.querySelector('iframe');
+            async function togglePip(player) {
+                const videoElement = player.querySelector('.main-iframe');
                 
+                // Intentar usar la API de Picture-in-Picture del navegador primero
+                if (document.pictureInPictureEnabled && !videoElement.disablePip) {
+                    try {
+                        if (document.pictureInPictureElement) {
+                            await document.exitPictureInPicture();
+                            currentPipPlayer = null;
+                        } else {
+                            await videoElement.requestPictureInPicture();
+                            currentPipPlayer = player;
+                        }
+                        return;
+                    } catch (error) {
+                        console.log("API PiP no disponible, usando PiP personalizado");
+                    }
+                }
+                
+                // Fallback a PiP personalizado
                 if (currentPipPlayer === player) {
                     pipWindow.style.display = 'none';
                     pipIframe.src = '';
                     currentPipPlayer = null;
                 } else {
-                    pipIframe.src = iframe.src;
+                    pipIframe.src = videoElement.src;
                     pipWindow.style.display = 'block';
                     currentPipPlayer = player;
                 }
@@ -333,9 +350,13 @@
                 });
                 
                 const iframe = document.createElement('iframe');
+                iframe.className = 'main-iframe';
                 const defaultChannelObj = channels.find(c => c.number == defaultChannel) || channels[5];
                 iframe.src = decodeBase64(defaultChannelObj.url);
                 iframe.allowFullscreen = true;
+                
+                // Permitir PiP en el iframe si el navegador lo soporta
+                iframe.allow = 'picture-in-picture';
                 
                 select.addEventListener('change', function() {
                     if (this.value === "manual") {
