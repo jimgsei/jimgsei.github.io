@@ -3,20 +3,36 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ver Canales en Vivo</title>
+  <title>Jimgsey</title>
   <style>
     body {
       margin: 0;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      height: 100vh;
       background: #000;
       color: #fff;
       font-family: Arial, sans-serif;
+      padding: 20px;
     }
-    select {
+
+    #players {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      width: 100%;
+      gap: 20px;
+    }
+
+    .player-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 1280px;
+    }
+
+    select, button.add-player {
       appearance: none;
       background-color: #1e1e1e;
       color: #fff;
@@ -25,43 +41,116 @@
       border: 2px solid #444;
       border-radius: 8px;
       cursor: pointer;
-      margin-bottom: 20px;
+      margin-bottom: 10px;
       transition: 0.3s ease;
+      width: 100%;
+      max-width: 300px;
     }
-    select:hover {
+
+    select:hover, button.add-player:hover {
       border-color: #00bcd4;
       background-color: #2c2c2c;
     }
+
     iframe {
       border: none;
       width: 100%;
-      max-width: 1280px;
       aspect-ratio: 16 / 9;
+      background: #000;
+    }
+
+    .controls {
+      margin-top: 20px;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+
+    @media (min-width: 768px) {
+      .player-container {
+        flex: 1 1 calc(50% - 20px);
+        min-width: calc(50% - 20px);
+      }
+    }
+
+    @media (max-width: 767px) {
+      .player-container {
+        flex: 1 1 100%;
+      }
     }
   </style>
 </head>
 <body>
-
-  <select id="channelSelector">
-    <option value="LA1"selected>LA 1</option>
-    <option value="ANTENA3">Antena 3</option>
-    <option value="CUATRO">Cuatro</option>
-    <option value="TELECINCO">Telecinco</option>
-    <option value="LASEXTA">La Sexta</option>
-  </select>
-
-  <iframe
-    id="tvFrame"
-    src="https://nebunexa.co/clappr/?id=LA1"
-    allow="autoplay; encrypted-media"
-    allowfullscreen>
-  </iframe>
+  <div id="players"></div>
+  <div class="controls">
+    <button id="addPlayer" class="add-player">Añadir Reproductor</button>
+  </div>
 
   <script>
-    document.getElementById('channelSelector').addEventListener('change', e => {
-      document.getElementById('tvFrame').src = `https://nebunexa.co/clappr/?id=${e.target.value}`;
-    });
-  </script>
+    const channelData = {
+      'TEEgMQ==': 'aHR0cHM6Ly9uZWJ1bmV4YS5jby9jbGFwcHIvP2lkPUxBMQ==',
+      'QW50ZW5hIDM=': 'aHR0cHM6Ly9uZWJ1bmV4YS5jby9jbGFwcHIvP2lkPUFOVEVOQTM=',
+      'Q3VhdHJv': 'aHR0cHM6Ly9uZWJ1bmV4YS5jby9jbGFwcHIvP2lkPUNVQVRSTw==',
+      'VGVsZWNpbmNv': 'aHR0cHM6Ly9uZWJ1bmV4YS5jby9jbGFwcHIvP2lkPVRFTUVDSU5DTw==',
+      'TGEgU2V4dGE=': 'aHR0cHM6Ly9uZWJ1bmV4YS5jby9jbGFwcHIvP2lkTEFTRVhUQQ==',
+      'REFaTiBMaWdh': 'aHR0cHM6Ly9taXp0di50b3AvdG90YWwvc3RyZWFtLTUzOC5waHA=',
+      'REFaTiBGMSAx': 'aHR0cHM6Ly9taXp0di50b3AvdG90YWwvc3RyZWFtLTUzNy5waHA=',
+      'REFaTiBGMSAy': 'aHR0cHM6Ly9kdHZsaXZlZ3JhdGlzLmNvbS9jbi5waHA/aWQ9REFaTkYxRVM=',
+      'REFaTiBGMSAz': 'aHR0cHM6Ly9hbnRlbmFjZW50cmFsLnN0b3JlL2Rhem5mMS5waHA=',
+      'REFaTiBGMSA0': 'aHR0cHM6Ly9kb21haW5wYXJhdG9kb28ub25saW5lL2NuLnBocD9pZD1FU1BOMVQ=',
+      'REFaTiBGMSA1': 'aHR0cHM6Ly9kb21haW5wYXJhdG9kb28ub25saW5lL2NuLnBocD9pZD1EQVpORjE=',
+      'REFaTiBGMSBERVJJQ1RP': 'aHR0cHM6Ly90YXJqZXRhcm9qYWVudml2by5sYXQvcGxheWVyLzMvNjA='
+    };
 
+    function decodeBase64(base64Str) {
+      return atob(base64Str);
+    }
+
+    function createPlayerContainer(playerId) {
+      const container = document.createElement('div');
+      container.className = 'player-container';
+      container.id = `player-${playerId}`;
+
+      const select = document.createElement('select');
+      select.className = 'channel-selector';
+      select.id = `channelSelector-${playerId}`;
+
+      for (const [encodedName, encodedUrl] of Object.entries(channelData)) {
+        const option = document.createElement('option');
+        option.value = encodedUrl;
+        option.textContent = decodeBase64(encodedName);
+        select.appendChild(option);
+      }
+
+      const iframe = document.createElement('iframe');
+      iframe.id = `tvFrame-${playerId}`;
+      iframe.allow = "autoplay; encrypted-media";
+      iframe.allowFullscreen = true;
+
+      container.appendChild(select);
+      container.appendChild(iframe);
+
+      select.addEventListener('change', (e) => {
+        const decodedUrl = decodeBase64(e.target.value);
+        iframe.src = decodedUrl;
+      });
+
+      // Set initial channel
+      const initialEncodedUrl = Object.values(channelData)[0];
+      const initialDecodedUrl = decodeBase64(initialEncodedUrl);
+      iframe.src = initialDecodedUrl;
+
+      return container;
+    }
+
+    document.getElementById('addPlayer').addEventListener('click', () => {
+      const playersContainer = document.getElementById('players');
+      const playerId = playersContainer.children.length;
+      const playerContainer = createPlayerContainer(playerId);
+      playersContainer.appendChild(playerContainer);
+    });
+
+    document.getElementById('players').appendChild(createPlayerContainer(0));
+  </script>
 </body>
 </html>
