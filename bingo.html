@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bingo Interactivo</title>
+<style>
+    /* Estilos generales del cuerpo */
+    body {
+        font-family: 'Arial', sans-serif;
+        background-color: #f0f2f5;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+        padding: 20px;
+        box-sizing: border-box;
+    }
+
+    /* Contenedor principal del bingo */
+    .bingo-container {
+        background-color: #ffffff;
+        padding: 30px;
+        border-radius: 20px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        width: 100%;
+        max-width: 800px;
+    }
+
+    h1 {
+        color: #333;
+        margin-bottom: 20px;
+    }
+
+    /* Bombo y bola actual */
+    .ball-animation-container {
+        background-color: #e0e0e0;
+        border-radius: 50%;
+        width: 200px;
+        height: 200px;
+        margin: 0 auto 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
+    }
+
+    .current-ball {
+        background-color: #4CAF50;
+        color: white;
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 50px;
+        font-weight: bold;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        animation: pop 0.5s ease;
+    }
+
+    @keyframes pop {
+        0% { transform: scale(0.5); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Botón para sacar una nueva bola */
+    .draw-button {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        font-size: 18px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        margin-bottom: 30px;
+    }
+
+    .draw-button:hover {
+        background-color: #0056b3;
+    }
+
+    /* Panel de números que ya han salido */
+    .called-numbers-container {
+        background-color: #f9f9f9;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+
+    h2 {
+        color: #555;
+        margin-top: 0;
+    }
+
+    .called-numbers {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
+        gap: 8px;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+
+    .called-ball {
+        background-color: #ddd;
+        color: #333;
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 18px;
+    }
+
+    /* Comprobador de cartones */
+    .checker-container {
+        background-color: #f9f9f9;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        padding: 20px;
+    }
+
+    .checker-container input {
+        width: calc(100% - 24px);
+        padding: 12px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        font-size: 16px;
+    }
+
+    .checker-container button {
+        background-color: #28a745;
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        font-size: 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .checker-container button:hover {
+        background-color: #218838;
+    }
+
+    #check-result {
+        margin-top: 15px;
+        font-size: 18px;
+        font-weight: bold;
+    }
+</style>
+</head>
+<body>
+
+<div class="bingo-container">
+    <h1>¡Bingo!</h1>
+
+    <div class="ball-animation-container">
+        <div id="current-ball-display" class=""></div>
+    </div>
+
+    <button id="draw-ball-button" class="draw-button">Sacar Bola</button>
+
+    <div class="called-numbers-container">
+        <h2>Números Cantados</h2>
+        <div id="called-numbers-grid" class="called-numbers"></div>
+    </div>
+
+    <div class="checker-container">
+        <h2>Comprobar Cartón</h2>
+        <input type="text" id="card-numbers-input" placeholder="Introduce los números de tu línea o cartón separados por comas">
+        <button id="check-card-button">Comprobar</button>
+        <div id="check-result"></div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Elementos del DOM
+    const drawButton = document.getElementById('draw-ball-button');
+    const currentBallDisplay = document.getElementById('current-ball-display');
+    const calledNumbersGrid = document.getElementById('called-numbers-grid');
+    const cardInput = document.getElementById('card-numbers-input');
+    const checkButton = document.getElementById('check-card-button');
+    const checkResult = document.getElementById('check-result');
+
+    // Estado del juego
+    let availableNumbers = Array.from({ length: 90 }, (_, i) => i + 1);
+    let calledNumbers = [];
+
+    // --- FUNCIONES DEL JUEGO ---
+
+    /**
+     * Saca una nueva bola, la muestra y actualiza el estado.
+     */
+    function drawBall() {
+        if (availableNumbers.length === 0) {
+            alert('¡Han salido todos los números!');
+            return;
+        }
+
+        // Saca un número aleatorio de los disponibles
+        const randomIndex = Math.floor(Math.random() * availableNumbers.length);
+        const newNumber = availableNumbers.splice(randomIndex, 1)[0];
+        calledNumbers.push(newNumber);
+        calledNumbers.sort((a, b) => a - b); // Mantiene los números ordenados
+
+        // Muestra la bola con animación
+        displayCurrentBall(newNumber);
+
+        // Actualiza el panel de números cantados
+        updateCalledNumbersGrid();
+    }
+
+    /**
+     * Muestra la bola actual con una animación.
+     * @param {number} number - El número de la bola a mostrar.
+     */
+    function displayCurrentBall(number) {
+        currentBallDisplay.textContent = number;
+        currentBallDisplay.classList.add('current-ball');
+        // Reinicia la animación
+        currentBallDisplay.style.animation = 'none';
+        void currentBallDisplay.offsetWidth; // Dispara un reflow
+        currentBallDisplay.style.animation = 'pop 0.5s ease';
+    }
+
+    /**
+     * Actualiza la parrilla de números que ya han salido.
+     */
+    function updateCalledNumbersGrid() {
+        calledNumbersGrid.innerHTML = '';
+        calledNumbers.forEach(number => {
+            const ballElement = document.createElement('div');
+            ballElement.classList.add('called-ball');
+            ballElement.textContent = number;
+            calledNumbersGrid.appendChild(ballElement);
+        });
+    }
+
+    /**
+     * Comprueba si los números de un cartón han sido cantados.
+     */
+    function checkCard() {
+        const inputNumbers = cardInput.value
+            .split(',')
+            .map(n => parseInt(n.trim()))
+            .filter(n => !isNaN(n) && n > 0 && n <= 90);
+
+        if (inputNumbers.length === 0) {
+            checkResult.textContent = 'Por favor, introduce números válidos.';
+            checkResult.style.color = '#dc3545';
+            return;
+        }
+
+        const allNumbersCalled = inputNumbers.every(num => calledNumbers.includes(num));
+
+        if (allNumbersCalled) {
+            checkResult.textContent = '¡Correcto! Todos los números han salido. ¡LÍNEA o BINGO!';
+            checkResult.style.color = '#28a745';
+        } else {
+            const missingNumbers = inputNumbers.filter(num => !calledNumbers.includes(num));
+            checkResult.textContent = `Aún no han salido todos. Te faltan: ${missingNumbers.join(', ')}`;
+            checkResult.style.color = '#dc3545';
+        }
+    }
+
+    // --- EVENT LISTENERS ---
+    drawButton.addEventListener('click', drawBall);
+    checkButton.addEventListener('click', checkCard);
+});
+</script>
+
+</body>
+</html>
