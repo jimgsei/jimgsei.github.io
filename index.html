@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Jimgsey</title>
-  <link rel="stylesheet" href="styles.css">
- <style>
+  <link rel="icon" href="UP.ico" type="image/x-icon">
+  <style>
         body {
             margin: 0;
             font-family: Arial, sans-serif;
@@ -24,6 +24,7 @@
             padding: 20px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.7);
             text-align: center;
+            z-index: 1; /* Asegura que el contenido esté sobre las partículas */
         }
         .title {
             font-size: 2em;
@@ -33,11 +34,12 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
+            align-items: center; /* Centra los botones en la vista móvil */
         }
         .button {
             background-color: transparent;
             color: #fff;
-            border: 1px solid #aaa; /* Borde blanco fino */
+            border: 1px solid #aaa;
             padding: 10px;
             font-size: 1em;
             border-radius: 5px;
@@ -45,6 +47,7 @@
             transition: all 0.3s ease;
             position: relative;
             text-align: center;
+            width: 100%;
         }
         .button:hover {
             border: 1px solid #fff;
@@ -62,6 +65,8 @@
             text-align: left;
             margin-top: 5px;
             width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
         }
         .submenu a {
             color: #fff;
@@ -77,29 +82,18 @@
         .submenu a:hover {
             background-color: #777;
         }
-        .credits {
+        .creditos {
             margin-top: 20px;
             font-size: 0.9em;
             color: #ddd;
         }
-		.creditos {
-          margin-top: 20px;
+        .creditos img {
+          width: 30px;
+          vertical-align: middle;
+          filter: invert(1);
         }
-		.creditos img {
-		  width: 30px;
-		  vertical-align: middle;
-		  filter: invert(1);
-        }
-
-        /* Animación fadeIn */
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-
-        /* Fondo de partículas */
         #particles-js {
-         position: absolute;
+         position: fixed; /* Usar fixed para que no se mueva con el scroll */
          width: 100%;
          height: 100%;
          top: 0;
@@ -107,227 +101,141 @@
          z-index: 0;
         }
 
+        /* Contenedor para cada botón y su submenú */
+        .button-container {
+            width: 70%;
+            max-width: 250px; /* Ancho máximo para los botones en móvil */
+        }
+
         /* Estilos para pantallas grandes */
         @media (min-width: 601px) {
             .button-group {
                 flex-direction: row;
                 justify-content: center;
+                flex-wrap: wrap; /* Permite que los botones pasen a la siguiente línea si no caben */
+                align-items: flex-start;
             }
-            .button {
-                flex: 1;
-                margin: 5px;
-                text-align: center;
-            }
-            .submenu {
-                position: relative;
-                text-align: left;
-                margin-top: 5px;
-                width: fit-content;
-                padding: 5px 15px;
-                display: none;
-            }
-        }
-
-        /* Estilos para pantallas pequeñas (móviles) */
-        @media (max-width: 600px) {
-            .button-group {
+            .button-container {
+                display: flex;
                 flex-direction: column;
+                align-items: center;
+                margin: 5px;
+                flex-basis: 150px; /* Base de tamaño para cada botón */
+                flex-grow: 1; /* Permite que crezcan para ocupar el espacio */
             }
-            .button {
-                margin: 10px 0;
-                width: 70%;
-            }
-            .submenu {
+             .submenu {
                 position: relative;
-                margin-top: 5px;
-                width: auto;  /* El ancho es ahora auto para ajustarse al contenido */
-                max-width: 70%; /* Controla la anchura máxima para hacerlo más estrecho */
-                padding: 5px 10px;
-                display: none;
-                margin-left: auto; /* Centra el submenú */
-                margin-right: auto; /* Centra el submenú */
+                width: 100%;
             }
         }
-
     </style>
 </head>
-<link rel="icon" href="UP.ico" type="image/x-icon">
 <body>
   <div id="particles-js"></div>
-    <div class="container">
-        <div class="title">Webs</div>
-        <div class="button-group">
-            <div>
-                <button class="button" onclick="toggleMenu('menuF1', this)">F1</button>
-                <div id="menuF1" class="submenu">
-                 <a href="F1.html">Web Datos</a>
-                </div>
-            </div>
-	    <div>
-                <button class="button" onclick="toggleMenu('menum3', this)">Reproductor IPTV</button>
-                <div id="menum3" class="submenu">
-                 <a href="m3u8.html">Reproductor lista IPTV</a>
-                </div>
-            </div>
-            <div>
-                <button class="button" onclick="toggleMenu('menuDev', this)">Device</button>
-                <div id="menuDev" class="submenu">
-	      	      <a href="device.html">Redmi note 10 and Redmi note 7</a>
-                </div>
-            </div>
+  <div class="container">
+      <div class="title">Webs</div>
+      
+      <div class="button-group">
+          
+          <div class="button-container">
+              <button class="button" onclick="toggleMenu('menuF1', this)">F1</button>
+              <div id="menuF1" class="submenu">
+                  <a href="F1.html">Web Datos</a>
+              </div>
+          </div>
+          
+          <div class="button-container">
+              <button class="button" onclick="toggleMenu('menum3', this)">Reproductor IPTV</button>
+              <div id="menum3" class="submenu">
+                  <a href="m3u8.html">Reproductor lista IPTV</a>
+              </div>
+          </div>
+          
+          <div class="button-container">
+              <button class="button" onclick="toggleMenu('menuDev', this)">Device</button>
+              <div id="menuDev" class="submenu">
+                  <a href="device.html">Redmi note 10 and Redmi note 7</a>
+              </div>
+          </div>
 
-	    <div>
-                <button class="button" onclick="toggleMenu('menuAgenda', this)">Sepolice</button>
-                <div id="menuAgenda" class="submenu">
-	              <a href="sepolice.html">Sepolice</a>
-                </div>
-            </div>
-        </div>
-        <div class="creditos">
-         <span>Creado por Jimgsey</span>
-           <a href="https://github.com/jimgsey" target="_blank">
-        <img src="https://img.icons8.com/ios/50/000000/github.png" alt="Github">
-      </a>
-    </div>
-   <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+          <div class="button-container">
+              <button class="button" onclick="toggleMenu('menuAgenda', this)">Sepolice</button>
+              <div id="menuAgenda" class="submenu">
+                  <a href="sepolice.html">Sepolice</a>
+              </div>
+          </div>
+          
+          <div class="button-container">
+              <button class="button" onclick="toggleMenu('menuJuegos', this)">Juegos</button>
+              <div id="menuJuegos" class="submenu">
+                  <a href="backgammon.html">Backgammon</a>
+                  <a href="bingo.html">Bingo</a>
+              </div>
+          </div>
+          
+          <div class="button-container">
+              <button class="button" onclick="toggleMenu('menuCanales', this)">Canales</button>
+              <div id="menuCanales" class="submenu">
+                  <a href="TDT.html">TDT</a>
+              </div>
+          </div>
+
+      </div>
+      
+      <div class="creditos">
+          <span>Creado por Jimgsey</span>
+          <a href="https://github.com/jimgsey" target="_blank">
+              <img src="https://img.icons8.com/ios/50/000000/github.png" alt="Github">
+          </a>
+      </div>
+  </div>
+  
+  <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
   <script>
-    function toggleMenu(menuId, button) {
-        // Cierra todos los menús y elimina la clase 'active' de todos los botones
-        const menus = document.querySelectorAll('.submenu');
-        const buttons = document.querySelectorAll('.button');
-        
-        // Solo oculta los menús si no son el que estamos pulsando
-        menus.forEach(menu => {
-            if (menu.id !== menuId) {
-                menu.style.display = 'none';
-            }
-        });
+      function toggleMenu(menuId, button) {
+          const menuToToggle = document.getElementById(menuId);
+          const isCurrentlyVisible = menuToToggle.style.display === "block";
 
-        buttons.forEach(btn => {
-            btn.classList.remove('active');
-        });
+          // Cierra todos los submenús
+          const allMenus = document.querySelectorAll('.submenu');
+          allMenus.forEach(menu => {
+              menu.style.display = 'none';
+          });
 
-        // Activa el submenú seleccionado
-        const menu = document.getElementById(menuId);
-        if (menu.style.display === "block") {
-            menu.style.display = "none"; // Si está visible, se oculta
-        } else {
-            menu.style.display = "block"; // Si está oculto, se muestra
-            button.classList.add('active'); // Marca el botón como activo
-        }
-    }
-</script>
-    <script>
-    particlesJS("particles-js", {
-      "particles": {
-        "number": {
-          "value": 100,
-          "density": {
-            "enable": true,
-            "value_area": 800
+          // Quita la clase 'active' de todos los botones
+          const allButtons = document.querySelectorAll('.button');
+          allButtons.forEach(btn => {
+              btn.classList.remove('active');
+          });
+
+          // Si el menú no estaba visible, muéstralo y activa el botón
+          if (!isCurrentlyVisible) {
+              menuToToggle.style.display = "block";
+              button.classList.add('active');
+          }
+      }
+  </script>
+  <script>
+      particlesJS("particles-js", {
+        "particles": {
+          "number": {"value": 100, "density": {"enable": true, "value_area": 800}},
+          "color": {"value": "#ffffff"},
+          "shape": {"type": "circle", "stroke": {"width": 0, "color": "#000000"}, "polygon": {"nb_sides": 5}},
+          "opacity": {"value": 0.5, "random": false, "anim": {"enable": false}},
+          "size": {"value": 3, "random": true, "anim": {"enable": false}},
+          "line_linked": {"enable": true, "distance": 150, "color": "#ffffff", "opacity": 0.4, "width": 1},
+          "move": {"enable": true, "speed": 6, "direction": "none", "random": false, "straight": false, "out_mode": "out", "bounce": false, "attract": {"enable": false}}
+        },
+        "interactivity": {
+          "detect_on": "canvas",
+          "events": {"onhover": {"enable": true, "mode": "grab"}, "onclick": {"enable": true, "mode": "push"}, "resize": true},
+          "modes": {
+            "grab": {"distance": 140, "line_linked": {"opacity": 1}},
+            "push": {"particles_nb": 4}
           }
         },
-        "color": {
-          "value": "#ffffff"
-        },
-        "shape": {
-          "type": "circle",
-          "stroke": {
-            "width": 0,
-            "color": "#000000"
-          },
-          "polygon": {
-            "nb_sides": 5
-          },
-          "image": {
-            "src": "img/github.svg",
-            "width": 100,
-            "height": 100
-          }
-        },
-        "opacity": {
-          "value": 0.5,
-          "random": false,
-          "anim": {
-            "enable": false,
-            "speed": 1,
-            "opacity_min": 0.1,
-            "sync": false
-          }
-        },
-        "size": {
-          "value": 3,
-          "random": true,
-          "anim": {
-            "enable": false,
-            "speed": 40,
-            "size_min": 0.1,
-            "sync": false
-          }
-        },
-        "line_linked": {
-          "enable": true,
-          "distance": 150,
-          "color": "#ffffff",
-          "opacity": 0.4,
-          "width": 1
-        },
-        "move": {
-          "enable": true,
-          "speed": 6,
-          "direction": "none",
-          "random": false,
-          "straight": false,
-          "out_mode": "out",
-          "bounce": false,
-          "attract": {
-            "enable": false,
-            "rotateX": 600,
-            "rotateY": 1200
-          }
-        }
-      },
-      "interactivity": {
-        "detect_on": "canvas",
-        "events": {
-          "onhover": {
-            "enable": true,
-            "mode": "grab"
-          },
-          "onclick": {
-            "enable": true,
-            "mode": "push"
-          },
-          "resize": true
-        },
-        "modes": {
-          "grab": {
-            "distance": 140,
-            "line_linked": {
-              "opacity": 1
-            }
-          },
-          "bubble": {
-            "distance": 400,
-            "size": 40,
-            "duration": 2,
-            "opacity": 8,
-            "speed": 3
-          },
-          "repulse": {
-            "distance": 200,
-            "duration": 0.4
-          },
-          "push": {
-            "particles_nb": 4
-          },
-          "remove": {
-            "particles_nb": 2
-          }
-        }
-      },
-      "retina_detect": true
-    });
+        "retina_detect": true
+      });
   </script>
 </body>
 </html>
