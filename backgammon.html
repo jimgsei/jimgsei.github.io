@@ -3,20 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Backgammon Clásico</title>
+    <title>Backgammon Profesional</title>
     <style>
         :root {
-            --board-bg: #01594e;
-            --wood-color: #6a3e2b;
-            --point-light: #c8bca9;
-            --point-dark: #8c2727;
-            --checker-white: #e8e8e8;
-            --checker-black: #2c2c2c;
-            --highlight-color: rgba(255, 235, 59, 0.7);
+            --board-bg: #d2b48c;
+            --wood-frame: #6f4e37;
+            --point-light: #a0522d;
+            --point-dark: #8b4513;
+            --checker-white: #f5f5dc;
+            --checker-black: #3d2b1f;
+            --highlight-color: rgba(0, 191, 255, 0.7);
             --die-bg: #f5f5dc;
             --pip-color: #222;
         }
-
         html, body {
             width: 100%;
             height: 100%;
@@ -27,7 +26,6 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
-
         #game-wrapper {
             display: flex;
             flex-direction: column;
@@ -35,121 +33,146 @@
             height: 100vh;
             justify-content: center;
             align-items: center;
+            background-color: #212121;
         }
-
         #backgammon-board {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr) 0.3fr repeat(6, 1fr);
+            display: flex;
+            justify-content: space-between;
             width: 95vw;
-            max-width: 500px;
-            aspect-ratio: 1 / 1.1;
+            max-width: 550px;
+            aspect-ratio: 1.1 / 1;
             background: var(--board-bg);
-            border: 1.5vmin solid var(--wood-color);
+            border: 1vmin solid var(--wood-frame);
             border-radius: 1vmin;
-            box-shadow: 0 0 4vmin rgba(0,0,0,0.7), inset 0 0 2vmin rgba(0,0,0,0.5);
+            box-shadow: 0 0 4vmin rgba(0,0,0,0.7);
             padding: 1.5vmin;
             box-sizing: border-box;
         }
-
-        /* --- Estilos del tablero y fichas (sin cambios) --- */
-        .point { position: relative; cursor: pointer; display: flex; flex-direction: column; }
-        .point::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; clip-path: polygon(50% 100%, 0 0, 100% 0); }
-        .point.top { flex-direction: column-reverse; transform: rotate(180deg); }
+        .board-half {
+            flex-basis: 47%;
+            display: grid;
+            grid-template-rows: 1fr 1fr;
+            grid-template-columns: repeat(6, 1fr);
+        }
+        .bar {
+            flex-basis: 6%;
+            background-color: var(--wood-frame);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 1vmin;
+            padding: 1vmin 0;
+            box-shadow: inset 0 0 1vmin rgba(0,0,0,0.6);
+        }
+        .point {
+            position: relative;
+            cursor: pointer;
+        }
+        .point::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            clip-path: polygon(50% 100%, 0 0, 100% 0);
+            height: 48%;
+        }
+        .point.points-up {
+            display: flex;
+            flex-direction: column-reverse;
+        }
+        .point.points-down {
+            display: flex;
+            flex-direction: column;
+        }
+        .point.points-up::before {
+             transform: rotate(180deg);
+             top: auto;
+             bottom: 0;
+        }
+        .point.points-down::before {
+            top: 0;
+        }
         .point.odd::before { background-color: var(--point-dark); }
         .point.even::before { background-color: var(--point-light); }
-        .point.possible-move::after { content: ''; position: absolute; top: 45%; left: 45%; width: 10%; height: 10%; background-color: var(--highlight-color); border-radius: 50%; transform: translateY(-50%); z-index: 20; }
-        .point.top.possible-move::after { transform: translateY(-50%) rotate(180deg); }
-        .bar { grid-column: 7 / 8; background-color: var(--wood-color); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1vmin; padding: 1vmin 0; box-shadow: inset 0 0 1vmin rgba(0,0,0,0.6); }
-        .bar-checker-container { width: 80%; aspect-ratio: 1/1; cursor: pointer; }
-        .checker { width: 100%; aspect-ratio: 1 / 1; border-radius: 50%; box-sizing: border-box; box-shadow: inset 0 -0.4vmin 0.5vmin rgba(0,0,0,0.5), 0 0.3vmin 0.4vmin rgba(0,0,0,0.4); transition: transform 0.2s ease-out, box-shadow 0.2s ease-out; cursor: pointer; position: relative; z-index: 10; }
-        .checker.white { background: radial-gradient(circle at 50% 60%, var(--checker-white), #c0c0c0); }
-        .checker.black { background: radial-gradient(circle at 50% 60%, var(--checker-black), #000); }
-        .point .checker { width: 90%; margin: 0 auto; flex-shrink: 0; height: auto; }
-        .checker.selected { transform: scale(1.1); box-shadow: 0 0 1.5vmin 0.5vmin var(--highlight-color); z-index: 15; }
-
-
-        #ui-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 1.5vh;
+        .point.possible-move::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 15%;
+            height: 10%;
+            background-color: var(--highlight-color);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 20;
+        }
+        .bar-checker-container {
+            width: 80%;
+            aspect-ratio: 1/1;
+            cursor: pointer;
+            position: relative;
+        }
+        .checker {
             width: 100%;
-            padding: 2vh 0;
-        }
-
-        #game-info {
-            color: white;
-            font-size: 2.5vh;
-            font-weight: bold;
-            text-align: center;
-            height: 3vh;
-            transition: color 0.3s;
-        }
-        
-        #dice-area {
-            display: flex;
-            gap: 2vmin;
-            height: 10vmin;
-            align-items: center;
-            justify-content: center;
-            min-height: 80px; /* Espacio reservado para los dados */
-        }
-        
-        .die-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.5vmin;
-            opacity: 0;
-            transform: translateY(20px);
-            transition: opacity 0.4s ease-out, transform 0.4s ease-out;
-        }
-
-        .die-container.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .die-face {
-            width: 9vmin;
-            height: 9vmin;
-            max-width: 60px;
-            max-height: 60px;
-            background-color: var(--die-bg);
-            border-radius: 10%;
-            border: 0.4vmin solid #333;
+            aspect-ratio: 1 / 1;
+            border-radius: 50%;
             box-sizing: border-box;
-            display: grid;
-            padding: 1vmin;
-            gap: 0.5vmin;
+            box-shadow: inset 0 -0.4vmin 0.5vmin rgba(0,0,0,0.5), 0 0.3vmin 0.4vmin rgba(0,0,0,0.4);
+            transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+            cursor: pointer;
         }
-        .die-number {
-            color: var(--die-bg);
-            font-weight: bold;
-            font-size: 2vh;
+        .point .checker {
+            position: absolute;
+            width: 90%;
+            left: 5%;
         }
-
+        .bar .checker {
+            position: relative;
+            width: 100%;
+        }
+        .checker.white { background: radial-gradient(circle at 50% 60%, var(--checker-white), #c0c0c0); border: 1px solid #999; }
+        .checker.black { background: radial-gradient(circle at 50% 60%, var(--checker-black), #333); border: 1px solid #555; }
+        .checker.selected { transform: scale(1.1); box-shadow: 0 0 1.5vmin 0.5vmin var(--highlight-color); z-index: 15; }
+        #ui-container { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.5vh; width: 100%; padding: 2vh 0; }
+        #game-info { color: white; font-size: 2.5vh; font-weight: bold; text-align: center; height: 3vh; transition: color 0.3s; }
+        #dice-area { display: flex; flex-wrap: wrap; justify-content: center; gap: 2vmin; height: 10vmin; align-items: center; min-height: 80px; }
+        .die-container { display: flex; flex-direction: column; align-items: center; gap: 0.5vmin; opacity: 0; transform: translateY(20px); transition: opacity 0.4s ease-out, transform 0.4s ease-out; }
+        .die-container.visible { opacity: 1; transform: translateY(0); }
+        .die-face { width: 9vmin; height: 9vmin; max-width: 60px; max-height: 60px; background-color: var(--die-bg); border-radius: 10%; border: 0.4vmin solid #333; box-sizing: border-box; display: grid; padding: 1vmin; gap: 0.5vmin; }
+        .die-number { color: var(--die-bg); font-weight: bold; font-size: 2vh; }
         .pip { width: 100%; height: 100%; background-color: var(--pip-color); border-radius: 50%; align-self: center; justify-self: center; }
         .face-1 { grid-template-areas: ". . ." ". a ." ". . ."; } .face-2 { grid-template-areas: "a . ." ". . ." ". . b"; } .face-3 { grid-template-areas: "a . ." ". b ." ". . c"; } .face-4 { grid-template-areas: "a . b" ". . ." "c . d"; } .face-5 { grid-template-areas: "a . b" ". c ." "d . e"; } .face-6 { grid-template-areas: "a . b" "c . d" "e . f"; }
         .face-2, .face-3, .face-4, .face-5, .face-6 { grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr; }
         .pip:nth-of-type(1) { grid-area: a; } .pip:nth-of-type(2) { grid-area: b; } .pip:nth-of-type(3) { grid-area: c; } .pip:nth-of-type(4) { grid-area: d; } .pip:nth-of-type(5) { grid-area: e; } .pip:nth-of-type(6) { grid-area: f; }
-
         .ui-button { padding: 1.5vh 3vh; font-size: 2vh; font-weight: bold; cursor: pointer; background-color: #4a4a4a; color: #fff; border: 0.2vmin solid #222; border-radius: 1vmin; transition: background-color 0.2s, transform 0.1s; }
         .ui-button:hover:not(:disabled) { background-color: #666; }
         .ui-button:active:not(:disabled) { transform: scale(0.95); }
         .ui-button:disabled { background-color: #333; color: #777; cursor: not-allowed; }
-
-        /* === MODO APAISADO === */
-        @media (min-width: 768px) and (orientation: landscape) {
-            #game-wrapper { flex-direction: row; justify-content: space-evenly; }
-            #backgammon-board { width: auto; height: 90vh; max-width: none; }
-            #ui-container { flex-direction: column; width: auto; height: 90vh; justify-content: center; gap: 3vh; }
-            #game-info { font-size: 3vh; height: 4vh; }
-            #dice-area { height: 12vh; min-height: 100px; }
-            .die-face { width: 8vh; height: 8vh; }
-            .die-number { font-size: 2.5vh; }
-            .ui-button { padding: 2vh 3vh; font-size: 3vh; }
+        #fullscreen-button { display: none; position: absolute; top: 10px; right: 10px; width: 40px; height: 40px; font-size: 24px; background-color: rgba(0,0,0,0.5); color: white; border: 1px solid white; border-radius: 5px; z-index: 100; }
+        #button-controls { display: flex; gap: 10px; }
+        #help-button { font-size: 2vh; padding: 1.5vh; line-height: 1; width: auto; min-width: 45px; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s ease-in-out; }
+        .modal-overlay.visible { opacity: 1; pointer-events: auto; }
+        .modal-content { background: #f0f0f0; color: #333; padding: 20px 30px; border-radius: 10px; max-width: 90vw; max-height: 80vh; overflow-y: auto; position: relative; transform: scale(0.9); transition: transform 0.3s ease-in-out; }
+        .modal-overlay.visible .modal-content { transform: scale(1); }
+        .modal-content h2 { margin-top: 0; border-bottom: 2px solid #ccc; padding-bottom: 10px; }
+        .modal-content h3 { margin-top: 20px; color: var(--wood-frame); }
+        .modal-content p, .modal-content li { line-height: 1.6; }
+        .modal-content ul { padding-left: 20px; }
+        .close-button { position: absolute; top: 10px; right: 15px; background: none; border: none; font-size: 30px; cursor: pointer; color: #888; }
+        .close-button:hover { color: #000; }
+        @media (max-height: 600px) and (orientation: landscape) {
+            #fullscreen-button { display: block; }
+            body:fullscreen #fullscreen-button { display: none; }
+            #game-wrapper { flex-direction: row; padding: 0 1vw; gap: 1vw; box-sizing: border-box; }
+            #backgammon-board { flex-grow: 1; width: auto; height: 96vh; max-width: none; aspect-ratio: 1.2 / 1; }
+            #ui-container { flex-shrink: 0; width: 150px; height: 96vh; justify-content: center; gap: 3vh; }
+            #game-info { font-size: 2.5vh; }
+            #dice-area { flex-wrap: wrap; height: auto; }
+            .die-face { width: 9vh; height: 9vh; max-width: 50px; max-height: 50px; }
+            .die-number { font-size: 2vh; }
+            .ui-button { padding: 1.5vh 2vh; font-size: 2.2vh; }
         }
     </style>
 </head>
@@ -159,39 +182,71 @@
         <div id="ui-container">
             <div id="game-info"></div>
             <div id="dice-area"></div>
-            <button class="ui-button" id="roll-button">Lanzar</button>
-            <button class="ui-button" id="undo-button">Deshacer</button>
+            <div id="button-controls">
+                <button class="ui-button" id="roll-button">Lanzar</button>
+                <button class="ui-button" id="undo-button">Deshacer</button>
+                <button class="ui-button" id="help-button">?</button>
+            </div>
+        </div>
+    </div>
+    <button id="fullscreen-button">⛶</button>
+    <div id="help-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button id="close-help-button" class="close-button">&times;</button>
+            <h2>Reglas del Backgammon</h2>
+            <h3>Objetivo</h3>
+            <p>Ser el primer jugador en mover todas tus 15 fichas fuera del tablero.</p>
+            <h3>Disposición Inicial</h3>
+            <p>Las fichas se colocan de la siguiente manera:</p>
+            <ul>
+                <li>2 fichas en el punto 24, 5 en el 13, 3 en el 8 y 5 en el 6.</li>
+            </ul>
+            <p>Tu oponente tendrá la misma disposición en los puntos opuestos (1, 12, 17 y 19).</p>
+            <h3>Movimiento</h3>
+            <p>Las fichas Blancas se mueven desde los picos de mayor numeración hacia los de menor (del 24 al 1). Las fichas Negras se mueven a la inversa (del 1 al 24).</p>
+            <ul>
+                <li>Puedes mover una ficha por el valor de cada dado, o una sola ficha por la suma de ambos.</li>
+                <li>No puedes mover una ficha a un pico bloqueado por el oponente (2 o más fichas).</li>
+            </ul>
+            <h3>Comer Fichas</h3>
+            <p>Si caes en un pico con una sola ficha rival (blot), la comes y va a la barra. El oponente debe reingresar esa ficha antes de mover otras.</p>
+            <h3>Dobles</h3>
+            <p>Al sacar dobles, juegas cada dado dos veces (4 movimientos en total).</p>
+            <h3>Sacar Fichas</h3>
+            <p>Cuando todas tus fichas estén en tu cuadrante de casa (1-6 para Blancas, 19-24 para Negras), puedes empezar a sacarlas del tablero.</p>
         </div>
     </div>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    // --- Referencias al DOM ---
     const boardEl = document.getElementById('backgammon-board');
     const infoEl = document.getElementById('game-info');
     const rollBtn = document.getElementById('roll-button');
     const undoBtn = document.getElementById('undo-button');
+    const helpBtn = document.getElementById('help-button');
+    const closeHelpBtn = document.getElementById('close-help-button');
+    const helpModal = document.getElementById('help-modal');
     const diceArea = document.getElementById('dice-area');
-
-    // --- Constantes y Estado del Juego ---
+    const fullscreenBtn = document.getElementById('fullscreen-button');
     const PLAYER_WHITE = 1;
     const PLAYER_BLACK = -1;
-    const BAR_INDEX_WHITE = 0;
-    const BAR_INDEX_BLACK = 25;
-    let state = {};
-    let history = [];
-    let selected = { from: null, targets: [] };
-    
-    // --- Lógica del Juego ---
+    const WHITE_BAR = 25;
+    const BLACK_BAR = 0;
+    let state = {}, history = [], selected = { from: null, targets: [] };
+
     function createInitialState() {
         const board = Array(26).fill(null).map(() => ({ player: null, count: 0 }));
-        board[1] = { player: PLAYER_WHITE, count: 2 }; board[6] = { player: PLAYER_BLACK, count: 5 };
-        board[8] = { player: PLAYER_BLACK, count: 3 }; board[12] = { player: PLAYER_WHITE, count: 5 };
-        board[13] = { player: PLAYER_BLACK, count: 5 }; board[17] = { player: PLAYER_WHITE, count: 3 };
-        board[19] = { player: PLAYER_WHITE, count: 5 }; board[24] = { player: PLAYER_BLACK, count: 2 };
+        board[1] = { player: PLAYER_WHITE, count: 2 };
+        board[12] = { player: PLAYER_WHITE, count: 5 };
+        board[17] = { player: PLAYER_WHITE, count: 3 };
+        board[19] = { player: PLAYER_WHITE, count: 5 };
+        board[24] = { player: PLAYER_BLACK, count: 2 };
+        board[13] = { player: PLAYER_BLACK, count: 5 };
+        board[8] = { player: PLAYER_BLACK, count: 3 };
+        board[6] = { player: PLAYER_BLACK, count: 5 };
         return {
-            board, currentPlayer: null, dice: [0, 0], moves: [],
+            board, currentPlayer: null, dice: [], moves: [],
             borneOff: { [PLAYER_WHITE]: 0, [PLAYER_BLACK]: 0 },
-            phase: 'start_roll', // start_roll, move, gameover, roll
+            phase: 'start_roll',
             startRolls: { [PLAYER_WHITE]: 0, [PLAYER_BLACK]: 0 }
         };
     }
@@ -212,12 +267,11 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function startRollSequence() {
         const playerToRoll = !state.startRolls[PLAYER_WHITE] ? PLAYER_WHITE : PLAYER_BLACK;
-        const dieValue = Math.floor(Math.random() * 6) + 1;
-        state.startRolls[playerToRoll] = dieValue;
-        
+        const d1 = Math.floor(Math.random() * 6) + 1;
+        const d2 = Math.floor(Math.random() * 6) + 1;
+        state.startRolls[playerToRoll] = d1 + d2;
+        state.dice = [d1, d2];
         renderAll();
-
-        // Si ambos han tirado, determinar quién empieza
         if (state.startRolls[PLAYER_WHITE] && state.startRolls[PLAYER_BLACK]) {
             rollBtn.disabled = true;
             setTimeout(() => {
@@ -228,44 +282,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     infoEl.textContent = "¡Empate! Vuelvan a tirar.";
                     state.startRolls = { [PLAYER_WHITE]: 0, [PLAYER_BLACK]: 0 };
+                    state.dice = [];
                     rollBtn.disabled = false;
                     renderAll();
                 }
-            }, 1500);
+            }, 2000);
         }
     }
     
     function startGame(startingPlayer) {
         state.currentPlayer = startingPlayer;
         const winner = startingPlayer === PLAYER_WHITE ? 'Blancas' : 'Negras';
-        infoEl.textContent = `Gana ${winner}. ¡Empiezas tú!`;
-        
-        state.dice = [state.startRolls[PLAYER_WHITE], state.startRolls[PLAYER_BLACK]];
-        if (state.dice[0] === state.dice[1]) {
-            state.moves = Array(4).fill(state.dice[0]);
-        } else {
-            state.moves = [...state.dice];
-        }
-        state.phase = 'move';
+        infoEl.textContent = `Gana ${winner}. ¡Lanza para empezar!`;
+        state.phase = 'roll';
+        state.dice = [];
         setTimeout(renderAll, 1000);
     }
 
     function onRollDice() {
-        if (state.phase === 'start_roll') {
-            startRollSequence();
-            return;
-        }
+        if (state.phase === 'start_roll') { startRollSequence(); return; }
         if (state.phase !== 'roll') return;
-
         saveState();
         state.dice = [Math.floor(Math.random() * 6) + 1, Math.floor(Math.random() * 6) + 1];
-        if (state.dice[0] === state.dice[1]) {
-            state.moves = Array(4).fill(state.dice[0]);
-        } else {
-            state.moves = [...state.dice];
-        }
+        state.moves = (state.dice[0] === state.dice[1]) ? Array(4).fill(state.dice[0]) : [...state.dice];
         state.phase = 'move';
-        
         if (!canPlayerMove()) {
             infoEl.textContent = 'No hay movimientos posibles.';
             setTimeout(nextTurn, 1500);
@@ -277,82 +317,269 @@ document.addEventListener('DOMContentLoaded', () => {
         state.currentPlayer *= -1;
         state.phase = 'roll';
         state.moves = [];
+        state.dice = [];
         history = [];
         undoBtn.disabled = true;
         renderAll();
     }
 
-    // --- El resto de la lógica (movimiento, validaciones) no necesita cambios ---
-    function getPossibleTargets(fromIndex){const targets=[];const player=state.currentPlayer;if(isPlayerOnBar(player)){if(fromIndex!==(player===PLAYER_WHITE?BAR_INDEX_WHITE:BAR_INDEX_BLACK))return[];state.moves.forEach(move=>{const targetIndex=player===PLAYER_WHITE?move:25-move;if(isMoveValid(fromIndex,targetIndex))targets.push(targetIndex)})}else{const canBearOff=canPlayerBearOff(player);state.moves.forEach(move=>{const targetIndex=fromIndex+move*player;if(canBearOff&&(targetIndex>24||targetIndex<1)){const bearOffIndex=player===PLAYER_WHITE?25:0;if(isBearOffValid(fromIndex,move))targets.push(bearOffIndex)}else{if(isMoveValid(fromIndex,targetIndex))targets.push(targetIndex)}})}
-return[...new Set(targets)]}
-function isMoveValid(from,to){if(to<1||to>24)return false;const targetPoint=state.board[to];return targetPoint.player===state.currentPlayer||targetPoint.count<=1}
-function isPlayerOnBar(player){const barIndex=player===PLAYER_WHITE?BAR_INDEX_WHITE:BAR_INDEX_BLACK;return state.board[barIndex].count>0}
-function canPlayerBearOff(player){if(isPlayerOnBar(player))return false;let count=0;const homeStart=player===PLAYER_WHITE?19:1;const homeEnd=player===PLAYER_WHITE?24:6;for(let i=homeStart;i<=homeEnd;i++){if(state.board[i].player===player)count+=state.board[i].count}
-return count+state.borneOff[player]===15}
-function isBearOffValid(fromIndex,move){const player=state.currentPlayer;const targetPos=fromIndex+move*player;if(player===PLAYER_WHITE&&targetPos<25)return false;if(player===PLAYER_BLACK&&targetPos>0)return false;if((player===PLAYER_WHITE&&fromIndex+move>24)||(player===PLAYER_BLACK&&fromIndex-move<1)){const start=player===PLAYER_WHITE?19:fromIndex+1;const end=player===PLAYER_WHITE?fromIndex-1:6;for(let i=start;i<=end;i++){if(state.board[i].player===player)return false}}
-return true}
-function canPlayerMove(){const player=state.currentPlayer;if(isPlayerOnBar(player)){const barIndex=player===PLAYER_WHITE?BAR_INDEX_WHITE:BAR_INDEX_BLACK;return getPossibleTargets(barIndex).length>0}
-for(let i=1;i<=24;i++){if(state.board[i].player===player){if(getPossibleTargets(i).length>0)return true}}
-return false}
-function onCheckerClick(e,fromIndex){e.stopPropagation();const player=state.currentPlayer;if(state.phase!=='move')return;if(isPlayerOnBar(player)&&fromIndex!==(player===PLAYER_WHITE?BAR_INDEX_WHITE:BAR_INDEX_BLACK)){infoEl.textContent="Debes meter tus fichas de la barra.";return}
-if(state.board[fromIndex].player!==player)return;selected.from=fromIndex;selected.targets=getPossibleTargets(fromIndex);renderAll()}
-function onPointClick(toIndex){if(state.phase!=='move'||selected.from===null)return;if(!selected.targets.includes(toIndex)){selected={from:null,targets:[]};renderAll();return}
-saveState();const fromIndex=selected.from;const player=state.currentPlayer;state.board[fromIndex].count--;if(state.board[fromIndex].count===0)state.board[fromIndex].player=null;if(toIndex===0||toIndex===25){state.borneOff[player]++}else{if(state.board[toIndex].count===1&&state.board[toIndex].player!==player){const opponentBarIndex=player===PLAYER_WHITE?BAR_INDEX_BLACK:BAR_INDEX_WHITE;state.board[opponentBarIndex].player=player*-1;state.board[opponentBarIndex].count++;state.board[toIndex]={player:player,count:1}}else{state.board[toIndex].player=player;state.board[toIndex].count++}}
-let moveValue;if(fromIndex===BAR_INDEX_WHITE||fromIndex===BAR_INDEX_BLACK){moveValue=player===PLAYER_WHITE?toIndex:25-toIndex}else if(toIndex===0||toIndex===25){const exactMove=Math.abs(toIndex-fromIndex);if(state.moves.includes(exactMove)){moveValue=exactMove}else{moveValue=state.moves.sort((a,b)=>b-a).find(m=>m>=exactMove)}}else{moveValue=Math.abs(toIndex-fromIndex)}
-const moveIndex=state.moves.indexOf(moveValue);if(moveIndex>-1)state.moves.splice(moveIndex,1);selected={from:null,targets:[]};if(state.borneOff[player]===15){state.phase='gameover'}else if(state.moves.length===0){nextTurn();return}else if(!canPlayerMove()){infoEl.textContent='No hay más movimientos posibles.';setTimeout(nextTurn,1500);return}
-renderAll()}
-
-    // --- RENDERIZADO ---
-    function renderAll() {
-        renderBoard();
-        renderUI();
+    function getPossibleTargets(fromIndex) {
+        const targets = [];
+        const player = state.currentPlayer;
+        const myBar = player === PLAYER_WHITE ? WHITE_BAR : BLACK_BAR;
+        if (isPlayerOnBar(player)) {
+            if (fromIndex !== myBar) return [];
+            state.moves.forEach(move => {
+                const targetIndex = player === PLAYER_WHITE ? move : 25 - move;
+                if (isMoveValid(fromIndex, targetIndex)) targets.push(targetIndex);
+            });
+        } else {
+            const canBearOff = canPlayerBearOff(player);
+            state.moves.forEach(move => {
+                const targetIndex = fromIndex + (move * player);
+                if (canBearOff && (targetIndex > 24 || targetIndex < 1)) {
+                    const bearOffIndex = player === PLAYER_WHITE ? 25 : 0;
+                    if (isBearOffValid(fromIndex, move)) targets.push(bearOffIndex);
+                } else {
+                    if (isMoveValid(fromIndex, targetIndex)) targets.push(targetIndex);
+                }
+            });
+        }
+        return [...new Set(targets)];
     }
-    function renderBoard() { boardEl.innerHTML = ''; const topPoints = [], bottomPoints = []; for (let i = 1; i <= 12; i++) bottomPoints.unshift(createPoint(i)); for (let i = 13; i <= 24; i++) topPoints.push(createPoint(i)); boardEl.append(...topPoints.slice(0,6), createBar(), ...topPoints.slice(6)); boardEl.append(...bottomPoints.slice(0,6), document.createElement('div'), ...bottomPoints.slice(6)); }
-    function createPoint(i) { const el = document.createElement('div'); el.className = `point ${i > 12 ? 'top' : 'bottom'} ${i % 2 === 0 ? 'even' : 'odd'}`; el.dataset.index = i; el.addEventListener('click', () => onPointClick(i)); if (selected.targets.includes(i)) { el.classList.add('possible-move'); } const pointState = state.board[i]; if (pointState.count > 0) { for(let j=0; j<pointState.count; j++){ const checker = createChecker(pointState.player, i); if (j === pointState.count - 1 && selected.from === i) { checker.classList.add('selected'); } el.appendChild(checker); } } return el; }
-    function createChecker(player, index) { const el = document.createElement('div'); el.className = `checker ${player === PLAYER_WHITE ? 'white' : 'black'}`; el.addEventListener('click', (e) => onCheckerClick(e, index)); return el; }
-    function createBar() { const el = document.createElement('div'); el.className = 'bar'; [PLAYER_WHITE, PLAYER_BLACK].forEach(player => { const barIndex = player === PLAYER_WHITE ? BAR_INDEX_WHITE : BAR_INDEX_BLACK; const barState = state.board[barIndex]; if(barState.count > 0) { for(let i = 0; i < barState.count; i++) { const container = document.createElement('div'); container.className = 'bar-checker-container'; const checker = createChecker(player, barIndex); if (selected.from === barIndex && i === barState.count - 1) { checker.classList.add('selected'); } container.appendChild(checker); el.appendChild(container); } } }); return el; }
-    function createDieHTML(value) { let pips = ''; for(let i=0; i<value; i++) pips += '<div class="pip"></div>'; return `<div class="die-face face-${value}">${pips}</div><div class="die-number">${value}</div>`; }
 
+    function isMoveValid(from, to) {
+        if (to < 1 || to > 24) return false;
+        const targetPoint = state.board[to];
+        return targetPoint.player === state.currentPlayer || targetPoint.player === null || targetPoint.count <= 1;
+    }
+
+    function isPlayerOnBar(player) {
+        const myBar = player === PLAYER_WHITE ? WHITE_BAR : BLACK_BAR;
+        return state.board[myBar].count > 0;
+    }
+
+    function canPlayerBearOff(player) {
+        if (isPlayerOnBar(player)) return false;
+        for (let i = 1; i <= 24; i++) {
+            if (state.board[i].player === player) {
+                if(player === PLAYER_WHITE && i < 19) return false;
+                if(player === PLAYER_BLACK && i > 6) return false;
+            }
+        }
+        return true;
+    }
+
+    function isBearOffValid(fromIndex, move) {
+        const player = state.currentPlayer;
+        const targetPos = fromIndex + (move * player);
+        if (player === PLAYER_WHITE && targetPos > 24) return true;
+        if (player === PLAYER_BLACK && targetPos < 1) return true;
+        return false;
+    }
+
+    function canPlayerMove() {
+        const player = state.currentPlayer;
+        const myBar = player === PLAYER_WHITE ? WHITE_BAR : BLACK_BAR;
+        if (isPlayerOnBar(player)) { return getPossibleTargets(myBar).length > 0; }
+        for (let i = 1; i <= 24; i++) {
+            if (state.board[i].player === player && getPossibleTargets(i).length > 0) return true;
+        }
+        return false;
+    }
+
+    function onCheckerClick(e, fromIndex) {
+        e.stopPropagation();
+        const player = state.currentPlayer;
+        if (state.phase !== 'move') return;
+        const myBar = player === PLAYER_WHITE ? WHITE_BAR : BLACK_BAR;
+        if (isPlayerOnBar(player) && fromIndex !== myBar) {
+            infoEl.textContent = "Debes meter tus fichas de la barra.";
+            return;
+        }
+        if (fromIndex !== myBar && state.board[fromIndex].player !== player) return;
+        selected.from = fromIndex;
+        selected.targets = getPossibleTargets(fromIndex);
+        renderAll();
+    }
+
+    function onPointClick(toIndex) {
+        if (state.phase !== 'move' || selected.from === null || !selected.targets.includes(toIndex)) {
+            selected = { from: null, targets: [] };
+            renderAll();
+            return;
+        }
+        saveState();
+        const fromIndex = selected.from;
+        const player = state.currentPlayer;
+        state.board[fromIndex].count--;
+        if (state.board[fromIndex].count === 0) state.board[fromIndex].player = null;
+
+        if (toIndex === 0 || toIndex === 25) {
+            state.borneOff[player]++;
+        } else {
+            if (state.board[toIndex].count === 1 && state.board[toIndex].player !== player) {
+                const opponentBar = player === PLAYER_WHITE ? BLACK_BAR : WHITE_BAR;
+                state.board[opponentBar].player = player * -1;
+                state.board[opponentBar].count++;
+                state.board[toIndex] = { player, count: 1 };
+            } else {
+                state.board[toIndex].player = player;
+                state.board[toIndex].count++;
+            }
+        }
+        let moveValue;
+        const myBar = player === PLAYER_WHITE ? WHITE_BAR : BLACK_BAR;
+        if (fromIndex === myBar) {
+             moveValue = player === PLAYER_WHITE ? toIndex : 25 - toIndex;
+        } else if (toIndex === 0 || toIndex === 25) {
+            const exactMove = Math.abs(fromIndex - (player === PLAYER_WHITE ? 25 : 0));
+            if(state.moves.includes(exactMove)) { moveValue = exactMove; }
+            else { moveValue = state.moves.sort((a,b) => b-a).find(m => (player === PLAYER_WHITE ? fromIndex+m > 24 : fromIndex-m < 1)); }
+        } else {
+            moveValue = Math.abs(toIndex - fromIndex);
+        }
+        const moveIndex = state.moves.indexOf(moveValue);
+        if (moveIndex > -1) state.moves.splice(moveIndex, 1);
+
+        selected = { from: null, targets: [] };
+        if (state.borneOff[player] === 15) {
+            state.phase = 'gameover';
+        } else if (state.moves.length === 0 || !canPlayerMove()) {
+            if (state.moves.length > 0) infoEl.textContent = 'No hay más movimientos posibles.';
+            setTimeout(nextTurn, state.moves.length > 0 ? 1500 : 500);
+            return;
+        }
+        renderAll();
+    }
+
+    function renderAll() { renderBoard(); renderUI(); }
+    
+    function renderBoard() {
+        boardEl.innerHTML = '';
+        const leftHalf = document.createElement('div');
+        leftHalf.className = 'board-half';
+        const rightHalf = document.createElement('div');
+        rightHalf.className = 'board-half';
+        
+        const pointElements = Array.from({length: 24}, (_, i) => createPoint(i + 1));
+        
+        for (let i = 12; i >= 7; i--)  leftHalf.appendChild(pointElements[i-1]);
+        for (let i = 13; i <= 18; i++) leftHalf.appendChild(pointElements[i-1]);
+        
+        for (let i = 6; i >= 1; i--)   rightHalf.appendChild(pointElements[i-1]);
+        for (let i = 19; i <= 24; i++) rightHalf.appendChild(pointElements[i-1]);
+        
+        boardEl.append(leftHalf, createBar(), rightHalf);
+    }
+
+    function createPoint(i) {
+        const el = document.createElement('div');
+        const isTopRow = (i <= 12);
+        
+        el.className = `point ${isTopRow ? 'points-down' : 'points-up'}`;
+        
+        if ((isTopRow && i % 2 !== 0) || (!isTopRow && i % 2 === 0)) {
+            el.classList.add('odd');
+        } else {
+            el.classList.add('even');
+        }
+        
+        el.dataset.index = i;
+        el.addEventListener('click', () => onPointClick(i));
+        
+        if (selected.targets.includes(i)) el.classList.add('possible-move');
+        
+        const pointState = state.board[i];
+        if (pointState.count > 0) {
+            const checkerSize = 16.66;
+            const overlap = pointState.count > 5 ? (48 - checkerSize) / (pointState.count - 1) : checkerSize;
+
+            for (let j = 0; j < pointState.count; j++) {
+                const checker = createChecker(pointState.player, i);
+                const offset = j * Math.min(checkerSize, overlap);
+                if(isTopRow) {
+                    checker.style.top = `${offset}%`;
+                } else {
+                    checker.style.bottom = `${offset}%`;
+                }
+                checker.style.zIndex = j;
+                if (selected.from === i && j === pointState.count - 1) {
+                    checker.classList.add('selected');
+                }
+                el.appendChild(checker);
+            }
+        }
+        return el;
+    }
+
+    function createChecker(player, index) {
+        const el = document.createElement('div');
+        el.className = `checker ${player === PLAYER_WHITE ? 'white' : 'black'}`;
+        el.addEventListener('click', (e) => onCheckerClick(e, index));
+        return el;
+    }
+    
+    function createBar() {
+        const el = document.createElement('div');
+        el.className = 'bar';
+        [PLAYER_WHITE, PLAYER_BLACK].forEach(player => {
+            const barIndex = player === PLAYER_WHITE ? WHITE_BAR : BLACK_BAR;
+            const barState = state.board[barIndex];
+            if (barState.count > 0) {
+                for (let i = 0; i < barState.count; i++) {
+                    const container = document.createElement('div');
+                    container.className = 'bar-checker-container';
+                    container.dataset.index = barIndex;
+                    const checker = createChecker(player, barIndex);
+                    if (selected.from === barIndex) container.classList.add('selected');
+                    container.addEventListener('click', (e) => onCheckerClick(e, barIndex));
+                    container.appendChild(checker);
+                    el.appendChild(container);
+                }
+            }
+        });
+        return el;
+    }
+
+    function createDieHTML(value) { let pips = ''; for (let i = 0; i < value; i++) pips += '<div class="pip"></div>'; return `<div class="die-face face-${value}">${pips}</div><div class="die-number">${value}</div>`; }
+    
     function renderUI() {
         rollBtn.disabled = state.phase === 'move' || state.phase === 'gameover';
         undoBtn.disabled = history.length === 0 || state.phase === 'start_roll';
         diceArea.innerHTML = '';
-
         if (state.phase === 'start_roll') {
-            const playerToRoll = !state.startRolls[PLAYER_WHITE] ? 'Blancas (Jugador 1)' : 'Negras (Jugador 2)';
+            const playerToRoll = !state.startRolls[PLAYER_WHITE] ? 'Blancas' : 'Negras';
             infoEl.textContent = `Tira para empezar: ${playerToRoll}`;
-            rollBtn.textContent = 'Tirar un dado';
-            // Mostrar los dados de la tirada inicial
-            if (state.startRolls[PLAYER_WHITE]) {
-                const dieEl = document.createElement('div');
-                dieEl.className = 'die-container visible';
-                dieEl.innerHTML = createDieHTML(state.startRolls[PLAYER_WHITE]);
-                diceArea.appendChild(dieEl);
-            }
-        } else if (state.phase === 'move') {
-            rollBtn.textContent = 'Lanzar';
-            state.moves.forEach(moveValue => {
-                const dieEl = document.createElement('div');
-                dieEl.className = 'die-container';
-                dieEl.innerHTML = createDieHTML(moveValue);
-                diceArea.appendChild(dieEl);
-                setTimeout(() => dieEl.classList.add('visible'), 50);
-            });
+            rollBtn.textContent = 'Lanzar Dados';
+            if (state.dice.length > 0) state.dice.forEach(val => diceArea.appendChild(createDieElement(val)));
+        } else if (state.phase === 'move' || state.phase === 'roll') {
+            rollBtn.textContent = 'Lanzar Dados';
             const playerText = state.currentPlayer === PLAYER_WHITE ? 'Blancas' : 'Negras';
             infoEl.textContent = `Turno: ${playerText}`;
-            if(canPlayerBearOff(state.currentPlayer)) infoEl.textContent += " - A sacar fichas";
-        } else if (state.phase === 'roll') {
-            const playerText = state.currentPlayer === PLAYER_WHITE ? 'Blancas' : 'Negras';
-            infoEl.textContent = `Turno: ${playerText}. Lanza los dados.`;
+            if (state.phase === 'roll') infoEl.textContent += '. Lanza los dados.';
+            if (canPlayerBearOff(state.currentPlayer)) infoEl.textContent += " - A sacar fichas";
+            const diceToShow = state.phase === 'move' ? state.moves : state.dice;
+            if (diceToShow) diceToShow.forEach(val => diceArea.appendChild(createDieElement(val)));
         } else if (state.phase === 'gameover') {
-            const winner = state.currentPlayer === PLAYER_WHITE ? 'Blancas' : 'Negras';
-            infoEl.textContent = `¡Ganan las ${winner}!`;
+            infoEl.textContent = `¡Ganan las ${state.currentPlayer === 1 ? 'Blancas' : 'Negras'}!`;
         }
     }
     
-    // --- INICIALIZACIÓN ---
+    function createDieElement(value) { const dieEl = document.createElement('div'); dieEl.className = 'die-container'; dieEl.innerHTML = createDieHTML(value); setTimeout(() => dieEl.classList.add('visible'), 50); return dieEl; }
+    
+    function toggleFullScreen() { if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); } else if (document.exitFullscreen) { document.exitFullscreen(); } }
+    
+    function showHelp() { helpModal.classList.add('visible'); }
+    function hideHelp() { helpModal.classList.remove('visible'); }
+
     rollBtn.addEventListener('click', onRollDice);
     undoBtn.addEventListener('click', onUndo);
+    fullscreenBtn.addEventListener('click', toggleFullScreen);
+    helpBtn.addEventListener('click', showHelp);
+    closeHelpBtn.addEventListener('click', hideHelp);
+    helpModal.addEventListener('click', (e) => { if(e.target === helpModal) hideHelp(); });
+    
     state = createInitialState();
     renderAll();
 });
