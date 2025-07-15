@@ -112,6 +112,11 @@
             transform: translateY(-3px);
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
+        
+        .btn.btn-danger {
+            background-color: #a31a1a;
+            color: white;
+        }
 
         .btn.btn-primary {
             background-color: var(--highlight-color);
@@ -182,6 +187,11 @@
             width: 100%;
             max-width: 300px;
         }
+        #placement-controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
         #ship-list .ship-item {
             padding: 0.7rem;
             margin: 0.5rem 0;
@@ -213,10 +223,14 @@
             box-shadow: none;
             background: transparent;
         }
+        
+        .modal.auto-switch #next-turn-btn {
+            display: none;
+        }
 
         /* --- Pantalla de Juego --- */
         #game-screen .screen-content {
-            max-width: fit-content; /* Se ajusta al contenido */
+            max-width: fit-content;
         }
         #game-header { width: 100%; margin-bottom: 1rem; }
         #ships-status-panel {
@@ -252,7 +266,7 @@
         }
         
         #attack-grid.grid-container .cell { cursor: crosshair; }
-        #attack-grid.grid-container .cell:hover { background-color: var(--secondary-color); }
+        #attack-grid.grid-container .cell:not(.hit):not(.miss):hover { background-color: var(--secondary-color); }
 
         .cell.hit { background-color: var(--hit-color); animation: hit-animation 0.3s ease-out; }
         .cell.miss { background: repeating-linear-gradient(45deg, var(--primary-color), var(--primary-color) 2px, var(--miss-color) 2px, var(--miss-color) 4px); }
@@ -292,7 +306,10 @@
                     <div id="ship-selection-panel">
                         <h3>Tu Flota</h3>
                         <div id="ship-list"></div>
-                        <button id="rotate-ship-btn" class="btn">Girar (Horizontal)</button>
+                        <div id="placement-controls">
+                            <button id="rotate-ship-btn" class="btn">Girar</button>
+                            <button id="undo-btn" class="btn btn-danger">Deshacer</button>
+                        </div>
                     </div>
                     <div id="placement-grid" class="grid-container"></div>
                 </div>
@@ -303,7 +320,7 @@
         <div id="turn-switch-screen" class="screen modal">
             <div class="screen-content">
                 <h2 id="next-player-msg"></h2>
-                <p>Pasa el dispositivo a tu oponente y pulsa para continuar.</p>
+                <p id="turn-switch-subtitle">Pasa el dispositivo a tu oponente y pulsa para continuar.</p>
                 <button id="next-turn-btn" class="btn">¡Listo!</button>
             </div>
         </div>
@@ -343,6 +360,7 @@
                 playerTurn: document.getElementById('player-turn-msg'),
                 currentPlayer: document.getElementById('current-player-msg'),
                 nextPlayer: document.getElementById('next-player-msg'),
+                turnSwitchSubtitle: document.getElementById('turn-switch-subtitle'),
             };
 
             const buttons = {
@@ -350,6 +368,7 @@
                 confirmPlacement: document.getElementById('confirm-placement-btn'),
                 nextTurn: document.getElementById('next-turn-btn'),
                 rotateShip: document.getElementById('rotate-ship-btn'),
+                undo: document.getElementById('undo-btn'),
             };
 
             const panels = {
@@ -386,17 +405,12 @@
                 buttons.confirmPlacement.addEventListener('click', handleConfirmPlacement);
                 buttons.nextTurn.addEventListener('click', handleNextTurn);
                 buttons.rotateShip.addEventListener('click', handleRotateShip);
+                buttons.undo.addEventListener('click', handleUndo);
             }
 
             function switchScreen(activeScreen) {
-                Object.values(screens).forEach(screen => {
-                    screen.classList.remove('active', 'modal');
-                });
-                if (activeScreen === 'turnSwitch') {
-                    screens.turnSwitch.classList.add('active', 'modal');
-                } else {
-                    screens[activeScreen].classList.add('active');
-                }
+                Object.values(screens).forEach(screen => screen.classList.remove('active'));
+                screens[activeScreen].classList.add('active');
             }
 
             // 1. Fase de Configuración
@@ -429,11 +443,9 @@
                     return;
                 }
                 
-                player1Ships = [];
-                player2Ships = [];
-                player1Shots = [];
-                player2Shots = [];
-                placingPlayer = 1;
+                player1Ships = []; player2Ships = [];
+                player1Shots = []; player2Shots = [];
+                placingPlayer = 1; gameActive = false;
                 startPlacementPhase();
             }
 
@@ -446,45 +458,19 @@
                 switchScreen('placement');
             }
 
-            function updateShipList() {
-                panels.shipList.innerHTML = '';
-                const unplacedShips = shipsToPlace.filter(s => !s.placed);
-                unplacedShips.forEach(ship => {
-                    const shipEl = document.createElement('div');
-                    shipEl.className = 'ship-item';
-                    shipEl.textContent = `${ship.name} (${ship.size})`;
-                    shipEl.dataset.name = ship.name;
-                    shipEl.addEventListener('click', () => {
-                        const prev = panels.shipList.querySelector('.placing');
-                        if (prev) prev.classList.remove('placing');
-                        shipEl.classList.add('placing');
-                        currentPlacingShip = ship;
-                    });
-                    panels.shipList.appendChild(shipEl);
-                });
-
-                if (unplacedShips.length > 0) {
-                    panels.shipList.children[0].click();
-                } else {
-                    currentPlacingShip = null;
-                }
-            }
-            
-            function handleRotateShip() {
-                isHorizontal = !isHorizontal;
-                buttons.rotateShip.textContent = isHorizontal ? 'Girar (Horizontal)' : 'Girar (Vertical)';
-            }
-
             function handleConfirmPlacement() {
                 if (shipsToPlace.every(s => s.placed)) {
                     if (placingPlayer === 1) {
                         placingPlayer = 2;
                         shipsToPlace.forEach(s => s.placed = false);
-                        messages.nextPlayer.textContent = `Turno del Jugador 2`;
+                        
+                        screens.turnSwitch.classList.remove('auto-switch');
+                        messages.nextPlayer.textContent = `Turno de colocar para Jugador 2`;
+                        messages.turnSwitchSubtitle.textContent = 'Pasa el dispositivo a tu oponente y pulsa para continuar.';
                         switchScreen('turnSwitch');
                     } else {
-                        gameActive = true;
                         currentPlayer = 1;
+                        gameActive = true;
                         startGame();
                     }
                 } else {
@@ -494,36 +480,49 @@
             
             // 3. Cambio de Turno
             function handleNextTurn() {
-                if (!gameActive) {
-                    startPlacementPhase();
+                // *** INICIO DE LA CORRECCIÓN ***
+                // La lógica ahora distingue correctamente entre la fase de colocación y la de juego.
+                if (placingPlayer === 2 && player2Ships.length === 0) {
+                    startPlacementPhase(); // Inicia la colocación para el jugador 2
                 } else {
-                    setupTurn();
+                    setupTurn(); // Inicia un turno normal de ataque
                     switchScreen('game');
                 }
+                // *** FIN DE LA CORRECCIÓN ***
             }
 
             // 4. Fase de Juego
             function startGame() {
                 createGrid(grids.attack);
-                addAttackListeners();
-                messages.nextPlayer.textContent = `Turno del Jugador 1`;
+                addAttackListeners(); 
+                
+                screens.turnSwitch.classList.add('auto-switch');
+                messages.nextPlayer.textContent = `¡Qué empiece la batalla!`;
+                messages.turnSwitchSubtitle.textContent = `Turno para Jugador 1...`;
                 switchScreen('turnSwitch');
+                
+                setTimeout(handleNextTurn, 2000);
             }
             
             function setupTurn() {
-                messages.currentPlayer.textContent = `Turno del Jugador ${currentPlayer}`;
+                messages.currentPlayer.textContent = `Jugador ${currentPlayer}`;
                 renderAttackGrid();
                 updateShipsStatus();
+                gameActive = true;
             }
 
             function switchTurn() {
                 currentPlayer = currentPlayer === 1 ? 2 : 1;
-                messages.nextPlayer.textContent = `Turno del Jugador ${currentPlayer}`;
+                
+                screens.turnSwitch.classList.add('auto-switch');
+                messages.nextPlayer.textContent = `Cambio de turno`;
+                messages.turnSwitchSubtitle.textContent = `Preparando turno para Jugador ${currentPlayer}...`;
                 switchScreen('turnSwitch');
+                
+                setTimeout(handleNextTurn, 2000); // Transición automática
             }
 
             // --- Lógica de los Tableros y Barcos ---
-
             function createGrid(gridEl) {
                 gridEl.innerHTML = '';
                 for (let y = 0; y < GRID_SIZE; y++) {
@@ -545,79 +544,17 @@
                 });
             }
 
-            function previewShip(cell) {
-                if (!currentPlacingShip) return;
-                clearPreview();
-                const { positions, isValid } = getShipPositions(cell);
-                positions.forEach(({ x, y }) => {
-                    const previewCell = grids.placement.querySelector(`[data-x='${x}'][data-y='${y}']`);
-                    if (previewCell) {
-                        previewCell.classList.add(isValid ? 'preview' : 'invalid');
-                    }
-                });
-            }
-
-            function clearPreview() {
-                grids.placement.querySelectorAll('.cell.preview, .cell.invalid').forEach(c => c.classList.remove('preview', 'invalid'));
-            }
-
-            function placeShip(cell) {
-                if (!currentPlacingShip) return;
-                const { positions, isValid } = getShipPositions(cell);
-
-                if (isValid) {
-                    const playerShips = placingPlayer === 1 ? player1Ships : player2Ships;
-                    const newShip = { name: currentPlacingShip.name, positions: positions, hits: 0 };
-                    playerShips.push(newShip);
-                    
-                    positions.forEach(({x, y}) => {
-                        grids.placement.querySelector(`[data-x='${x}'][data-y='${y}']`).classList.add('ship');
-                    });
-
-                    currentPlacingShip.placed = true;
-                    updateShipList();
-                } else {
-                    alert("Posición no válida. El barco se sale del tablero o está demasiado cerca de otro.");
-                }
-            }
-
-            function getShipPositions(startCell) {
-                const x = parseInt(startCell.dataset.x);
-                const y = parseInt(startCell.dataset.y);
-                const shipSize = currentPlacingShip.size;
-                const positions = [];
-                
-                for (let i = 0; i < shipSize; i++) {
-                    const newX = isHorizontal ? x + i : x;
-                    const newY = isHorizontal ? y : y + i;
-                    positions.push({ x: newX, y: newY });
-                }
-                
-                const playerShips = placingPlayer === 1 ? player1Ships : player2Ships;
-                const isValid = positions.every(p => p.x < GRID_SIZE && p.y < GRID_SIZE) && !checkOverlap(positions, playerShips);
-
-                return { positions, isValid };
-            }
-
-            function checkOverlap(newPositions, existingShips) {
-                return newPositions.some(p1 => 
-                    existingShips.some(ship => 
-                        ship.positions.some(p2 => 
-                            Math.abs(p1.x - p2.x) <= 1 && Math.abs(p1.y - p2.y) <= 1
-                        )
-                    )
-                );
-            }
-            
             function addAttackListeners() {
                 grids.attack.querySelectorAll('.cell').forEach(cell => {
                     cell.addEventListener('click', e => handleAttack(e.target));
                 });
             }
-            
-            function handleAttack(cell) {
-                if (cell.classList.contains('hit') || cell.classList.contains('miss') || !gameActive) return;
 
+            function handleAttack(cell) {
+                if (!cell || !gameActive) return;
+                if (cell.classList.contains('hit') || cell.classList.contains('miss')) return;
+
+                gameActive = false; // Bloquear clics durante la animación y transición
                 const x = parseInt(cell.dataset.x);
                 const y = parseInt(cell.dataset.y);
                 const shots = currentPlayer === 1 ? player1Shots : player2Shots;
@@ -631,32 +568,20 @@
                     targetShip.hits++;
 
                     if (targetShip.hits === targetShip.positions.length) {
-                        alert(`¡TOCADO Y HUNDIDO! Has hundido el ${targetShip.name}.`);
                         targetShip.positions.forEach(({x, y}) => {
-                           const sunkCell = grids.attack.querySelector(`[data-x='${x}'][data-y='${y}']`);
-                           if (sunkCell) {
-                               sunkCell.classList.add('sunk');
-                           }
+                           grids.attack.querySelector(`[data-x='${x}'][data-y='${y}']`).classList.add('sunk');
                         });
-
+                        updateShipsStatus(); 
                         if (opponentShips.every(s => s.hits === s.positions.length)) {
                             endGame();
                             return;
                         }
-                    } else {
-                        alert("¡TOCADO!");
                     }
                 } else {
-                    alert("¡AGUA!");
                     cell.classList.add('miss');
                 }
                 
-                // Esperar un poco antes de cambiar de turno para que el jugador vea el resultado
-                gameActive = false;
-                setTimeout(() => {
-                    gameActive = true;
-                    switchTurn();
-                }, 1500);
+                setTimeout(switchTurn, 3000); 
             }
             
             function renderAttackGrid() {
@@ -664,7 +589,7 @@
                 const opponentShips = currentPlayer === 1 ? player2Ships : player1Ships;
                 
                 grids.attack.querySelectorAll('.cell').forEach(cell => {
-                    cell.className = 'cell'; // Limpiar tablero
+                    cell.className = 'cell';
                     const x = parseInt(cell.dataset.x);
                     const y = parseInt(cell.dataset.y);
 
@@ -699,12 +624,103 @@
 
             function endGame() {
                 gameActive = false;
-                messages.currentPlayer.textContent = `¡El Jugador ${currentPlayer} ha ganado!`;
                 setTimeout(() => {
                     alert(`¡Juego Terminado! El ganador es el Jugador ${currentPlayer}.`);
                     switchScreen('setup');
                 }, 100);
             }
+            
+            // --- Funciones de utilidad para la colocación ---
+            function handleUndo() {
+                const playerShips = placingPlayer === 1 ? player1Ships : player2Ships;
+                if (playerShips.length === 0) return;
+
+                const lastShip = playerShips.pop();
+                const shipDef = shipsToPlace.find(s => s.name === lastShip.name);
+
+                if (shipDef) {
+                    shipDef.placed = false;
+                }
+
+                lastShip.positions.forEach(({x, y}) => {
+                    const cell = grids.placement.querySelector(`[data-x='${x}'][data-y='${y}']`);
+                    if (cell) cell.classList.remove('ship');
+                });
+                
+                updateShipList();
+            }
+
+            function updateShipList() {
+                panels.shipList.innerHTML = '';
+                const unplacedShips = shipsToPlace.filter(s => !s.placed);
+                unplacedShips.forEach(ship => {
+                    const shipEl = document.createElement('div');
+                    shipEl.className = 'ship-item';
+                    shipEl.textContent = `${ship.name} (${ship.size})`;
+                    shipEl.dataset.name = ship.name;
+                    shipEl.addEventListener('click', () => {
+                        panels.shipList.querySelector('.placing')?.classList.remove('placing');
+                        shipEl.classList.add('placing');
+                        currentPlacingShip = ship;
+                    });
+                    panels.shipList.appendChild(shipEl);
+                });
+                if (unplacedShips.length > 0) panels.shipList.children[0].click();
+                else currentPlacingShip = null;
+            }
+
+            function handleRotateShip() {
+                isHorizontal = !isHorizontal;
+            }
+            
+            function previewShip(cell) {
+                if (!currentPlacingShip) return;
+                clearPreview();
+                const { positions, isValid } = getShipPositions(cell);
+                positions.forEach(({ x, y }) => {
+                    grids.placement.querySelector(`[data-x='${x}'][data-y='${y}']`)?.classList.add(isValid ? 'preview' : 'invalid');
+                });
+            }
+
+            function clearPreview() {
+                grids.placement.querySelectorAll('.cell.preview, .cell.invalid').forEach(c => c.classList.remove('preview', 'invalid'));
+            }
+
+            function placeShip(cell) {
+                if (!currentPlacingShip) return;
+                const { positions, isValid } = getShipPositions(cell);
+                if (isValid) {
+                    const playerShips = placingPlayer === 1 ? player1Ships : player2Ships;
+                    const newShip = { name: currentPlacingShip.name, positions: positions, hits: 0 };
+                    playerShips.push(newShip);
+                    positions.forEach(({x, y}) => grids.placement.querySelector(`[data-x='${x}'][data-y='${y}']`).classList.add('ship'));
+                    currentPlacingShip.placed = true;
+                    updateShipList();
+                }
+            }
+
+            function getShipPositions(startCell) {
+                const x = parseInt(startCell.dataset.x), y = parseInt(startCell.dataset.y);
+                const shipSize = currentPlacingShip.size;
+                const positions = [];
+                for (let i = 0; i < shipSize; i++) {
+                    positions.push({ x: isHorizontal ? x + i : x, y: isHorizontal ? y : y + i });
+                }
+                const playerShips = placingPlayer === 1 ? player1Ships : player2Ships;
+                const isValid = positions.every(p => p.x < GRID_SIZE && p.y < GRID_SIZE) && !checkOverlap(positions, playerShips);
+                return { positions, isValid };
+            }
+
+            function checkOverlap(newPositions, existingShips) {
+                return newPositions.some(p1 => 
+                    existingShips.some(ship => 
+                        ship.positions.some(p2 => 
+                            Math.abs(p1.x - p2.x) <= 1 && Math.abs(p1.y - p2.y) <= 1
+                        )
+                    )
+                );
+            }
+            // --- Fin de funciones de utilidad ---
 
             // Iniciar el juego
             init();
