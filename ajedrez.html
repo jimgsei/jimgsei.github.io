@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajedrez de Competición</title>
+    <style>
+        :root {
+            --board-light: #EAEAEA;  
+            --board-dark: #6E7B8B;   
+            --background-color: #1F232A; 
+            --text-color: #F0F0F0;
+            --highlight-selected: rgba(255, 215, 0, 0.5); 
+            --highlight-valid: rgba(0, 191, 255, 0.4);   
+            --highlight-last-move: rgba(200, 200, 200, 0.25);
+            --board-size: min(85vw, 85vh);
+            --max-board-size: 750px;
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Cormorant Garamond', serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        #game-wrapper {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+            gap: 20px;
+        }
+
+        #game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #status-message {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            font-weight: 700;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+
+        #chessboard {
+            width: var(--board-size);
+            height: var(--board-size);
+            max-width: var(--max-board-size);
+            max-height: var(--max-board-size);
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            border: 2px solid #000;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.6);
+            background-image: linear-gradient(45deg, rgba(255,255,255,0.05) 25%, transparent 25%),
+                              linear-gradient(-45deg, rgba(255,255,255,0.05) 25%, transparent 25%),
+                              linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.05) 75%),
+                              linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.05) 75%);
+            background-size: 20px 20px;
+        }
+
+        .square {
+            aspect-ratio: 1 / 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            transition: background-color 0.2s;
+        }
+        .square.light { background-color: var(--board-light); }
+        .square.dark { background-color: var(--board-dark); }
+        
+        .piece {
+            width: 88%;
+            height: 88%;
+            cursor: grab;
+            stroke-width: 1;
+            filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.4));
+            transition: transform 0.1s ease-in-out;
+        }
+        .piece:active {
+            cursor: grabbing;
+            transform: scale(1.1);
+        }
+
+        .selected {
+            background-color: var(--highlight-selected) !important;
+        }
+        .valid-move-dot {
+            width: 35%;
+            height: 35%;
+            background-color: var(--highlight-valid);
+            border-radius: 50%;
+            position: absolute;
+            opacity: 0.8;
+            pointer-events: none; 
+        }
+        .last-move {
+            box-shadow: inset 0 0 0 4px var(--highlight-last-move);
+        }
+
+        .captured-pieces-area {
+            width: 80px;
+            height: var(--board-size);
+            max-height: var(--max-board-size);
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 10px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            flex-wrap: wrap;
+            gap: 5px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+        .captured-pieces-area .piece {
+            width: 30px;
+            height: 30px;
+            filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.5));
+        }
+
+        /* Modal de Promoción */
+        #promotion-modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            backdrop-filter: blur(5px);
+            justify-content: center;
+            align-items: center;
+        }
+        #promotion-choices {
+            background-color: #2c3e50;
+            padding: 25px;
+            border: 1px solid var(--highlight-selected);
+            border-radius: 10px;
+            display: flex;
+            gap: 20px;
+        }
+        #promotion-choices .piece {
+            width: 70px; height: 70px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        #promotion-choices .piece:hover {
+            transform: scale(1.15);
+        }
+        
+        @media (max-width: 900px) {
+            #game-wrapper {
+                flex-direction: column;
+                height: auto;
+                padding: 5px;
+            }
+            .captured-pieces-area {
+                order: -1; 
+                flex-direction: row;
+                width: var(--board-size);
+                height: 50px;
+                max-width: var(--max-board-size);
+                align-items: center;
+            }
+            #captured-white {
+                 order: 1; 
+            }
+             .captured-pieces-area .piece {
+                width: 25px; height: 25px;
+            }
+            #status-message {
+                order: 0;
+                font-size: 1.5rem;
+                margin: 10px 0;
+            }
+            #game-container {
+                order: 0;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="game-wrapper">
+        <div class="captured-pieces-area" id="captured-black"></div>
+        <div id="game-container">
+            <div id="status-message">Turno de las Blancas</div>
+            <div id="chessboard"></div>
+        </div>
+        <div class="captured-pieces-area" id="captured-white"></div>
+    </div>
+    
+    <div id="promotion-modal">
+        <div id="promotion-choices"></div>
+    </div>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const boardElement = document.getElementById('chessboard');
+        const statusElement = document.getElementById('status-message');
+        const promotionModal = document.getElementById('promotion-modal');
+        const promotionChoices = document.getElementById('promotion-choices');
+        const capturedWhiteContainer = document.getElementById('captured-white');
+        const capturedBlackContainer = document.getElementById('captured-black');
+
+        const PIECE_SVG = {
+            'white_king': `<svg xmlns="http://www.w3.org/2000/svg" class="piece white" viewBox="0 0 45 45"><g fill="#FFF" stroke="#000" stroke-width="1.2" stroke-linejoin="round"><path d="M22.5 7.5L22.5 11.5M20.5 9.5L24.5 9.5" fill="none" stroke-linecap="round"/><path d="M22.5 11.5C25.5 14.5 25.5 18 22.5 20C19.5 18 19.5 14.5 22.5 11.5L22.5 11.5z" stroke-linecap="round"/><path d="M22.5 20L22.5 22.5" fill="none" stroke-linecap="round"/><path d="M12.5 39.5L32.5 39.5L32.5 36.5L12.5 36.5L12.5 39.5z" stroke-linecap="round"/><path d="M14.5 36.5L14.5 31.5L30.5 31.5L30.5 36.5z" stroke-linecap="round"/><path d="M14.5 31.5C14.5 24.5 22.5 22.5 22.5 22.5C22.5 22.5 30.5 24.5 30.5 31.5L14.5 31.5z" stroke-linecap="round"/></g></svg>`,
+            'white_queen': `<svg xmlns="http://www.w3.org/2000/svg" class="piece white" viewBox="0 0 45 45"><g fill="#FFF" stroke="#000" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.5 12.5L33.5 12.5L30.5 18.5L14.5 18.5L11.5 12.5z" /><path d="M12.5 39.5L32.5 39.5L32.5 36.5L12.5 36.5L12.5 39.5z" /><path d="M14.5 36.5L14.5 31.5L30.5 31.5L30.5 36.5z" /><path d="M14.5 31.5C14.5 24.5 22.5 22.5 22.5 22.5C22.5 22.5 30.5 24.5 30.5 31.5z" /><path d="M14.5 18.5L22.5 22.5L30.5 18.5" fill="none" /><path d="M11.5 12.5L22.5 22.5L33.5 12.5" fill="none" /><circle cx="6.5" cy="11.5" r="2.5"/><circle cx="14.5" cy="9.5" r="2.5"/><circle cx="22.5" cy="8.5" r="2.5"/><circle cx="30.5" cy="9.5" r="2.5"/><circle cx="38.5" cy="11.5" r="2.5"/></g></svg>`,
+            'white_rook': `<svg xmlns="http://www.w3.org/2000/svg" class="piece white" viewBox="0 0 45 45"><g fill="#FFF" stroke="#000" stroke-width="1.2" stroke-linejoin="round"><path d="M12.5 39.5L32.5 39.5L32.5 36.5L12.5 36.5z" stroke-linecap="round"/><path d="M14.5 36.5L14.5 31.5L30.5 31.5L30.5 36.5z" stroke-linecap="round"/><path d="M14.5 31.5C14.5 24.5 22.5 22.5 22.5 22.5C22.5 22.5 30.5 24.5 30.5 31.5z" stroke-linecap="round"/><path d="M12.5 9.5L15.5 9.5L15.5 12.5L19.5 12.5L19.5 9.5L25.5 9.5L25.5 12.5L29.5 12.5L29.5 9.5L32.5 9.5L32.5 18.5L12.5 18.5z" /><path d="M12.5 18.5L22.5 22.5L32.5 18.5" fill="none" /></g></svg>`,
+            'white_bishop': `<svg xmlns="http://www.w3.org/2000/svg" class="piece white" viewBox="0 0 45 45"><g fill="#FFF" stroke="#000" stroke-width="1.2" stroke-linejoin="round"><path d="M12.5 39.5L32.5 39.5L32.5 36.5L12.5 36.5z" stroke-linecap="round"/><path d="M14.5 36.5L14.5 31.5L30.5 31.5L30.5 36.5z" stroke-linecap="round"/><path d="M14.5 31.5C14.5 24.5 22.5 22.5 22.5 22.5C22.5 22.5 30.5 24.5 30.5 31.5z" stroke-linecap="round"/><path d="M22.5,10.5 L22.5,10.5 C24.5,12.5 24.5,15.5 22.5,17.5 C20.5,15.5 20.5,12.5 22.5,10.5" /><path d="M18.5 16.5L26.5 16.5" fill="none" stroke-linecap="round" stroke-width="0.8" /><path d="M22.5 17.5L22.5 22.5" fill="none" stroke-linecap="round"/><path d="M15.5,29.5 C15.5,29.5 18.5,25.5 22.5,22.5 C26.5,25.5 29.5,29.5 29.5,29.5" fill="none" stroke-linecap="round"/></g></svg>`,
+            'white_knight': `<svg xmlns="http://www.w3.org/2000/svg" class="piece white" viewBox="0 0 45 45"><g fill="#FFF" stroke="#000" stroke-width="1.2" stroke-linejoin="round"><path d="M 9.5,39.5 L 35.5,39.5 L 35.5,36.5 L 9.5,36.5 L 9.5,39.5 z" stroke-linecap="round"/><path d="M 11.5,36.5 L 11.5,31.5 L 33.5,31.5 L 33.5,36.5 z" stroke-linecap="round"/><path d="M 11.5,31.5 C 11.5,24.5 19.5,22.5 19.5,22.5 C 19.5,22.5 27.5,24.5 27.5,31.5 L 11.5,31.5 z" stroke-linecap="round"/><path d="M 14,26 C 14.2,22.3 16,16.5 23.5,12.5 C 25.9,13.2 27.5,18.5 27,20 C 25,23.5 21,24.5 19.5,22.5" stroke-linecap="round" fill="none"/><path d="M 19.5 12.5L21.5 10.5L23.5 12.5" stroke-linecap="round"/></g></svg>`,
+            'white_pawn': `<svg xmlns="http://www.w3.org/2000/svg" class="piece white" viewBox="0 0 45 45"><g fill="#FFF" stroke="#000" stroke-width="1.2" stroke-linejoin="round"><path d="M22.5 14.5 A 5 5 0 1 1 22.5 24.5 A 5 5 0 1 1 22.5 14.5 z" /><path d="M12.5 39.5L32.5 39.5L32.5 36.5L12.5 36.5z" stroke-linecap="round"/><path d="M14.5 36.5L14.5 31.5L30.5 31.5L30.5 36.5z" stroke-linecap="round"/><path d="M17.5 31.5L27.5 31.5L22.5 24.5z" stroke-linecap="round"/></g></svg>`,
+            
+            'black_king': `<svg xmlns="http://www.w3.org/2000/svg" class="piece black" viewBox="0 0 45 45"><g fill="#2A2A2A" stroke="#FFF" stroke-width="1.2" stroke-linejoin="round"><path d="M22.5 7.5L22.5 11.5M20.5 9.5L24.5 9.5" fill="none" stroke-linecap="round"/><path d="M22.5 11.5C25.5 14.5 25.5 18 22.5 20C19.5 18 19.5 14.5 22.5 11.5L22.5 11.5z" stroke-linecap="round"/><path d="M22.5 20L22.5 22.5" fill="none" stroke-linecap="round"/><path d="M12.5 39.5L32.5 39.5L32.5 36.5L12.5 36.5L12.5 39.5z" stroke-linecap="round"/><path d="M14.5 36.5L14.5 31.5L30.5 31.5L30.5 36.5z" stroke-linecap="round"/><path d="M14.5 31.5C14.5 24.5 22.5 22.5 22.5 22.5C22.5 22.5 30.5 24.5 30.5 31.5L14.5 31.5z" stroke-linecap="round"/></g></svg>`,
+            'black_queen': `<svg xmlns="http://www.w3.org/2000/svg" class="piece black" viewBox="0 0 45 45"><g fill="#2A2A2A" stroke="#FFF" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.5 12.5L33.5 12.5L30.5 18.5L14.5 18.5L11.5 12.5z" /><path d="M12.5 39.5L32.5 39.5L32.5 36.5L12.5 36.5L12.5 39.5z" /><path d="M14.5 36.5L14.5 31.5L30.5 31.5L30.5 36.5z" /><path d="M14.5 31.5C14.5 24.5 22.5 22.5 22.5 22.5C22.5 22.5 30.5 24.5 30.5 31.5z" /><path d="M14.5 18.5L22.5 22.5L30.5 18.5" fill="none" /><path d="M11.5 12.5L22.5 22.5L33.5 12.5" fill="none" /><circle cx="6.5" cy="11.5" r="2.5"/><circle cx="14.5" cy="9.5" r="2.5"/><circle cx="22.5" cy="8.5" r="2.5"/><circle cx="30.5" cy="9.5" r="2.5"/><circle cx="38.5" cy="11.5" r="2.5"/></g></svg>`,
+            'black_rook': `<svg xmlns="http://www.w3.org/2000/svg" class="piece black" viewBox="0 0 45 45"><g fill="#2A2A2A" stroke="#FFF" stroke-width="1.2" stroke-linejoin="round"><path d="M12.5 39.5L32.5 39.5L32.5 36.5L12.5 36.5z" stroke-linecap="round"/><path d="M14.5 36.5L14.5 31.5L30.5 31.5L30.5 36.5z" stroke-linecap="round"/><path d="M14.5 31.5C14.5 24.5 22.5 22.5 22.5 22.5C22.5 22.5 30.5 24.5 30.5 31.5z" stroke-linecap="round"/><path d="M12.5 9.5L15.5 9.5L15.5 12.5L19.5 12.5L19.5 9.5L25.5 9.5L25.5 12.5L29.5 12.5L29.5 9.5L32.5 9.5L32.5 18.5L12.5 18.5z" /><path d="M12.5 18.5L22.5 22.5L32.5 18.5" fill="none" /></g></svg>`,
+            'black_bishop': `<svg xmlns="http://www.w3.org/2000/svg" class="piece black" viewBox="0 0 45 45"><g fill="#2A2A2A" stroke="#FFF" stroke-width="1.2" stroke-linejoin="round"><path d="M12.5 39.5L32.5 39.5L32.5 36.5L12.5 36.5z" stroke-linecap="round"/><path d="M14.5 36.5L14.5 31.5L30.5 31.5L30.5 36.5z" stroke-linecap="round"/><path d="M14.5 31.5C14.5 24.5 22.5 22.5 22.5 22.5C22.5 22.5 30.5 24.5 30.5 31.5z" stroke-linecap="round"/><path d="M22.5,10.5 L22.5,10.5 C24.5,12.5 24.5,15.5 22.5,17.5 C20.5,15.5 20.5,12.5 22.5,10.5" /><path d="M18.5 16.5L26.5 16.5" fill="none" stroke-linecap="round" stroke-width="0.8" /><path d="M22.5 17.5L22.5 22.5" fill="none" stroke-linecap="round"/><path d="M15.5,29.5 C15.5,29.5 18.5,25.5 22.5,22.5 C26.5,25.5 29.5,29.5 29.5,29.5" fill="none" stroke-linecap="round"/></g></svg>`,
+            'black_knight': `<svg xmlns="http://www.w3.org/2000/svg" class="piece black" viewBox="0 0 45 45"><g fill="#2A2A2A" stroke="#FFF" stroke-width="1.2" stroke-linejoin="round"><path d="M 9.5,39.5 L 35.5,39.5 L 35.5,36.5 L 9.5,36.5 L 9.5,39.5 z" stroke-linecap="round"/><path d="M 11.5,36.5 L 11.5,31.5 L 33.5,31.5 L 33.5,36.5 z" stroke-linecap="round"/><path d="M 11.5,31.5 C 11.5,24.5 19.5,22.5 19.5,22.5 C 19.5,22.5 27.5,24.5 27.5,31.5 L 11.5,31.5 z" stroke-linecap="round"/><path d="M 14,26 C 14.2,22.3 16,16.5 23.5,12.5 C 25.9,13.2 27.5,18.5 27,20 C 25,23.5 21,24.5 19.5,22.5" stroke-linecap="round" fill="none"/><path d="M 19.5 12.5L21.5 10.5L23.5 12.5" stroke-linecap="round"/></g></svg>`,
+            'black_pawn': `<svg xmlns="http://www.w3.org/2000/svg" class="piece black" viewBox="0 0 45 45"><g fill="#2A2A2A" stroke="#FFF" stroke-width="1.2" stroke-linejoin="round"><path d="M22.5 14.5 A 5 5 0 1 1 22.5 24.5 A 5 5 0 1 1 22.5 14.5 z" /><path d="M12.5 39.5L32.5 39.5L32.5 36.5L12.5 36.5z" stroke-linecap="round"/><path d="M14.5 36.5L14.5 31.5L30.5 31.5L30.5 36.5z" stroke-linecap="round"/><path d="M17.5 31.5L27.5 31.5L22.5 24.5z" stroke-linecap="round"/></g></svg>`
+        };
+
+        // --- El resto del código JavaScript es idéntico al anterior, gestionando la lógica del juego ---
+        // Se ha omitido por brevedad, pero debe incluirse aquí el script completo de la respuesta anterior.
+        // Solo se añade la actualización de las piezas capturadas.
+        
+        let board = [];
+        let currentPlayer = 'white';
+        let selectedPiece = null;
+        let validMoves = [];
+        let moveHistory = [];
+        let capturedPieces = { white: [], black: [] };
+        
+        let castlingAvailability = {
+            white: { kingSide: true, queenSide: true },
+            black: { kingSide: true, queenSide: true }
+        };
+
+        function createInitialBoard() {
+            const p = (color, type) => ({ color, type });
+            board = [
+                [p('black', 'rook'), p('black', 'knight'), p('black', 'bishop'), p('black', 'queen'), p('black', 'king'), p('black', 'bishop'), p('black', 'knight'), p('black', 'rook')],
+                [p('black', 'pawn'), p('black', 'pawn'), p('black', 'pawn'), p('black', 'pawn'), p('black', 'pawn'), p('black', 'pawn'), p('black', 'pawn'), p('black', 'pawn')],
+                [null, null, null, null, null, null, null, null],
+                [null, null, null, null, null, null, null, null],
+                [null, null, null, null, null, null, null, null],
+                [null, null, null, null, null, null, null, null],
+                [p('white', 'pawn'), p('white', 'pawn'), p('white', 'pawn'), p('white', 'pawn'), p('white', 'pawn'), p('white', 'pawn'), p('white', 'pawn'), p('white', 'pawn')],
+                [p('white', 'rook'), p('white', 'knight'), p('white', 'bishop'), p('white', 'queen'), p('white', 'king'), p('white', 'bishop'), p('white', 'knight'), p('white', 'rook')]
+            ];
+        }
+        
+        function renderBoard() {
+            boardElement.innerHTML = '';
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    const square = document.createElement('div');
+                    square.classList.add('square');
+                    square.classList.add((r + c) % 2 === 0 ? 'light' : 'dark');
+                    square.dataset.row = r;
+                    square.dataset.col = c;
+
+                    const piece = board[r][c];
+                    if (piece) {
+                        square.innerHTML = PIECE_SVG[`${piece.color}_${piece.type}`];
+                    }
+                    
+                    boardElement.appendChild(square);
+                }
+            }
+            highlightLastMove();
+            renderCapturedPieces();
+            addSquareListeners();
+        }
+
+        function renderCapturedPieces() {
+            capturedWhiteContainer.innerHTML = '';
+            capturedBlackContainer.innerHTML = '';
+            capturedPieces.white.forEach(p => {
+                capturedWhiteContainer.innerHTML += PIECE_SVG[`${p.color}_${p.type}`];
+            });
+            capturedPieces.black.forEach(p => {
+                capturedBlackContainer.innerHTML += PIECE_SVG[`${p.color}_${p.type}`];
+            });
+        }
+        
+        function addSquareListeners() {
+            const squares = document.querySelectorAll('.square');
+            squares.forEach(square => {
+                square.addEventListener('click', handleSquareClick);
+            });
+        }
+        
+        function handleSquareClick(event) {
+            const square = event.currentTarget;
+            const row = parseInt(square.dataset.row);
+            const col = parseInt(square.dataset.col);
+
+            if (selectedPiece) {
+                const isValidMove = validMoves.some(move => move[0] === row && move[1] === col);
+                if (isValidMove) {
+                    movePiece(selectedPiece.row, selectedPiece.col, row, col);
+                } else {
+                    clearHighlights();
+                    selectedPiece = null;
+                    const piece = board[row][col];
+                    if (piece && piece.color === currentPlayer) {
+                        selectPiece(row, col);
+                    }
+                }
+            } else {
+                const piece = board[row][col];
+                if (piece && piece.color === currentPlayer) {
+                    selectPiece(row, col);
+                }
+            }
+        }
+
+        function selectPiece(row, col) {
+            clearHighlights();
+            selectedPiece = { piece: board[row][col], row, col };
+            document.querySelector(`[data-row='${row}'][data-col='${col}']`).classList.add('selected');
+            validMoves = getValidMoves(selectedPiece.piece, row, col);
+            highlightValidMoves();
+        }
+
+        function movePiece(fromRow, fromCol, toRow, toCol) {
+            const piece = board[fromRow][fromCol];
+            const capturedPiece = board[toRow][toCol];
+
+            if (capturedPiece) {
+                capturedPieces[capturedPiece.color].push(capturedPiece);
+            }
+
+            const move = {
+                piece: piece,
+                from: [fromRow, fromCol],
+                to: [toRow, toCol],
+                captured: capturedPiece,
+                isFirstMove: (piece.type === 'pawn' || piece.type === 'king' || piece.type === 'rook') && !piece.hasMoved
+            };
+
+            if (piece.type === 'pawn' && Math.abs(fromRow - toRow) === 2) {
+                move.enPassantTarget = [ (fromRow + toRow) / 2, fromCol ];
+            }
+            if (piece.type === 'pawn' && fromCol !== toCol && !capturedPiece) {
+                const capturedRow = currentPlayer === 'white' ? toRow + 1 : toRow - 1;
+                const enPassantCapturedPiece = board[capturedRow][fromCol];
+                if(enPassantCapturedPiece) {
+                    capturedPieces[enPassantCapturedPiece.color].push(enPassantCapturedPiece);
+                    board[capturedRow][fromCol] = null;
+                }
+            }
+
+            if (piece.type === 'king' && Math.abs(fromCol - toCol) === 2) {
+                if (toCol === 6) { 
+                    board[fromRow][5] = board[fromRow][7];
+                    board[fromRow][7] = null;
+                    board[fromRow][5].hasMoved = true;
+                } else { 
+                    board[fromRow][3] = board[fromRow][0];
+                    board[fromRow][0] = null;
+                    board[fromRow][3].hasMoved = true;
+                }
+            }
+            
+            if (piece.type === 'king') {
+                castlingAvailability[piece.color].kingSide = false;
+                castlingAvailability[piece.color].queenSide = false;
+            }
+            if (piece.type === 'rook') {
+                if (fromCol === 0 && fromRow === (piece.color === 'white' ? 7 : 0)) castlingAvailability[piece.color].queenSide = false;
+                if (fromCol === 7 && fromRow === (piece.color === 'white' ? 7 : 0)) castlingAvailability[piece.color].kingSide = false;
+            }
+
+            board[toRow][toCol] = piece;
+            board[fromRow][fromCol] = null;
+            piece.hasMoved = true;
+            moveHistory.push(move);
+
+            if (piece.type === 'pawn' && (toRow === 0 || toRow === 7)) {
+                promotePawn(toRow, toCol);
+                return;
+            }
+            
+            switchTurn();
+            clearHighlights();
+            renderBoard();
+        }
+        
+        function promotePawn(row, col) {
+            promotionModal.style.display = 'flex';
+            promotionChoices.innerHTML = '';
+            const promotions = ['queen', 'rook', 'bishop', 'knight'];
+            promotions.forEach(type => {
+                const choice = document.createElement('div');
+                choice.innerHTML = PIECE_SVG[`${currentPlayer}_${type}`];
+                choice.addEventListener('click', () => {
+                    board[row][col].type = type;
+                    promotionModal.style.display = 'none';
+                    switchTurn();
+                    clearHighlights();
+                    renderBoard();
+                });
+                promotionChoices.appendChild(choice);
+            });
+        }
+
+        function switchTurn() {
+            currentPlayer = currentPlayer === 'white' ? 'black' : 'white';
+            statusElement.textContent = `Turno de las ${currentPlayer === 'white' ? 'Blancas' : 'Negras'}`;
+            selectedPiece = null;
+        }
+
+        function clearHighlights() {
+            document.querySelectorAll('.square.selected').forEach(s => s.classList.remove('selected'));
+            document.querySelectorAll('.valid-move-dot').forEach(dot => dot.remove());
+        }
+        
+        function highlightValidMoves() {
+            validMoves.forEach(move => {
+                const square = document.querySelector(`[data-row='${move[0]}'][data-col='${move[1]}']`);
+                if (square) {
+                    const dot = document.createElement('div');
+                    dot.classList.add('valid-move-dot');
+                    square.appendChild(dot);
+                }
+            });
+        }
+        
+        function highlightLastMove() {
+            document.querySelectorAll('.last-move').forEach(s => s.classList.remove('last-move'));
+            if (moveHistory.length > 0) {
+                const lastMove = moveHistory[moveHistory.length - 1];
+                document.querySelector(`[data-row='${lastMove.from[0]}'][data-col='${lastMove.from[1]}']`).classList.add('last-move');
+                document.querySelector(`[data-row='${lastMove.to[0]}'][data-col='${lastMove.to[1]}']`).classList.add('last-move');
+            }
+        }
+
+        function getValidMoves(piece, row, col) {
+            const moves = [];
+            const color = piece.color;
+
+            const addMove = (r, c) => {
+                if (r < 0 || r >= 8 || c < 0 || c >= 8) return false;
+                const targetPiece = board[r][c];
+                if (targetPiece === null) {
+                    moves.push([r, c]);
+                    return true;
+                }
+                if (targetPiece.color !== color) {
+                    moves.push([r, c]);
+                }
+                return false;
+            };
+
+            const addLineMoves = (dr, dc) => {
+                let r = row + dr, c = col + dc;
+                while (r >= 0 && r < 8 && c >= 0 && c < 8) {
+                    const targetPiece = board[r][c];
+                    if (targetPiece === null) {
+                        moves.push([r, c]);
+                    } else {
+                        if (targetPiece.color !== color) {
+                            moves.push([r, c]);
+                        }
+                        break;
+                    }
+                    r += dr; c += dc;
+                }
+            };
+            
+            switch (piece.type) {
+                case 'pawn':
+                    const dir = color === 'white' ? -1 : 1;
+                    const startRow = color === 'white' ? 6 : 1;
+                    if (row + dir >= 0 && row + dir < 8 && !board[row + dir][col]) {
+                        moves.push([row + dir, col]);
+                        // Avance de dos casillas
+                        if (row === startRow && !board[row + 2 * dir][col]) {
+                            moves.push([row + 2 * dir, col]);
+                        }
+                    }
+                    [-1, 1].forEach(cd => {
+                        if (col + cd >= 0 && col + cd < 8) {
+                            const target = board[row + dir][col + cd];
+                            if (target && target.color !== color) {
+                                moves.push([row + dir, col + cd]);
+                            }
+                        }
+                    });
+                    const lastMove = moveHistory[moveHistory.length - 1];
+                    if (lastMove && lastMove.piece.type === 'pawn' && Math.abs(lastMove.from[0] - lastMove.to[0]) === 2 && row === lastMove.to[0]) {
+                        [-1, 1].forEach(cd => {
+                            if (col + cd === lastMove.to[1]) {
+                                moves.push([row + dir, col + cd]);
+                            }
+                        });
+                    }
+                    break;
+                case 'knight':
+                    const knightMoves = [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]];
+                    knightMoves.forEach(m => addMove(row + m[0], col + m[1]));
+                    break;
+                case 'rook':
+                case 'bishop':
+                case 'queen':
+                    const directions = {
+                        rook:   [[0, 1], [0, -1], [1, 0], [-1, 0]],
+                        bishop: [[1, 1], [1, -1], [-1, 1], [-1, -1]],
+                        queen:  [[0, 1], [0, -1], [1, 0], [-1, 0], [1, 1], [1, -1], [-1, 1], [-1, -1]]
+                    };
+                    directions[piece.type].forEach(dir => addLineMoves(dir[0], dir[1]));
+                    break;
+                case 'king':
+                    const kingMoves = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+                    kingMoves.forEach(m => addMove(row + m[0], col + m[1]));
+                    // Enroque
+                    if (!piece.hasMoved) {
+                        const r = row;
+                        if (castlingAvailability[color].kingSide && !board[r][5] && !board[r][6] && board[r][7] && !board[r][7].hasMoved) {
+                            moves.push([r, 6]);
+                        }
+                        if (castlingAvailability[color].queenSide && !board[r][3] && !board[r][2] && !board[r][1] && board[r][0] && !board[r][0].hasMoved) {
+                            moves.push([r, 2]);
+                        }
+                    }
+                    break;
+            }
+            return moves;
+        }
+
+        createInitialBoard();
+        renderBoard();
+    });
+    </script>
+</body>
+</html>
