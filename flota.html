@@ -94,7 +94,7 @@
                     <div class="ship-config-option">
                         <label for="grid-size-input">Tamaño Cuadrícula</label>
                         <span></span>
-                        <input type="number" id="grid-size-input" value="10" min="8" max="15">
+                        <input type="number" id="grid-size-input" value="10" min="8" max="20">
                     </div>
                 </div>
                 <button id="start-placement-btn" class="btn btn-primary">Iniciar Colocación</button>
@@ -135,8 +135,8 @@
             { name: 'Portaaviones', count: 1, shapes: [[{x:0,y:0},{x:1,y:0},{x:2,y:0},{x:1,y:1},{x:2,y:1},{x:3,y:1}],[{x:1,y:0},{x:1,y:1},{x:1,y:2},{x:0,y:1},{x:0,y:2},{x:0,y:3}],[{x:0,y:1},{x:1,y:1},{x:2,y:1},{x:1,y:0},{x:2,y:0},{x:3,y:0}],[{x:0,y:0},{x:0,y:1},{x:0,y:2},{x:1,y:1},{x:1,y:2},{x:1,y:3}]] },
             { name: 'Acorazado', count: 1, shapes: [[{x:0,y:0},{x:1,y:0},{x:2,y:0},{x:1,y:1}],[{x:0,y:1},{x:1,y:0},{x:1,y:1},{x:1,y:2}],[{x:0,y:1},{x:1,y:1},{x:2,y:1},{x:1,y:0}],[{x:0,y:0},{x:0,y:1},{x:0,y:2},{x:1,y:1}]] },
             { name: 'Submarino', count: 1, shapes: [[{x:0,y:0},{x:1,y:0},{x:2,y:0},{x:3,y:0},{x:4,y:0}],[{x:0,y:0},{x:0,y:1},{x:0,y:2},{x:0,y:3},{x:0,y:4}],[{x:0,y:0},{x:1,y:0},{x:2,y:0},{x:3,y:0},{x:4,y:0}],[{x:0,y:0},{x:0,y:1},{x:0,y:2},{x:0,y:3},{x:0,y:4}]], isLinear: true },
-            { name: 'Destructor', count: 2, shapes: [[{x:0,y:0},{x:1,y:0},{x:2,y:0}],[{x:0,y:0},{x:0,y:1},{x:0,y:2}],[{x:0,y:0},{x:1,y:0},{x:2,y:0}],[{x:0,y:0},{x:0,y:1},{x:0,y:2}]], isLinear: true },
-            { name: 'Corbeta', count: 2, shapes: [[{x:0,y:0},{x:1,y:0}],[{x:0,y:0},{x:0,y:1}],[{x:0,y:0},{x:1,y:0}],[{x:0,y:0},{x:0,y:1}]], isLinear: true },
+            { name: 'Destructor', count: 1, shapes: [[{x:0,y:0},{x:1,y:0},{x:2,y:0}],[{x:0,y:0},{x:0,y:1},{x:0,y:2}],[{x:0,y:0},{x:1,y:0},{x:2,y:0}],[{x:0,y:0},{x:0,y:1},{x:0,y:2}]], isLinear: true },
+            { name: 'Corbeta', count: 1, shapes: [[{x:0,y:0},{x:1,y:0}],[{x:0,y:0},{x:0,y:1}],[{x:0,y:0},{x:1,y:0}],[{x:0,y:0},{x:0,y:1}]], isLinear: true },
         ];
 
         function init() { Object.values(buttons).forEach(btn => btn?.addEventListener('click', handleButtonClick)); populateShipConfig(); }
