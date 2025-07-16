@@ -2,12 +2,11 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Hundir la Flota ⚓</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-    
     <style>
         :root {
             --bg-color: #0d1b2a;
@@ -17,15 +16,25 @@
             --highlight-color: #3a86ff;
             --hit-color: #ff4d6d;
             --sunk-color: #c9184a;
+            --damaged-color: #ff9e00;
             --miss-color: #778da9;
-            --ship-line-color: rgba(255, 255, 255, 0.7);
             --font-family: 'Poppins', sans-serif;
             --grid-size: 10;
             --cell-size: min(8.5vw, 40px);
             --gap: 2px;
+            --grid-line-color: rgba(255, 255, 255, 0.2);
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            overscroll-behavior: none;
+            touch-action: none;
+        }
 
         body {
             font-family: var(--font-family);
@@ -38,96 +47,398 @@
             padding: 1rem;
         }
 
-        #app-container { width: 100%; max-width: 1200px; margin: auto; }
+        #app-container {
+            width: 100%;
+            max-width: 1200px;
+            margin: auto;
+        }
 
-        .screen { display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; width: 100%; animation: fadeIn 0.5s ease-in-out; }
-        .screen.active { display: flex; }
-        .screen-content { background-color: var(--primary-color); padding: 2rem; border-radius: 15px; width: 100%; max-width: 500px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+        .screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            width: 100%;
+            animation: fadeIn 0.5s ease-in-out;
+        }
 
-        .title { font-size: 2.5rem; color: var(--highlight-color); font-weight: 700; }
-        .subtitle { font-size: 1.1rem; color: var(--accent-color); opacity: 0.8; margin-bottom: 2rem; }
-        h2 { font-size: 1.8rem; margin-bottom: 1rem; }
-        h3 { font-size: 1.2rem; color: var(--highlight-color); margin-bottom: 0.5rem; }
+        .screen.active {
+            display: flex;
+        }
 
-        .btn { background: var(--secondary-color); color: var(--accent-color); border: none; padding: 0.8rem 1.5rem; font-size: 1rem; font-weight: 600; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; margin-top: 1rem; }
-        .btn:hover { transform: translateY(-3px); box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-        .btn.btn-danger { background-color: #a31a1a; color: white; }
-        .btn.btn-primary { background-color: var(--highlight-color); color: white; }
+        .screen-content {
+            background-color: var(--primary-color);
+            padding: 2rem;
+            border-radius: 15px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
 
-        #ship-config-container { display: flex; flex-direction: column; gap: 1rem; margin: 2rem 0; text-align: left; }
-        .ship-config-option { display: flex; justify-content: space-between; align-items: center; background: var(--bg-color); padding: 0.8rem; border-radius: 8px; }
-        .ship-config-option input { width: 60px; padding: 0.5rem; background: var(--secondary-color); color: var(--accent-color); border: 1px solid var(--primary-color); border-radius: 5px; text-align: center; font-size: 1rem; font-weight: 600; }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
 
-        .grid-container { display: grid; grid-template-columns: repeat(var(--grid-size), var(--cell-size)); grid-template-rows: repeat(var(--grid-size), var(--cell-size)); gap: var(--gap); background-color: var(--bg-color); padding: var(--gap); border: 2px solid var(--secondary-color); border-radius: 8px; }
-        .cell { width: var(--cell-size); height: var(--cell-size); background-color: var(--primary-color); border-radius: 2px; transition: background-color 0.2s ease; position: relative; }
+        .title {
+            font-size: 2.5rem;
+            color: var(--highlight-color);
+            font-weight: 700;
+        }
 
-        #placement-screen .screen-content { max-width: 900px; }
-        .placement-layout { display: flex; flex-direction: column; align-items: center; gap: 2rem; width: 100%; }
-        #ship-selection-panel { background: var(--bg-color); padding: 1rem; border-radius: 8px; width: 100%; max-width: 300px; }
-        #placement-controls { display: flex; gap: 1rem; justify-content: center; }
-        #ship-list .ship-item { padding: 0.7rem; margin: 0.5rem 0; background-color: var(--secondary-color); border-radius: 5px; cursor: pointer; transition: background-color 0.2s; font-weight: 600; }
-        #ship-list .ship-item.placing { background-color: var(--highlight-color); color: white; }
-        
-        .cell.preview { background-color: rgba(58, 134, 255, 0.5); }
-        .cell.invalid { background-color: rgba(255, 77, 109, 0.5); }
-        .placement-grid .cell.ship-part { background-color: var(--secondary-color); }
-        
-        .cell .ship-outline, .cell .ship-detail { position: absolute; top: 0; left: 0; right: 0; bottom: 0; border-color: var(--ship-line-color); border-style: solid; border-width: 0; animation: draw-in 0.5s ease-out; }
-        .ship-h .ship-outline { border-top-width: 1px; border-bottom-width: 1px; }
-        .ship-v .ship-outline { border-left-width: 1px; border-right-width: 1px; }
-        .ship-start.ship-h .ship-outline { border-left-width: 1px; }
-        .ship-end.ship-h .ship-outline { border-right-width: 1px; }
-        .ship-start.ship-v .ship-outline { border-top-width: 1px; }
-        .ship-end.ship-v .ship-outline { border-bottom-width: 1px; }
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--accent-color);
+            opacity: 0.8;
+            margin-bottom: 2rem;
+        }
 
-        .ship-acorazado .ship-start.ship-h .ship-outline { clip-path: polygon(0 50%, 100% 0, 100% 100%); border-left-width: 0; }
-        .ship-acorazado .ship-start.ship-h .ship-outline::before { content:''; position: absolute; inset: -1px; border: 1px solid var(--ship-line-color); clip-path: polygon(0 50%, 100% 0, 100% 100%); }
-        .ship-acorazado .ship-end.ship-h .ship-outline { clip-path: polygon(100% 50%, 0 0, 0 100%); border-right-width: 0; }
-        .ship-acorazado .ship-end.ship-h .ship-outline::before { content:''; position: absolute; inset: -1px; border: 1px solid var(--ship-line-color); clip-path: polygon(100% 50%, 0 0, 0 100%); }
-        .ship-acorazado .ship-start.ship-v .ship-outline { clip-path: polygon(50% 0, 0 100%, 100% 100%); border-top-width: 0; }
-        .ship-acorazado .ship-start.ship-v .ship-outline::before { content:''; position: absolute; inset: -1px; border: 1px solid var(--ship-line-color); clip-path: polygon(50% 0, 0 100%, 100% 100%); }
-        .ship-acorazado .ship-end.ship-v .ship-outline { clip-path: polygon(50% 100%, 0 0, 100% 0); border-bottom-width: 0; }
-        .ship-acorazado .ship-end.ship-v .ship-outline::before { content:''; position: absolute; inset: -1px; border: 1px solid var(--ship-line-color); clip-path: polygon(50% 100%, 0 0, 100% 0); }
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+        }
 
-        .ship-submarino .ship-outline { border-radius: 100px; border-width: 1px; margin: 5px; }
-        .ship-submarino.ship-start .ship-outline, .ship-submarino.ship-end .ship-outline { margin: 5px; }
+        h3 {
+            font-size: 1.2rem;
+            color: var(--highlight-color);
+            margin-bottom: 0.5rem;
+        }
 
-        .ship-portaaviones.ship-h .ship-outline { border-width: 2px 0; }
-        .ship-portaaviones.ship-v .ship-outline { border-width: 0 2px; }
-        .ship-portaaviones .ship-start.ship-h .ship-outline { border-top-left-radius: 4px; border-bottom-left-radius: 4px; }
-        .ship-portaaviones .ship-end.ship-h .ship-outline { border-top-right-radius: 4px; border-bottom-right-radius: 4px; }
-        .ship-portaaviones .ship-start.ship-v .ship-outline { border-top-left-radius: 4px; border-top-right-radius: 4px; }
-        .ship-portaaviones .ship-end.ship-v .ship-outline { border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; }
-        .ship-portaaviones .ship-control-tower .ship-detail::after { content: ''; position: absolute; background: var(--ship-line-color); top: 5px; right: 5px; width: 35%; height: 35%; border-radius: 2px; }
-        
-        .ship-lancha .ship-start.ship-h .ship-outline, .ship-lancha .ship-end.ship-h .ship-outline { border-radius: 5px; }
-        .ship-lancha .ship-start.ship-v .ship-outline, .ship-lancha .ship-end.ship-v .ship-outline { border-radius: 5px; }
-        
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(13, 27, 42, 0.95); z-index: 100; }
-        .modal .screen-content { box-shadow: none; background: transparent; }
-        .modal.auto-switch #next-turn-btn { display: none; }
+        .btn {
+            background: var(--secondary-color);
+            color: var(--accent-color);
+            border: none;
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0.3rem;
+        }
 
-        #game-screen .screen-content { max-width: fit-content; }
-        #game-header { width: 100%; margin-bottom: 1rem; }
-        #ships-status-panel { background-color: var(--primary-color); padding: 1rem; border-radius: 8px; margin-top: 1rem; }
-        #ships-status { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; }
-        .ship-status { padding: 0.4rem 0.8rem; background-color: var(--secondary-color); border-radius: 5px; font-size: 0.9rem; }
-        .ship-status.sunk { background-color: var(--sunk-color); text-decoration: line-through; opacity: 0.7; }
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
 
-        #boards-container { display: flex; justify-content: center; align-items: center; width: 100%; margin-top: 1rem; }
-        #attack-grid.grid-container .cell { cursor: crosshair; }
-        #attack-grid.grid-container .cell:not(.hit):not(.miss):hover { background-color: var(--secondary-color); }
-        .cell.hit { background-color: var(--hit-color); animation: hit-animation 0.3s ease-out; }
-        .cell.miss { background: repeating-linear-gradient(45deg, var(--primary-color), var(--primary-color) 2px, var(--miss-color) 2px, var(--miss-color) 4px); }
-        .cell.sunk { background-color: var(--sunk-color); }
-        @keyframes hit-animation { 0% { transform: scale(0.8); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
-        @keyframes draw-in { from { clip-path: inset(50%); } to { clip-path: inset(0%); } }
-        @media (min-width: 768px) { .placement-layout { flex-direction: row; align-items: flex-start; } :root { --cell-size: 45px; } }
+        .btn.btn-danger {
+            background-color: #a31a1a;
+            color: white;
+        }
+
+        .btn.btn-primary {
+            background-color: var(--highlight-color);
+            color: white;
+        }
+
+        #ship-config-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin: 2rem 0;
+            text-align: left;
+        }
+
+        .ship-config-option {
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            align-items: center;
+            gap: 1rem;
+            background: var(--bg-color);
+            padding: 0.5rem 0.8rem;
+            border-radius: 8px;
+        }
+
+        .ship-config-option input {
+            width: 60px;
+            padding: 0.5rem;
+            background: var(--secondary-color);
+            color: var(--accent-color);
+            border: 1px solid var(--primary-color);
+            border-radius: 5px;
+            text-align: center;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .ship-preview-icon {
+            display: grid;
+            gap: 2px;
+        }
+
+        .ship-preview-icon .mini-block {
+            width: 8px;
+            height: 8px;
+            background-color: var(--accent-color);
+            border-radius: 1px;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(var(--grid-size), var(--cell-size));
+            grid-template-rows: repeat(var(--grid-size), var(--cell-size));
+            gap: var(--gap);
+            background-color: var(--bg-color);
+            padding: var(--gap);
+            border: 2px solid var(--secondary-color);
+            border-radius: 8px;
+            background-image: linear-gradient(var(--grid-line-color) 1px, transparent 1px),
+                              linear-gradient(90deg, var(--grid-line-color) 1px, transparent 1px);
+            background-size: var(--cell-size) var(--cell-size);
+        }
+
+        .cell {
+            width: var(--cell-size);
+            height: var(--cell-size);
+            background-color: var(--primary-color);
+            border-radius: 2px;
+            transition: background-color 0.2s ease;
+            position: relative;
+        }
+
+        #placement-screen .screen-content,
+        #game-screen .screen-content,
+        #game-over-screen .screen-content {
+            max-width: fit-content;
+        }
+
+        .placement-layout {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+            width: 100%;
+        }
+
+        #ship-selection-panel {
+            background: var(--bg-color);
+            padding: 1rem;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        #placement-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+
+        #ship-list .ship-item {
+            padding: 0.7rem;
+            margin: 0.5rem 0;
+            background-color: var(--secondary-color);
+            border-radius: 5px;
+            cursor: grab;
+            transition: background-color 0.2s, transform 0.2s ease;
+            font-weight: 600;
+            touch-action: none;
+        }
+
+        #ship-list .ship-item:active {
+            cursor: grabbing;
+            transform: scale(1.05);
+        }
+
+        #ship-list .ship-item.placing {
+            background-color: var(--highlight-color);
+            color: white;
+        }
+
+        .cell.preview {
+            background-color: rgba(58, 134, 255, 0.5);
+        }
+
+        .cell.invalid {
+            background-color: rgba(255, 77, 109, 0.5);
+        }
+
+        .ship-part-rendered {
+            position: absolute;
+            background-color: #a9c1d9;
+            transition: all 0.3s;
+        }
+
+        /* Estilo de cuadrados */
+        .square-style .ship-part-rendered {
+            width: 90%;
+            height: 90%;
+            border: 1px solid white;
+        }
+
+        /* Estilo de círculos */
+        .circle-style .ship-part-rendered {
+            width: 70%;
+            height: 70%;
+            border-radius: 50%;
+            border: 1px solid white;
+        }
+
+        /* Estilo de triángulos */
+        .triangle-style .ship-part-rendered {
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-bottom: 40px solid #a9c1d9;
+            border-top: none;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(13, 27, 42, 0.95);
+            z-index: 100;
+        }
+
+        .modal .screen-content {
+            box-shadow: none;
+            background: transparent;
+        }
+
+        .modal.auto-switch #next-turn-btn {
+            display: none;
+        }
+
+        #game-header {
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+
+        #ships-status-panel {
+            background-color: var(--primary-color);
+            padding: 0.5rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #ships-status {
+            display: flex;
+            flex-direction: row;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .ship-status {
+            padding: 0.3rem 0.5rem;
+            background-color: var(--secondary-color);
+            border-radius: 5px;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .ship-status.damaged {
+            background-color: var(--damaged-color);
+            color: #000;
+        }
+
+        .ship-status.sunk {
+            background-color: var(--sunk-color);
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+
+        .status-silhouette {
+            display: grid;
+            gap: 1px;
+            margin-left: 0.3rem;
+        }
+
+        .status-silhouette .mini-block {
+            width: 5px;
+            height: 5px;
+            background-color: var(--bg-color);
+            opacity: 0.5;
+            border-radius: 1px;
+        }
+
+        .ship-status.damaged .mini-block,
+        .ship-status.sunk .mini-block {
+            background-color: #fff;
+        }
+
+        #boards-container, #final-boards-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            margin-top: 1rem;
+            gap: 2rem;
+        }
+
+        #attack-grid.grid-container .cell {
+            cursor: crosshair;
+        }
+
+        #attack-grid.grid-container .cell:not(.hit):not(.miss):hover {
+            background-color: var(--secondary-color);
+        }
+
+        .cell.hit {
+            background-color: var(--hit-color);
+            animation: hit-animation 0.3s ease-out;
+        }
+
+        .cell.miss {
+            background: repeating-linear-gradient(45deg, var(--primary-color), var(--primary-color) 2px, var(--miss-color) 2px, var(--miss-color) 4px);
+        }
+
+        .cell.sunk {
+            background-color: var(--sunk-color);
+        }
+
+        @keyframes hit-animation {
+            0% {
+                transform: scale(0.8);
+            }
+            50% {
+                transform: scale(1.2);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        @media (min-width: 768px) {
+            .placement-layout {
+                flex-direction: row;
+                align-items: flex-start;
+            }
+            #final-boards-container {
+                flex-direction: row;
+                align-items: flex-start;
+            }
+            #placement-controls .btn {
+                display: inline-block;
+            }
+            :root {
+                --cell-size: 45px;
+            }
+            #game-over-screen .grid-container {
+                --cell-size: 30px;
+            }
+        }
     </style>
 </head>
 <body>
-
     <div id="app-container">
         <div id="setup-screen" class="screen active">
             <div class="screen-content">
@@ -136,31 +447,33 @@
                 <div id="ship-config-container">
                     <div class="ship-config-option">
                         <label for="grid-size-input">Tamaño Cuadrícula</label>
+                        <span></span>
                         <input type="number" id="grid-size-input" value="10" min="8" max="15">
                     </div>
                 </div>
                 <button id="start-placement-btn" class="btn btn-primary">Iniciar Colocación</button>
             </div>
         </div>
-
         <div id="placement-screen" class="screen">
             <div class="screen-content">
                 <h2 id="player-turn-msg"></h2>
                 <div class="placement-layout">
                     <div id="ship-selection-panel">
                         <h3>Tu Flota</h3>
+                        <p style="font-size: 0.8rem; opacity: 0.7;">Toca un barco para girarlo, o arrástralo al tablero.</p>
                         <div id="ship-list"></div>
                         <div id="placement-controls">
                             <button id="rotate-ship-btn" class="btn">Girar</button>
                             <button id="undo-btn" class="btn btn-danger">Deshacer</button>
+                            <button id="change-style-btn" class="btn">Cambiar Estilo</button>
                         </div>
                     </div>
-                    <div id="placement-grid" class="grid-container"></div>
+                    <div id="placement-grid" class="grid-container square-style"></div>
                 </div>
                 <button id="confirm-placement-btn" class="btn btn-primary">Confirmar Flota</button>
             </div>
         </div>
-        
+
         <div id="turn-switch-screen" class="screen modal">
             <div class="screen-content">
                 <h2 id="next-player-msg"></h2>
@@ -168,54 +481,194 @@
                 <button id="next-turn-btn" class="btn">¡Listo!</button>
             </div>
         </div>
-        
+
         <div id="game-screen" class="screen">
             <div class="screen-content">
                 <div id="game-header">
                     <h2 id="current-player-msg"></h2>
                     <div id="ships-status-panel">
-                        <h3>Estado de la Flota Enemiga</h3>
                         <div id="ships-status"></div>
                     </div>
                 </div>
                 <div id="boards-container">
-                    <div id="attack-grid" class="grid-container"></div>
+                    <div id="attack-grid" class="grid-container square-style"></div>
                 </div>
             </div>
         </div>
+        <div id="game-over-screen" class="screen">
+            <div class="screen-content">
+                <h2 id="winner-msg"></h2>
+                <div id="final-boards-container">
+                    <div class="final-board">
+                        <h3>Flota del Jugador 1</h3>
+                        <div id="final-grid-1" class="grid-container square-style"></div>
+                    </div>
+                    <div class="final-board">
+                        <h3>Flota del Jugador 2</h3>
+                        <div id="final-grid-2" class="grid-container square-style"></div>
+                    </div>
+                </div>
+                <button id="play-again-btn" class="btn btn-primary">Jugar de Nuevo</button>
+            </div>
+        </div>
     </div>
-    
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const screens = { setup: document.getElementById('setup-screen'), placement: document.getElementById('placement-screen'), turnSwitch: document.getElementById('turn-switch-screen'), game: document.getElementById('game-screen'), };
-            const grids = { placement: document.getElementById('placement-grid'), attack: document.getElementById('attack-grid'), };
-            const messages = { playerTurn: document.getElementById('player-turn-msg'), currentPlayer: document.getElementById('current-player-msg'), nextPlayer: document.getElementById('next-player-msg'), turnSwitchSubtitle: document.getElementById('turn-switch-subtitle'), };
-            const buttons = { startPlacement: document.getElementById('start-placement-btn'), confirmPlacement: document.getElementById('confirm-placement-btn'), nextTurn: document.getElementById('next-turn-btn'), rotateShip: document.getElementById('rotate-ship-btn'), undo: document.getElementById('undo-btn'), };
-            const panels = { shipList: document.getElementById('ship-list'), shipsStatus: document.getElementById('ships-status'), shipConfigContainer: document.getElementById('ship-config-container'), };
-
+            const screens = {
+                setup: document.getElementById('setup-screen'),
+                placement: document.getElementById('placement-screen'),
+                turnSwitch: document.getElementById('turn-switch-screen'),
+                game: document.getElementById('game-screen'),
+                gameOver: document.getElementById('game-over-screen'),
+            };
+            const grids = {
+                placement: document.getElementById('placement-grid'),
+                attack: document.getElementById('attack-grid'),
+                final1: document.getElementById('final-grid-1'),
+                final2: document.getElementById('final-grid-2'),
+            };
+            const messages = {
+                playerTurn: document.getElementById('player-turn-msg'),
+                currentPlayer: document.getElementById('current-player-msg'),
+                nextPlayer: document.getElementById('next-player-msg'),
+                turnSwitchSubtitle: document.getElementById('turn-switch-subtitle'),
+                winner: document.getElementById('winner-msg'),
+            };
+            const buttons = {
+                startPlacement: document.getElementById('start-placement-btn'),
+                confirmPlacement: document.getElementById('confirm-placement-btn'),
+                nextTurn: document.getElementById('next-turn-btn'),
+                rotateShip: document.getElementById('rotate-ship-btn'),
+                undo: document.getElementById('undo-btn'),
+                changeStyle: document.getElementById('change-style-btn'),
+                playAgain: document.getElementById('play-again-btn'),
+            };
+            const panels = {
+                shipList: document.getElementById('ship-list'),
+                shipsStatus: document.getElementById('ships-status'),
+                shipConfigContainer: document.getElementById('ship-config-container'),
+            };
             let GRID_SIZE = 10;
-            let initialShipConfig = [ { name: 'Portaaviones', size: 5, count: 1 }, { name: 'Acorazado', size: 4, count: 1 }, { name: 'Submarino', size: 3, count: 1 }, { name: 'Lancha', size: 2, count: 2 }, ];
+            let initialShipConfig = [];
             let player1Ships = [], player2Ships = [], player1Shots = [], player2Shots = [];
             let placingPlayer = 1, shipsToPlace = [], currentPlacingShip = null;
-            let isHorizontal = true, currentPlayer = 1, gameActive = false;
+            let rotationIndex = 0, currentPlayer = 1, gameActive = false;
+            let currentStyle = 'square-style';
+            const styles = ['square-style', 'circle-style', 'triangle-style'];
+
+            function defineShipShapes() {
+                return [
+                    {
+                        name: 'Portaaviones',
+                        size: 6,
+                        count: 1,
+                        shapes: [
+                            [{x:0,y:0},{x:1,y:0},{x:2,y:0},{x:1,y:1},{x:2,y:1},{x:3,y:1}],
+                            [{x:1,y:0},{x:1,y:1},{x:1,y:2},{x:0,y:1},{x:0,y:2},{x:0,y:3}],
+                            [{x:0,y:1},{x:1,y:1},{x:2,y:1},{x:1,y:0},{x:2,y:0},{x:3,y:0}],
+                            [{x:0,y:0},{x:0,y:1},{x:0,y:2},{x:1,y:1},{x:1,y:2},{x:1,y:3}]
+                        ]
+                    },
+                    {
+                        name: 'Submarino',
+                        size: 5,
+                        count: 1,
+                        shapes: [
+                            [{x:0,y:0},{x:1,y:0},{x:2,y:0},{x:3,y:0},{x:4,y:0}],
+                            [{x:0,y:0},{x:0,y:1},{x:0,y:2},{x:0,y:3},{x:0,y:4}],
+                            [{x:0,y:0},{x:1,y:0},{x:2,y:0},{x:3,y:0},{x:4,y:0}],
+                            [{x:0,y:0},{x:0,y:1},{x:0,y:2},{x:0,y:3},{x:0,y:4}]
+                        ]
+                    },
+                    {
+                        name: 'Acorazado',
+                        size: 4,
+                        count: 1,
+                        shapes: [
+                            [{x:0,y:0},{x:1,y:0},{x:2,y:0},{x:1,y:1}],
+                            [{x:0,y:1},{x:1,y:0},{x:1,y:1},{x:1,y:2}],
+                            [{x:0,y:1},{x:1,y:1},{x:2,y:1},{x:1,y:0}],
+                            [{x:0,y:0},{x:0,y:1},{x:0,y:2},{x:1,y:1}]
+                        ]
+                    },
+                    {
+                        name: 'Destructor',
+                        size: 3,
+                        count: 2,
+                        shapes: [
+                            [{x:0,y:0},{x:1,y:0},{x:2,y:0}],
+                            [{x:0,y:0},{x:0,y:1},{x:0,y:2}],
+                            [{x:0,y:0},{x:1,y:0},{x:2,y:0}],
+                            [{x:0,y:0},{x:0,y:1},{x:0,y:2}]
+                        ]
+                    },
+                    {
+                        name: 'Corbeta',
+                        size: 2,
+                        count: 2,
+                        shapes: [
+                            [{x:0,y:0},{x:1,y:0}],
+                            [{x:0,y:0},{x:0,y:1}],
+                            [{x:0,y:0},{x:1,y:0}],
+                            [{x:0,y:0},{x:0,y:1}]
+                        ]
+                    },
+                ];
+            }
 
             function init() {
+                initialShipConfig = defineShipShapes();
                 populateShipConfig();
                 buttons.startPlacement.addEventListener('click', handleStartPlacement);
                 buttons.confirmPlacement.addEventListener('click', handleConfirmPlacement);
                 buttons.nextTurn.addEventListener('click', handleNextTurn);
                 buttons.rotateShip.addEventListener('click', handleRotateShip);
                 buttons.undo.addEventListener('click', handleUndo);
+                buttons.changeStyle.addEventListener('click', changeShipStyle);
+                buttons.playAgain.addEventListener('click', () => location.reload());
+                addDragDropListeners();
             }
 
-            function switchScreen(activeScreen) { Object.values(screens).forEach(screen => screen.classList.remove('active')); screens[activeScreen].classList.add('active'); }
+            function changeShipStyle() {
+                const currentIndex = styles.indexOf(currentStyle);
+                const nextIndex = (currentIndex + 1) % styles.length;
+                currentStyle = styles[nextIndex];
+
+                grids.placement.className = `grid-container ${currentStyle}`;
+                grids.attack.className = `grid-container ${currentStyle}`;
+                grids.final1.className = `grid-container ${currentStyle}`;
+                grids.final2.className = `grid-container ${currentStyle}`;
+            }
+
+            function switchScreen(activeScreen) {
+                Object.values(screens).forEach(screen => screen.classList.remove('active'));
+                screens[activeScreen].classList.add('active');
+            }
 
             function populateShipConfig() {
                 panels.shipConfigContainer.querySelectorAll('.ship-config-option:not(:first-child)').forEach(el => el.remove());
-                initialShipConfig.forEach(({ name, size, count }) => {
+                initialShipConfig.forEach(({ name, size, count, shapes }) => {
                     const option = document.createElement('div');
                     option.className = 'ship-config-option';
-                    option.innerHTML = `<span>${name} (${size})</span><input type="number" value="${count}" min="0" max="5" data-size="${size}" data-name="${name}">`;
+                    const preview = document.createElement('div');
+                    preview.className = 'ship-preview-icon';
+                    const shape = shapes[0];
+                    const width = Math.max(...shape.map(p => p.x)) + 1;
+                    const height = Math.max(...shape.map(p => p.y)) + 1;
+                    preview.style.gridTemplateColumns = `repeat(${width}, 8px)`;
+                    preview.style.gridTemplateRows = `repeat(${height}, 8px)`;
+                    shape.forEach(p => {
+                        const block = document.createElement('div');
+                        block.className = 'mini-block';
+                        block.style.gridColumn = p.x + 1;
+                        block.style.gridRow = p.y + 1;
+                        preview.appendChild(block);
+                    });
+
+                    option.innerHTML = `<span>${name} (${size})</span>`;
+                    option.appendChild(preview);
+                    option.innerHTML += `<input type="number" value="${count}" min="0" max="5" data-name="${name}">`;
                     panels.shipConfigContainer.appendChild(option);
                 });
             }
@@ -224,19 +677,27 @@
                 GRID_SIZE = parseInt(document.getElementById('grid-size-input').value) || 10;
                 document.documentElement.style.setProperty('--grid-size', GRID_SIZE);
                 shipsToPlace = [];
-                panels.shipConfigContainer.querySelectorAll('input[data-size]').forEach(input => {
-                    const count = parseInt(input.value); const size = parseInt(input.dataset.size); const name = input.dataset.name;
-                    for (let i = 0; i < count; i++) { shipsToPlace.push({ name: `${name} ${count > 1 ? i + 1 : ''}`.trim(), size, placed: false }); }
+                const shipDefs = defineShipShapes();
+                panels.shipConfigContainer.querySelectorAll('input[data-name]').forEach(input => {
+                    const count = parseInt(input.value);
+                    const name = input.dataset.name;
+                    const shipDef = shipDefs.find(s => s.name === name);
+                    for (let i = 0; i < count; i++) {
+                        shipsToPlace.push({ ...shipDef, uniqueName: `${name} ${i + 1}`, placed: false });
+                    }
                 });
                 if (shipsToPlace.length === 0) return;
-                player1Ships = []; player2Ships = []; player1Shots = []; player2Shots = [];
-                placingPlayer = 1; gameActive = false;
+                player1Ships = [];
+                player2Ships = [];
+                player1Shots = [];
+                player2Shots = [];
+                placingPlayer = 1;
+                gameActive = false;
                 startPlacementPhase();
             }
 
             function startPlacementPhase() {
                 createGrid(grids.placement);
-                addPlacementListeners();
                 messages.playerTurn.textContent = `Jugador ${placingPlayer}, coloca tu flota`;
                 updateShipList();
                 switchScreen('placement');
@@ -251,13 +712,22 @@
                         messages.nextPlayer.textContent = `Turno de colocar para Jugador 2`;
                         messages.turnSwitchSubtitle.textContent = 'Pasa el dispositivo a tu oponente y pulsa para continuar.';
                         switchScreen('turnSwitch');
-                    } else { currentPlayer = 1; gameActive = true; startGame(); }
+                    } else {
+                        currentPlayer = 1;
+                        gameActive = true;
+                        startGame();
+                    }
                 }
             }
-            
+
             function handleNextTurn() {
-                if (placingPlayer === 2 && player2Ships.length === 0) { startPlacementPhase(); } 
-                else { setupTurn(); switchScreen('game'); }
+                if (placingPlayer === 2 && player2Ships.length === 0) {
+                    startPlacementPhase();
+                }
+                else {
+                    setupTurn();
+                    switchScreen('game');
+                }
             }
 
             function startGame() {
@@ -269,7 +739,7 @@
                 switchScreen('turnSwitch');
                 setTimeout(handleNextTurn, 2000);
             }
-            
+
             function setupTurn() {
                 messages.currentPlayer.textContent = `Jugador ${currentPlayer}`;
                 renderAttackGrid();
@@ -291,21 +761,17 @@
                 for (let y = 0; y < GRID_SIZE; y++) {
                     for (let x = 0; x < GRID_SIZE; x++) {
                         const cell = document.createElement('div');
-                        cell.className = 'cell'; cell.dataset.x = x; cell.dataset.y = y;
+                        cell.className = 'cell';
+                        cell.dataset.x = x;
+                        cell.dataset.y = y;
                         gridEl.appendChild(cell);
                     }
                 }
             }
-            
-            function addPlacementListeners() {
-                grids.placement.querySelectorAll('.cell').forEach(cell => {
-                    cell.addEventListener('mouseover', e => previewShip(e.target));
-                    cell.addEventListener('mouseout', () => clearPreview());
-                    cell.addEventListener('click', e => placeShip(e.target));
-                });
-            }
 
-            function addAttackListeners() { grids.attack.querySelectorAll('.cell').forEach(cell => cell.addEventListener('click', e => handleAttack(e.target))); }
+            function addAttackListeners() {
+                grids.attack.querySelectorAll('.cell').forEach(cell => cell.addEventListener('click', e => handleAttack(e.target)));
+            }
 
             function handleAttack(cell) {
                 if (!cell || !gameActive || cell.classList.contains('hit') || cell.classList.contains('miss')) return;
@@ -315,38 +781,38 @@
                 shots.push({ x, y });
                 const opponentShips = currentPlayer === 1 ? player2Ships : player1Ships;
                 const targetShip = opponentShips.find(ship => ship.positions.some(p => p.x === x && p.y === y));
-
                 if (targetShip) {
                     cell.classList.add('hit');
                     targetShip.hits++;
+                    updateShipsStatus();
                     if (targetShip.hits === targetShip.positions.length) {
                         drawSunkShip(targetShip);
-                        updateShipsStatus();
-                        if (opponentShips.every(s => s.hits === s.positions.length)) { endGame(); return; }
+                        if (opponentShips.every(s => s.hits === s.positions.length)) {
+                            endGame();
+                            return;
+                        }
                     }
                     gameActive = true;
-                } else { cell.classList.add('miss'); setTimeout(switchTurn, 2000); }
+                } else {
+                    cell.classList.add('miss');
+                    setTimeout(switchTurn, 2000);
+                }
             }
 
-            function drawSunkShip(ship) {
-                const shipClass = sanitizeClassName(ship.name);
-                const isHorizontal = ship.positions.length > 1 && ship.positions[0].y === ship.positions[1].y;
-                ship.positions.forEach(({x, y}, index) => {
-                    const cellEl = grids.attack.querySelector(`[data-x='${x}'][data-y='${y}']`);
-                    if (!cellEl) return;
-                    cellEl.innerHTML = `<div class="ship-outline"></div><div class="ship-detail"></div>`;
-                    cellEl.classList.add(shipClass, isHorizontal ? 'ship-h' : 'ship-v');
-                    if (index === 0) cellEl.classList.add('ship-start');
-                    if (index === ship.positions.length - 1) cellEl.classList.add('ship-end');
-                    if (shipClass === 'ship-portaaviones' && index === 1) cellEl.classList.add('ship-control-tower');
+            function drawSunkShip(ship, grid = grids.attack) {
+                ship.positions.forEach(p => {
+                    const cellEl = grid.querySelector(`[data-x='${p.x}'][data-y='${p.y}']`);
+                    if(cellEl) cellEl.classList.add('sunk');
                 });
+                renderShipOutline(grid, ship);
             }
-            
+
             function renderAttackGrid() {
                 const shots = currentPlayer === 1 ? player1Shots : player2Shots;
                 const opponentShips = currentPlayer === 1 ? player2Ships : player1Ships;
                 grids.attack.querySelectorAll('.cell').forEach(cell => {
-                    cell.className = 'cell'; cell.innerHTML = '';
+                    cell.className = 'cell';
+                    cell.innerHTML = '';
                     const x = parseInt(cell.dataset.x), y = parseInt(cell.dataset.y);
                     const shot = shots.find(s => s.x === x && s.y === y);
                     if (shot) {
@@ -365,23 +831,65 @@
                 opponentShips.forEach(ship => {
                     const el = document.createElement('div');
                     el.className = 'ship-status';
-                    el.textContent = ship.name.replace(/\s\d+$/, '');
+                    if (ship.hits > 0 && ship.hits < ship.positions.length) el.classList.add('damaged');
                     if (ship.hits === ship.positions.length) el.classList.add('sunk');
+
+                    const silhouette = document.createElement('div');
+                    silhouette.className = 'status-silhouette';
+                    const shape = ship.shapes[0];
+                    const width = Math.max(...shape.map(p => p.x)) + 1;
+                    const height = Math.max(...shape.map(p => p.y)) + 1;
+                    silhouette.style.gridTemplateColumns = `repeat(${width}, 5px)`;
+                    silhouette.style.gridTemplateRows = `repeat(${height}, 5px)`;
+                    shape.forEach(p => {
+                        const block = document.createElement('div');
+                        block.className = 'mini-block';
+                        block.style.gridColumn = p.x + 1;
+                        block.style.gridRow = p.y + 1;
+                        silhouette.appendChild(block);
+                    });
+                    el.innerHTML = `<span>${ship.name}</span>`;
+                    el.appendChild(silhouette);
                     panels.shipsStatus.appendChild(el);
                 });
             }
 
-            function endGame() { gameActive = false; setTimeout(() => { alert(`¡Juego Terminado! El ganador es el Jugador ${currentPlayer}.`); switchScreen('setup'); }, 100); }
-            
+            function endGame() {
+                gameActive = false;
+                messages.winner.textContent = `¡El Jugador ${currentPlayer} ha ganado!`;
+                createGrid(grids.final1);
+                createGrid(grids.final2);
+                renderFinalBoard(grids.final1, player1Ships, player2Shots);
+                renderFinalBoard(grids.final2, player2Ships, player1Shots);
+                switchScreen('gameOver');
+            }
+
+            function renderFinalBoard(grid, ships, opponentShots) {
+                ships.forEach(ship => {
+                    ship.positions.forEach(p => grid.querySelector(`[data-x='${p.x}'][data-y='${p.y}']`).classList.add('ship-part'));
+                    renderShipOutline(grid, ship);
+                });
+                opponentShots.forEach(shot => {
+                    const cell = grid.querySelector(`[data-x='${shot.x}'][data-y='${shot.y}']`);
+                    if (cell) {
+                        const isHit = ships.some(s => s.positions.some(p => p.x === shot.x && p.y === shot.y));
+                        cell.classList.add(isHit ? 'hit' : 'miss');
+                    }
+                });
+            }
+
             function handleUndo() {
                 const playerShips = placingPlayer === 1 ? player1Ships : player2Ships;
                 if (playerShips.length === 0) return;
                 const lastShip = playerShips.pop();
-                const shipDef = shipsToPlace.find(s => s.name === lastShip.name);
+                const shipDef = shipsToPlace.find(s => s.uniqueName === lastShip.uniqueName);
                 if (shipDef) shipDef.placed = false;
                 lastShip.positions.forEach(({x, y}) => {
                     const cell = grids.placement.querySelector(`[data-x='${x}'][data-y='${y}']`);
-                    if (cell) { cell.className = 'cell'; cell.innerHTML = ''; }
+                    if (cell) {
+                        cell.className = 'cell';
+                        cell.innerHTML = '';
+                    }
                 });
                 updateShipList();
             }
@@ -393,44 +901,62 @@
                     const shipEl = document.createElement('div');
                     shipEl.className = 'ship-item';
                     shipEl.textContent = `${ship.name} (${ship.size})`;
-                    shipEl.dataset.name = ship.name;
+                    shipEl.dataset.name = ship.uniqueName;
                     shipEl.addEventListener('click', () => {
-                        panels.shipList.querySelector('.placing')?.classList.remove('placing');
-                        shipEl.classList.add('placing');
-                        currentPlacingShip = ship;
+                        const isSelected = shipEl.classList.contains('placing');
+                        if (isSelected) {
+                            handleRotateShip();
+                        }
+                        else {
+                            panels.shipList.querySelector('.placing')?.classList.remove('placing');
+                            shipEl.classList.add('placing');
+                            currentPlacingShip = shipsToPlace.find(s => s.uniqueName === shipEl.dataset.name);
+                            rotationIndex = 0;
+                        }
                     });
+                    shipEl.setAttribute('draggable', true);
                     panels.shipList.appendChild(shipEl);
                 });
-                if (unplacedShips.length > 0) panels.shipList.children[0].click();
-                else currentPlacingShip = null;
+                if (unplacedShips.length > 0 && !document.querySelector('.placing')) {
+                    const firstItem = panels.shipList.children[0];
+                    firstItem.classList.add('placing');
+                    currentPlacingShip = shipsToPlace.find(s => s.uniqueName === firstItem.dataset.name);
+                    rotationIndex = 0;
+                }
+                if(unplacedShips.length === 0) currentPlacingShip = null;
             }
 
-            function handleRotateShip() { isHorizontal = !isHorizontal; }
-            
-            function previewShip(cell) {
-                if (!currentPlacingShip) return;
-                clearPreview();
-                const { positions, isValid } = getShipPositions(cell);
-                positions.forEach(({ x, y }) => { grids.placement.querySelector(`[data-x='${x}'][data-y='${y}']`)?.classList.add(isValid ? 'preview' : 'invalid'); });
+            function handleRotateShip() {
+                rotationIndex = (rotationIndex + 1) % 4;
             }
 
-            function clearPreview() { grids.placement.querySelectorAll('.cell.preview, .cell.invalid').forEach(c => c.classList.remove('preview', 'invalid')); }
+            function renderShipOutline(grid, ship) {
+                const positions = ship.positions;
+                const shipName = ship.name;
+                const shipClass = 'ship-' + shipName.toLowerCase();
+                const currentShape = ship.shapes[ship.rotation];
+                positions.forEach((p) => {
+                    const cellEl = grid.querySelector(`[data-x='${p.x}'][data-y='${p.y}']`);
+                    if (!cellEl) return;
+
+                    cellEl.classList.add(shipClass);
+                    const partIndex = currentShape.findIndex(sp => sp.x === p.x - (positions[0]?.x || 0) && sp.y === p.y - (positions[0]?.y || 0));
+                    const partDiv = document.createElement('div');
+                    partDiv.className = 'ship-part-rendered';
+                    cellEl.appendChild(partDiv);
+                });
+            }
 
             function placeShip(cell) {
-                if (!currentPlacingShip) return;
+                if (!currentPlacingShip || !cell) return;
                 const { positions, isValid } = getShipPositions(cell);
                 if (isValid) {
                     const playerShips = placingPlayer === 1 ? player1Ships : player2Ships;
-                    playerShips.push({ name: currentPlacingShip.name, positions: positions, hits: 0 });
-                    const shipClass = sanitizeClassName(currentPlacingShip.name);
-                    positions.forEach(({x, y}, index) => {
-                        const cellEl = grids.placement.querySelector(`[data-x='${x}'][data-y='${y}']`);
-                        cellEl.innerHTML = `<div class="ship-outline"></div><div class="ship-detail"></div>`;
-                        cellEl.classList.add('ship-part', shipClass, isHorizontal ? 'ship-h' : 'ship-v');
-                        if (index === 0) cellEl.classList.add('ship-start');
-                        if (index === positions.length - 1) cellEl.classList.add('ship-end');
-                        if (shipClass === 'ship-portaaviones' && index === 1) cellEl.classList.add('ship-control-tower');
-                    });
+                    const newShipData = { ...currentPlacingShip, positions: positions, rotation: rotationIndex, hits: 0 };
+                    playerShips.push(newShipData);
+
+                    positions.forEach(p => grids.placement.querySelector(`[data-x='${p.x}'][data-y='${p.y}']`).classList.add('ship-part'));
+                    renderShipOutline(grids.placement, newShipData);
                     currentPlacingShip.placed = true;
                     updateShipList();
                 }
@@ -438,17 +964,107 @@
 
             function getShipPositions(startCell) {
                 const x = parseInt(startCell.dataset.x), y = parseInt(startCell.dataset.y);
-                const shipSize = currentPlacingShip.size;
-                const positions = [];
-                for (let i = 0; i < shipSize; i++) { positions.push({ x: isHorizontal ? x + i : x, y: isHorizontal ? y : y + i }); }
+                const currentShape = currentPlacingShip.shapes[rotationIndex];
+                const positions = currentShape.map(p => ({ x: x + p.x, y: y + p.y }));
                 const playerShips = placingPlayer === 1 ? player1Ships : player2Ships;
-                const isValid = positions.every(p => p.x < GRID_SIZE && p.y < GRID_SIZE) && !checkOverlap(positions, playerShips);
+                const isValid = positions.every(p => p.x >= 0 && p.x < GRID_SIZE && p.y >= 0 && p.y < GRID_SIZE) && !checkOverlap(positions, playerShips);
                 return { positions, isValid };
             }
 
-            function checkOverlap(newPositions, existingShips) { return newPositions.some(p1 => existingShips.some(ship => ship.positions.some(p2 => p1.x === p2.x && p1.y === p2.y))); }
-            function sanitizeClassName(name) { return 'ship-' + name.split(' ')[0].toLowerCase(); }
-            
+            function checkOverlap(newPositions, existingShips) {
+                return newPositions.some(p1 => existingShips.some(ship => ship.positions.some(p2 => p1.x === p2.x && p1.y === p2.y)));
+            }
+
+            function addDragDropListeners() {
+                let draggedItem = null, lastTouchCell = null;
+                const placementArea = grids.placement;
+
+                function onDragStart(target) {
+                    if (!target.classList.contains('placing')) {
+                        panels.shipList.querySelector('.placing')?.classList.remove('placing');
+                        target.classList.add('placing');
+                        currentPlacingShip = shipsToPlace.find(s => s.uniqueName === target.dataset.name);
+                        rotationIndex = 0;
+                    }
+                    setTimeout(() => target.style.opacity = '0.5', 0);
+                }
+
+                function onDragEnd(target) {
+                    if(target) target.style.opacity = '1';
+                    clearPreview();
+                }
+
+                function onDrag(clientX, clientY) {
+                     const elementOver = document.elementFromPoint(clientX, clientY);
+                     const cellOver = elementOver ? elementOver.closest('.cell') : null;
+                     if(cellOver !== lastTouchCell) {
+                        clearPreview();
+                        if(cellOver) previewShip(cellOver);
+                        lastTouchCell = cellOver;
+                     }
+                }
+
+                panels.shipList.addEventListener('dragstart', e => {
+                    if (e.target.classList.contains('ship-item')) {
+                        draggedItem = e.target;
+                        onDragStart(e.target);
+                    }
+                });
+
+                panels.shipList.addEventListener('dragend', e => {
+                    onDragEnd(draggedItem);
+                    draggedItem = null;
+                });
+
+                placementArea.addEventListener('dragover', e => {
+                    e.preventDefault();
+                    onDrag(e.clientX, e.clientY);
+                });
+
+                placementArea.addEventListener('drop', e => {
+                    e.preventDefault();
+                    if(draggedItem) placeShip(lastTouchCell);
+                });
+
+                panels.shipList.addEventListener('touchstart', e => {
+                    const target = e.target.closest('.ship-item');
+                    if (target) {
+                        e.preventDefault();
+                        onDragStart(target);
+                        draggedItem = target;
+                    }
+                }, { passive: false });
+
+                document.body.addEventListener('touchmove', e => {
+                    if (draggedItem) {
+                        e.preventDefault();
+                        onDrag(e.touches[0].clientX, e.touches[0].clientY);
+                    }
+                }, { passive: false });
+
+                document.body.addEventListener('touchend', e => {
+                    if (draggedItem) {
+                        placeShip(lastTouchCell);
+                        onDragEnd(draggedItem);
+                        draggedItem = null;
+                        lastTouchCell = null;
+                    }
+                });
+            }
+
+            function previewShip(cell) {
+                if (!currentPlacingShip || !cell) return;
+                clearPreview();
+                const { positions, isValid } = getShipPositions(cell);
+                positions.forEach(({ x, y }) => {
+                    grids.placement.querySelector(`[data-x='${x}'][data-y='${y}']`)?.classList.add(isValid ? 'preview' : 'invalid');
+                });
+            }
+
+            function clearPreview() {
+                grids.placement.querySelectorAll('.cell.preview, .cell.invalid').forEach(c => c.classList.remove('preview', 'invalid'));
+            }
+
             init();
         });
     </script>
