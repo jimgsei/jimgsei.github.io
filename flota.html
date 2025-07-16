@@ -48,19 +48,21 @@
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(13, 27, 42, 0.95); z-index: 100; }
         .modal .screen-content { box-shadow: none; background: transparent; }
         #game-header { width: 100%; margin-bottom: 1rem; }
-        #ships-status-panel { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; background-color: var(--bg-color); padding: 0.5rem; border-radius: 8px; }
-        .ship-status { padding: 0.5rem; background-color: var(--secondary-color); border-radius: 5px; opacity: 0.7; display: flex; align-items: center; justify-content: center; }
-        .ship-status.damaged { background-color: var(--damaged-color); opacity: 1; }
-        .ship-status.sunk { background-color: var(--sunk-color); opacity: 1; }
+        #ships-status-panel { display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; background-color: var(--bg-color); padding: 0.5rem; border-radius: 8px; }
+        .ship-status { padding: 0.5rem; background-color: var(--secondary-color); border-radius: 5px; opacity: 0.9; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+        .ship-status.sunk { background-color: var(--sunk-color); opacity: 1; text-decoration: line-through; }
+        .ship-status-counter { font-size: 0.9rem; font-weight: 600; color: var(--accent-color); }
+        .ship-status.sunk .ship-status-counter { color: white; }
         .status-silhouette { display: grid; gap: 2px; }
         .status-silhouette .mini-block { width: 6px; height: 6px; background-color: rgba(255,255,255,0.3); border-radius: 1px; }
-        .ship-status.damaged .mini-block, .ship-status.sunk .mini-block { background-color: white; }
+        .ship-status.sunk .mini-block { background-color: white; }
         #attack-grid.grid-container .cell { cursor: crosshair; }
         #attack-grid.grid-container .cell:not(.hit):not(.miss):hover { background-color: var(--secondary-color); }
         .cell.hit { background-color: var(--hit-color); animation: hit-animation 0.3s ease-out; }
         .cell.miss { background: repeating-linear-gradient(45deg, var(--primary-color), var(--primary-color) 2px, var(--miss-color) 2px, var(--miss-color) 4px); }
         .cell.sunk { background-color: var(--sunk-color); }
         @keyframes hit-animation { 0% { transform: scale(0.8); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+        @keyframes sink-animation { 0%, 100% { transform: translate(0, 0) rotate(0); } 20% { transform: translate(-2px, 0) rotate(-2deg); } 40% { transform: translate(2px, 0) rotate(2deg); } 60% { transform: translate(-2px, 0) rotate(-2deg); } 80% { transform: translate(2px, 0) rotate(2deg); } }
         #final-boards-container { display: flex; flex-direction: column; gap: 2rem; margin-top: 1rem; }
         #ship-config-container { display: flex; flex-direction: column; gap: 1rem; text-align: left; }
         .ship-config-option { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 1rem; background: var(--bg-color); padding: 0.5rem 0.8rem; border-radius: 8px; }
@@ -70,6 +72,7 @@
         @media (min-width: 768px) { .grid-container-wrapper { max-width: 450px; } #final-boards-container { flex-direction: row; align-items: flex-start; } #game-over-screen .grid-container-wrapper { max-width: 320px; } }
         .ship-part-rendered { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transition: all 0.1s ease; cursor: grab; }
         .ship-part-rendered.dragging { opacity: 0.7; transform: scale(1.1); cursor: grabbing; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5)); z-index: 10; }
+        .ship-part-rendered.sunk-animation { animation: sink-animation 0.6s ease-in-out; }
         .grid-container.filled-style .cell.ship-part { filter: drop-shadow(0 2px 3px rgba(0,0,0,0.4)); z-index: 2; position: relative; }
         .filled-style .ship-part-rendered { background: linear-gradient(160deg, #ffffff, #c1c8d0); }
         .filled-style .is-top-left { border-top-left-radius: 40%; } .filled-style .is-top-right { border-top-right-radius: 40%; } .filled-style .is-bottom-left { border-bottom-left-radius: 40%; } .filled-style .is-bottom-right { border-bottom-right-radius: 40%; }
@@ -125,7 +128,7 @@
         const panels = { shipConfigContainer: document.getElementById('ship-config-container'), shipsStatus: document.getElementById('ships-status-panel') };
 
         let GRID_SIZE = 10, player1Ships = [], player2Ships = [], player1Shots = [], player2Shots = [];
-        let placingPlayer = 1, shipsToPlace = []; let currentPlayer = 1;
+        let placingPlayer = 1, shipsToPlace = []; let currentPlayer = 1, gameActive = true;
         const shipStyles = ['filled-style', 'outline-style', 'classic-style', 'threed-style']; let currentStyleIndex = 1;
 
         const defineShipShapes = () => [
@@ -190,18 +193,30 @@
         function placeShipsInitially() {
             const playerShips = placingPlayer === 1 ? player1Ships : player2Ships;
             playerShips.length = 0;
-            let nextX = 0, nextY = GRID_SIZE - 1;
+            let currentX = 0, currentY = GRID_SIZE - 1;
             for (const shipDef of shipsToPlace) {
-                const rotation = 1;
-                const shape = shipDef.shapes[rotation];
-                const shipHeight = Math.max(...shape.map(p => p.y)) + 1;
-                if (nextY - (shipHeight - 1) < 0) {
-                    nextX++;
-                    nextY = GRID_SIZE - 1;
+                let placed = false;
+                while (!placed) {
+                    const rotation = 1; // Vertical
+                    const shape = shipDef.shapes[rotation];
+                    const shipHeight = Math.max(...shape.map(p => p.y)) + 1;
+                    if (currentY - (shipHeight - 1) < 0) {
+                        currentX++;
+                        currentY = GRID_SIZE - 1;
+                    }
+                    const { isValid, positions } = getShipValidity(shipDef, currentX, currentY - (shipHeight - 1), rotation, playerShips);
+                    if (isValid) {
+                        playerShips.push({ ...shipDef, positions, rotation, hits: 0 });
+                        currentY -= shipHeight;
+                        placed = true;
+                    } else {
+                        currentY--;
+                        if (currentY < 0) {
+                            currentX++;
+                            currentY = GRID_SIZE - 1;
+                        }
+                    }
                 }
-                const positions = shape.map(p => ({ x: p.x + nextX, y: p.y + nextY - (shipHeight - 1) }));
-                playerShips.push({ ...shipDef, positions, rotation, hits: 0 });
-                nextY -= shipHeight;
             }
             renderAllShips(grids.placement, playerShips);
         }
@@ -240,6 +255,7 @@
         
         function addPlacementListeners() {
             let draggedShip = null, startX, startY, offsetX, offsetY, isDragging = false;
+            grids.placement.removeEventListener('pointerdown', onPointerDown);
             grids.placement.addEventListener('pointerdown', onPointerDown);
             function onPointerDown(e) {
                 const shipPart = e.target.closest('.ship-part-rendered');
@@ -320,7 +336,7 @@
 
         function handleChangeStyle() { currentStyleIndex = (currentStyleIndex + 1) % shipStyles.length; const newStyle = shipStyles[currentStyleIndex]; document.querySelectorAll('.grid-container').forEach(grid => { grid.className = 'grid-container'; grid.classList.add(newStyle); }); };
         
-        function renderShipOutline(grid, ship) {
+        function renderShipOutline(grid, ship, isSinking = false) {
             const isPart = (x, y) => ship.positions.some(p => p.x === x && p.y === y);
             let minX = GRID_SIZE, minY = GRID_SIZE, maxX = -1, maxY = -1;
             if(ship.isLinear) ship.positions.forEach(p => { minX = Math.min(minX, p.x); minY = Math.min(minY, p.y); maxX = Math.max(maxX, p.x); maxY = Math.max(maxY, p.y); });
@@ -329,6 +345,7 @@
                 cellEl.classList.add('ship-part');
                 const partDiv = document.createElement('div');
                 partDiv.className = 'ship-part-rendered';
+                if(isSinking) partDiv.classList.add('sunk-animation');
                 const hasN = { top: isPart(p.x, p.y - 1), bottom: isPart(p.x, p.y + 1), left: isPart(p.x - 1, p.y), right: isPart(p.x + 1, p.y) };
                 if (!hasN.top) partDiv.classList.add('is-top-edge'); if (!hasN.bottom) partDiv.classList.add('is-bottom-edge');
                 if (!hasN.left) partDiv.classList.add('is-left-edge'); if (!hasN.right) partDiv.classList.add('is-right-edge');
@@ -339,18 +356,11 @@
             });
         }
         
-        function startGame() {
-            currentPlayer = 1;
-            setupTurn();
-        }
-        function setupTurn() {
-            messages.currentPlayer.textContent = `Turno del Jugador ${currentPlayer}`;
-            renderAttackGrid();
-            updateShipsStatus();
-            switchScreen('game');
-        }
+        function startGame() { currentPlayer = 1; setupTurn(); }
+        function setupTurn() { gameActive = true; messages.currentPlayer.textContent = `Turno del Jugador ${currentPlayer}`; renderAttackGrid(); updateShipsStatus(); switchScreen('game'); }
         function handleAttack(cell) {
-            if (!cell || cell.classList.contains('hit') || cell.classList.contains('miss')) return;
+            if (!cell || !gameActive || cell.classList.contains('hit') || cell.classList.contains('miss')) return;
+            gameActive = false;
             const x = parseInt(cell.dataset.x), y = parseInt(cell.dataset.y);
             (currentPlayer === 1 ? player1Shots : player2Shots).push({ x, y });
             const opponentShips = currentPlayer === 1 ? player2Ships : player1Ships;
@@ -362,10 +372,11 @@
                 const totalHits = targetShip.positions.filter(p => p.hit).length;
                 if (totalHits >= targetShip.positions.length) {
                     targetShip.positions.forEach(p => { grids.attack.querySelector(`[data-x='${p.x}'][data-y='${p.y}']`).classList.add('sunk'); });
-                    renderShipOutline(grids.attack, targetShip);
-                    if(opponentShips.every(s => s.positions.filter(p=>p.hit).length >= s.positions.length)) { setTimeout(endGame, 500); return; }
+                    renderShipOutline(grids.attack, targetShip, true);
+                    if(opponentShips.every(s => s.positions.filter(p=>p.hit).length >= s.positions.length)) { setTimeout(endGame, 800); return; }
                 }
                 updateShipsStatus();
+                gameActive = true;
             } else {
                 cell.classList.add('miss');
                 messages.nextPlayer.textContent = `¡Agua! Cediendo el turno...`;
@@ -374,32 +385,46 @@
                     grids.attack.innerHTML = '';
                     switchScreen('turnSwitch');
                     setTimeout(() => { currentPlayer = (currentPlayer % 2) + 1; setupTurn(); }, 1500);
-                }, 3000);
+                }, 1500);
             }
         }
         function updateShipsStatus() {
             panels.shipsStatus.innerHTML = '';
             const opponentShips = currentPlayer === 1 ? player2Ships : player1Ships;
+            const shipGroups = {};
             opponentShips.forEach(ship => {
+                if (!shipGroups[ship.name]) { shipGroups[ship.name] = { count: 0, sunk: 0, shipDef: ship }; }
+                shipGroups[ship.name].count++;
+                if (ship.positions.filter(p => p.hit).length >= ship.positions.length) { shipGroups[ship.name].sunk++; }
+            });
+
+            for (const name in shipGroups) {
+                const group = shipGroups[name];
                 const el = document.createElement('div'); el.className = 'ship-status';
-                const hits = ship.positions.filter(p => p.hit).length;
-                if (hits >= ship.positions.length) { el.classList.add('sunk'); } 
-                else if (hits > 0) { el.classList.add('damaged'); }
+                const remaining = group.count - group.sunk;
+                if (remaining === 0) { el.classList.add('sunk'); }
+                
                 const silhouette = document.createElement('div'); silhouette.className = 'status-silhouette';
-                const shape = ship.shapes[0];
+                const shape = group.shipDef.shapes[0];
                 const width = Math.max(...shape.map(p => p.x)) + 1, height = Math.max(...shape.map(p => p.y)) + 1;
                 silhouette.style.gridTemplateColumns = `repeat(${width}, 6px)`; silhouette.style.gridTemplateRows = `repeat(${height}, 6px)`;
                 shape.forEach(p => { const block = document.createElement('div'); block.className = 'mini-block'; block.style.gridColumn = p.x + 1; block.style.gridRow = p.y + 1; silhouette.appendChild(block); });
                 el.appendChild(silhouette);
+
+                if (group.count > 1) {
+                    const counter = document.createElement('span'); counter.className = 'ship-status-counter';
+                    counter.textContent = `x${remaining}`;
+                    el.appendChild(counter);
+                }
                 panels.shipsStatus.appendChild(el);
-            });
+            }
         }
         function renderAttackGrid() {
             createGrid(grids.attack);
             grids.attack.querySelectorAll('.cell').forEach(c => c.addEventListener('click', e => handleAttack(e.target)));
             const shots = currentPlayer === 1 ? player1Shots : player2Shots;
             const opponentShips = currentPlayer === 1 ? player2Ships : player1Ships;
-            opponentShips.filter(s => s.positions.filter(p=>p.hit).length >= s.positions.length).forEach(sunkShip => renderShipOutline(grids.attack, sunkShip));
+            opponentShips.filter(s => s.positions.filter(p=>p.hit).length >= s.positions.length).forEach(sunkShip => renderShipOutline(grids.attack, sunkShip, false));
             shots.forEach(shot => {
                 const cell = grids.attack.querySelector(`[data-x='${shot.x}'][data-y='${shot.y}']`);
                 if(cell) {
