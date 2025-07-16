@@ -37,7 +37,7 @@
         .btn:hover { transform: translateY(-3px); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); }
         .btn.btn-danger { background-color: #a31a1a; color: white; }
         .btn.btn-primary { background-color: var(--highlight-color); color: white; }
-        .grid-container-wrapper { width: 100%; max-width: 500px; margin: 1rem auto; }
+        .grid-container-wrapper { width: 100%; max-width: 500px; margin: 1rem auto; position: relative; }
         .grid-container { display: grid; grid-template-columns: repeat(var(--grid-size), 1fr); gap: var(--gap); border: 2px solid var(--secondary-color); border-radius: 8px; background-color: var(--bg-color); }
         .cell { background-color: var(--primary-color); border-radius: 2px; position: relative; aspect-ratio: 1 / 1; touch-action: none; }
         .cell.dragging { z-index: 1000; }
@@ -58,6 +58,10 @@
         .ship-status.sunk .mini-block { background-color: white; }
         #attack-grid.grid-container .cell { cursor: crosshair; }
         #attack-grid.grid-container .cell:not(.hit):not(.miss):hover { background-color: var(--secondary-color); }
+        #reticle-h, #reticle-v { background-color: rgba(255, 255, 255, 0.7); box-shadow: 0 0 8px rgba(255, 255, 255, 0.5); position: absolute; pointer-events: none; transition: opacity 0.2s ease; opacity: 0; }
+        #reticle-h.active, #reticle-v.active { opacity: 1; }
+        #reticle-h { width: 100%; height: 3px; top: 50%; left: 0; transform: translateY(-50%); }
+        #reticle-v { height: 100%; width: 3px; left: 50%; top: 0; transform: translateX(-50%); }
         .cell.hit { background-color: var(--hit-color); animation: hit-animation 0.3s ease-out; }
         .cell.miss { background: repeating-linear-gradient(45deg, var(--primary-color), var(--primary-color) 2px, var(--miss-color) 2px, var(--miss-color) 4px); }
         .cell.sunk { background-color: var(--sunk-color); }
@@ -84,14 +88,7 @@
         .classic-style .is-top-left:not(.is-bow):not(.is-stern) { border-top-left-radius: 50%; } .classic-style .is-top-right:not(.is-bow):not(.is-stern) { border-top-right-radius: 50%; } .classic-style .is-bottom-left:not(.is-bow):not(.is-stern) { border-bottom-left-radius: 50%; } .classic-style .is-bottom-right:not(.is-bow):not(.is-stern) { border-bottom-right-radius: 50%; }
         .threed-style .ship-part-rendered { background: #b0b8c1; transform: translate(-3px, -3px); box-shadow: 3px 3px 0px 0px #6a7179; }
         .threed-style .is-top-left { border-top-left-radius: 6px; } .threed-style .is-top-right { border-top-right-radius: 6px; } .threed-style .is-bottom-left { border-bottom-left-radius: 6px; } .threed-style .is-bottom-right { border-bottom-right-radius: 6px; }
-        @media (max-width: 767px) {
-            #placement-screen .screen-content,
-            #game-screen .screen-content {
-                padding-left: 0.5rem;
-                padding-right: 0.5rem;
-            }
-            .grid-container-wrapper { margin-top: 0.5rem; margin-bottom: 0.5rem; }
-        }
+        @media (max-width: 767px) { #placement-screen .screen-content, #game-screen .screen-content { padding-left: 0.5rem; padding-right: 0.5rem; } .grid-container-wrapper { margin-top: 0.5rem; margin-bottom: 0.5rem; } }
         @media (min-width: 768px) { .grid-container-wrapper { max-width: 450px; } #final-boards-container { flex-direction: row; align-items: flex-start; } #game-over-screen .grid-container-wrapper { max-width: 320px; } }
     </style>
 </head>
@@ -119,7 +116,8 @@
                 <div id="ship-config-container" style="margin-top: 1.5rem;">
                     <h3 style="text-align: center;">Configurar Flota</h3>
                 </div>
-                <button id="start-placement-btn" class="btn btn-primary" style="margin-top: 1.5rem;">Iniciar Colocación</button>
+                <button id="start-placement-btn" class="btn btn-primary" style="margin-top: 1.5rem;">Iniciar Nueva Partida</button>
+                <button id="resume-game-btn" class="btn" style="display: none;">Continuar Partida</button>
             </div>
         </div>
         <div id="placement-screen" class="screen">
@@ -137,7 +135,7 @@
             </div>
         </div>
         <div id="turn-switch-screen" class="screen modal"> <div class="screen-content"> <h2 id="next-player-msg"></h2> <p id="turn-switch-subtitle"></p> <button id="next-turn-btn" class="btn">¡Listo!</button> </div> </div>
-        <div id="game-screen" class="screen"> <div class="screen-content"> <h2 id="current-player-msg"></h2> <div id="game-header"><div id="ships-status-panel"></div></div><div class="grid-container-wrapper"><div id="attack-grid" class="grid-container outline-style"></div></div></div> </div>
+        <div id="game-screen" class="screen"> <div class="screen-content"> <h2 id="current-player-msg"></h2> <div id="game-header"><div id="ships-status-panel"></div></div><div class="grid-container-wrapper"><div id="attack-grid" class="grid-container outline-style"></div><div id="reticle-h"></div><div id="reticle-v"></div></div></div> </div>
         <div id="game-over-screen" class="screen"> <div class="screen-content"> <h2 id="winner-msg"></h2> <div id="final-boards-container"> <div class="grid-container-wrapper"><h3 id="final-board-title-1"></h3> <div id="final-grid-1" class="grid-container outline-style"></div> </div> <div class="grid-container-wrapper"><h3 id="final-board-title-2"></h3> <div id="final-grid-2" class="grid-container outline-style"></div> </div> </div> <button id="play-again-btn" class="btn btn-primary">Jugar de Nuevo</button> </div> </div>
     </div>
 
@@ -147,7 +145,7 @@
         const grids = { placement: document.getElementById('placement-grid'), attack: document.getElementById('attack-grid'), final1: document.getElementById('final-grid-1'), final2: document.getElementById('final-grid-2'), };
         const messages = { playerTurn: document.getElementById('player-turn-msg'), currentPlayer: document.getElementById('current-player-msg'), nextPlayer: document.getElementById('next-player-msg'), turnSwitchSubtitle: document.getElementById('turn-switch-subtitle'), winner: document.getElementById('winner-msg'), };
         const buttons = { startPlacement: document.getElementById('start-placement-btn'), confirmPlacement: document.getElementById('confirm-placement-btn'), nextTurn: document.getElementById('next-turn-btn'), changeStyle: document.getElementById('change-style-btn'), playAgain: document.getElementById('play-again-btn'), randomPlacement: document.getElementById('random-placement-btn'), };
-        const panels = { shipConfigContainer: document.getElementById('ship-config-container'), shipsStatus: document.getElementById('ships-status-panel') };
+        const panels = { shipConfigContainer: document.getElementById('ship-config-container'), shipsStatus: document.getElementById('ships-status-panel'), reticleH: document.getElementById('reticle-h'), reticleV: document.getElementById('reticle-v'), };
         const inputs = { player1Name: document.getElementById('player1-name-input'), player2Name: document.getElementById('player2-name-input'), gridSize: document.getElementById('grid-size-input') };
         const finalTitles = { p1: document.getElementById('final-board-title-1'), p2: document.getElementById('final-board-title-2') };
 
@@ -164,24 +162,10 @@
             { name: 'Corbeta', count: 2, shapes: [[{x:0,y:0},{x:1,y:0}],[{x:0,y:0},{x:0,y:1}],[{x:0,y:0},{x:1,y:0}],[{x:0,y:0},{x:0,y:1}]], isLinear: true },
         ];
 
-        function init() { loadPlayerNames(); Object.values(buttons).forEach(btn => btn?.addEventListener('click', handleButtonClick)); populateShipConfig(); }
-        
-        function loadPlayerNames(){
-            const p1 = localStorage.getItem('battleship_player1Name');
-            const p2 = localStorage.getItem('battleship_player2Name');
-            if(p1) inputs.player1Name.value = p1;
-            if(p2) inputs.player2Name.value = p2;
-        }
-
-        function savePlayerNames() {
-            player1Name = inputs.player1Name.value.trim() || "Jugador 1";
-            player2Name = inputs.player2Name.value.trim() || "Jugador 2";
-            localStorage.setItem('battleship_player1Name', player1Name);
-            localStorage.setItem('battleship_player2Name', player2Name);
-        }
-
+        function init() { loadPlayerNames(); Object.values(buttons).forEach(btn => btn?.addEventListener('click', handleButtonClick)); populateShipConfig(); if (localStorage.getItem('battleship_savedGame')) { const resumeBtn = document.getElementById('resume-game-btn'); resumeBtn.style.display = 'inline-block'; resumeBtn.addEventListener('click', loadGame); } }
+        function loadPlayerNames(){ const p1 = localStorage.getItem('battleship_player1Name'); const p2 = localStorage.getItem('battleship_player2Name'); if(p1) inputs.player1Name.value = p1; if(p2) inputs.player2Name.value = p2; }
+        function savePlayerNames() { player1Name = inputs.player1Name.value.trim() || "Jugador 1"; player2Name = inputs.player2Name.value.trim() || "Jugador 2"; localStorage.setItem('battleship_player1Name', player1Name); localStorage.setItem('battleship_player2Name', player2Name); }
         const getPlayerName = (playerNumber) => playerNumber === 1 ? player1Name : player2Name;
-
         function handleButtonClick(e) {
             switch (e.target.id) {
                 case 'start-placement-btn': handleStartPlacement(); break;
@@ -192,9 +176,9 @@
                 case 'play-again-btn': location.reload(); break;
             }
         }
-        
         function populateShipConfig() {
-            panels.shipConfigContainer.querySelectorAll('.ship-config-option').forEach(el => el.remove());
+            const container = panels.shipConfigContainer;
+            container.querySelectorAll('.ship-config-option').forEach(el => el.remove());
             defineShipShapes().forEach(({ name, count, shapes }) => {
                 const option = document.createElement('div'); option.className = 'ship-config-option';
                 const preview = document.createElement('div'); preview.className = 'ship-preview-icon';
@@ -204,14 +188,12 @@
                 shape.forEach(p => { const block = document.createElement('div'); block.className = 'mini-block'; block.style.gridColumn = p.x + 1; block.style.gridRow = p.y + 1; preview.appendChild(block); });
                 option.innerHTML = `<span>${name}</span>`; option.appendChild(preview);
                 option.innerHTML += `<input type="number" value="${count}" min="0" max="5" data-name="${name}">`;
-                panels.shipConfigContainer.appendChild(option);
+                container.appendChild(option);
             });
         }
-
         const switchScreen = (activeScreen) => { Object.values(screens).forEach(s => s.classList.remove('active')); screens[activeScreen].classList.add('active'); };
-
         function handleStartPlacement() {
-            savePlayerNames();
+            deleteSavedGame(); savePlayerNames();
             GRID_SIZE = parseInt(inputs.gridSize.value) || 10;
             document.documentElement.style.setProperty('--grid-size', GRID_SIZE);
             shipsToPlace = [];
@@ -223,40 +205,22 @@
             placingPlayer = 1;
             startPlacementPhase();
         }
-
-        function startPlacementPhase() {
-            messages.playerTurn.textContent = `${getPlayerName(placingPlayer)}, coloca tu flota`;
-            createGrid(grids.placement);
-            addPlacementListeners();
-            placeShipsInitially();
-            switchScreen('placement');
-        }
-
+        function startPlacementPhase() { messages.playerTurn.textContent = `${getPlayerName(placingPlayer)}, coloca tu flota`; createGrid(grids.placement); addPlacementListeners(); placeShipsInitially(); switchScreen('placement'); }
         function placeShipsInitially() {
             const playerShips = placingPlayer === 1 ? player1Ships : player2Ships;
-            playerShips.length = 0;
-            let currentX = 0, currentY = GRID_SIZE - 1;
+            playerShips.length = 0; let currentX = 0, currentY = GRID_SIZE - 1;
             for (const shipDef of shipsToPlace) {
                 let placed = false;
                 while (!placed) {
-                    const rotation = 1;
-                    const shape = shipDef.shapes[rotation];
-                    const shipHeight = Math.max(...shape.map(p => p.y)) + 1;
+                    const rotation = 1; const shape = shipDef.shapes[rotation]; const shipHeight = Math.max(...shape.map(p => p.y)) + 1;
                     if (currentY - (shipHeight - 1) < 0) { currentX++; currentY = GRID_SIZE - 1; }
                     if (currentX >= GRID_SIZE) { return; }
                     const { isValid, positions } = getShipValidity(shipDef, currentX, currentY - (shipHeight - 1), rotation, playerShips);
-                    if (isValid) {
-                        playerShips.push({ ...shipDef, positions, rotation, hits: 0 });
-                        currentY -= (shipHeight + 1);
-                        placed = true;
-                    } else {
-                        currentY--;
-                    }
+                    if (isValid) { playerShips.push({ ...shipDef, positions, rotation, hits: 0 }); currentY -= (shipHeight + 1); placed = true; } else { currentY--; }
                 }
             }
             renderAllShips(grids.placement, playerShips);
         }
-
         function placeShipsRandomly() {
             const playerShips = placingPlayer === 1 ? player1Ships : player2Ships;
             playerShips.length = 0; const tempShips = [];
@@ -272,21 +236,17 @@
             playerShips.push(...tempShips);
             renderAllShips(grids.placement, playerShips);
         }
-        
         function renderAllShips(grid, ships) { createGrid(grid); ships.forEach(ship => renderShipOutline(grid, ship)); }
         function handleConfirmPlacement() { if (placingPlayer === 1) { placingPlayer = 2; messages.nextPlayer.textContent = `Turno de colocar para ${getPlayerName(2)}`; messages.turnSwitchSubtitle.textContent = 'Pasa el dispositivo a tu oponente.'; switchScreen('turnSwitch'); } else { startGame(); } }
         function handleNextTurn() { (placingPlayer === 2 && !player2Ships.length) ? startPlacementPhase() : setupTurn(); }
         const createGrid = (gridEl) => { gridEl.innerHTML = ''; for (let y = 0; y < GRID_SIZE; y++) for (let x = 0; x < GRID_SIZE; x++) { const cell = document.createElement('div'); cell.className = 'cell'; cell.dataset.x = x; cell.dataset.y = y; gridEl.appendChild(cell); } };
-        
         function addPlacementListeners() {
             let draggedShip = null, startX, startY, offsetX, offsetY, isDragging = false;
-            grids.placement.removeEventListener('pointerdown', onPointerDown);
-            grids.placement.addEventListener('pointerdown', onPointerDown);
+            grids.placement.removeEventListener('pointerdown', onPointerDown); grids.placement.addEventListener('pointerdown', onPointerDown);
             function onPointerDown(e) {
                 const shipPart = e.target.closest('.ship-part-rendered');
                 if (!shipPart) return;
-                isDragging = false;
-                e.preventDefault();
+                isDragging = false; e.preventDefault();
                 const cell = shipPart.closest('.cell');
                 const x = parseInt(cell.dataset.x), y = parseInt(cell.dataset.y);
                 const playerShips = placingPlayer === 1 ? player1Ships : player2Ships;
@@ -328,39 +288,11 @@
                 renderAllShips(grids.placement, placingPlayer === 1 ? player1Ships : player2Ships);
             }
         }
-        
-        function handleShipRotation(ship) {
-            if (!ship) return;
-            const originalRotation = ship.rotation;
-            const origin = ship.positions[0];
-            for(let i = 1; i < 4; i++) {
-                const newRotation = (originalRotation + i) % 4;
-                const { isValid } = getShipValidity(ship, origin.x, origin.y, newRotation);
-                if(isValid) { moveShip(ship, origin.x, origin.y, newRotation); return; }
-            }
-        }
-
-        function moveShip(ship, newX, newY, newRotation) {
-            const { positions, isValid } = getShipValidity(ship, newX, newY, newRotation);
-            if(isValid) { ship.positions = positions; ship.rotation = newRotation; }
-        }
-        
-        function getShipValidity(shipDef, x, y, rotation, fleet) {
-            const playerShips = fleet ?? (placingPlayer === 1 ? player1Ships : player2Ships);
-            const otherShips = playerShips.filter(s => s.uniqueName !== shipDef.uniqueName);
-            const positions = shipDef.shapes[rotation].map(p => ({ x: x + p.x, y: y + p.y }));
-            const isValid = positions.every(p => p.x >= 0 && p.x < GRID_SIZE && p.y >= 0 && p.y < GRID_SIZE && !otherShips.some(s => s.positions.some(sp => sp.x === p.x && sp.y === p.y)));
-            return { positions, isValid };
-        }
-        
-        function previewShip(shipDef, x, y, rotation) {
-            grids.placement.querySelectorAll('.cell.preview, .cell.invalid').forEach(c => c.classList.remove('preview', 'invalid'));
-            const { positions, isValid } = getShipValidity(shipDef, x, y, rotation);
-            positions.forEach(p => { const cellEl = grids.placement.querySelector(`[data-x='${p.x}'][data-y='${p.y}']`); if(cellEl) cellEl.classList.add(isValid ? 'preview' : 'invalid'); });
-        }
-
+        function handleShipRotation(ship) { if (!ship) return; const originalRotation = ship.rotation; const origin = ship.positions[0]; for(let i = 1; i < 4; i++) { const newRotation = (originalRotation + i) % 4; const { isValid } = getShipValidity(ship, origin.x, origin.y, newRotation); if(isValid) { moveShip(ship, origin.x, origin.y, newRotation); return; } } }
+        function moveShip(ship, newX, newY, newRotation) { const { positions, isValid } = getShipValidity(ship, newX, newY, newRotation); if(isValid) { ship.positions = positions; ship.rotation = newRotation; } }
+        function getShipValidity(shipDef, x, y, rotation, fleet) { const playerShips = fleet ?? (placingPlayer === 1 ? player1Ships : player2Ships); const otherShips = playerShips.filter(s => s.uniqueName !== shipDef.uniqueName); const positions = shipDef.shapes[rotation].map(p => ({ x: x + p.x, y: y + p.y })); const isValid = positions.every(p => p.x >= 0 && p.x < GRID_SIZE && p.y >= 0 && p.y < GRID_SIZE && !otherShips.some(s => s.positions.some(sp => sp.x === p.x && sp.y === p.y))); return { positions, isValid }; }
+        function previewShip(shipDef, x, y, rotation) { grids.placement.querySelectorAll('.cell.preview, .cell.invalid').forEach(c => c.classList.remove('preview', 'invalid')); const { positions, isValid } = getShipValidity(shipDef, x, y, rotation); positions.forEach(p => { const cellEl = grids.placement.querySelector(`[data-x='${p.x}'][data-y='${p.y}']`); if(cellEl) cellEl.classList.add(isValid ? 'preview' : 'invalid'); }); }
         function handleChangeStyle() { currentStyleIndex = (currentStyleIndex + 1) % shipStyles.length; const newStyle = shipStyles[currentStyleIndex]; document.querySelectorAll('.grid-container').forEach(grid => { grid.className = 'grid-container'; grid.classList.add(newStyle); }); };
-        
         function renderShipOutline(grid, ship, isSinking = false) {
             const isPart = (x, y) => ship.positions.some(p => p.x === x && p.y === y);
             let minX = GRID_SIZE, minY = GRID_SIZE, maxX = -1, maxY = -1;
@@ -368,8 +300,7 @@
             ship.positions.forEach(p => {
                 const cellEl = grid.querySelector(`[data-x='${p.x}'][data-y='${p.y}']`); if (!cellEl) return;
                 cellEl.classList.add('ship-part');
-                const partDiv = document.createElement('div');
-                partDiv.className = 'ship-part-rendered';
+                const partDiv = document.createElement('div'); partDiv.className = 'ship-part-rendered';
                 if(isSinking) partDiv.classList.add('sunk-animation');
                 const hasN = { top: isPart(p.x, p.y - 1), bottom: isPart(p.x, p.y + 1), left: isPart(p.x - 1, p.y), right: isPart(p.x + 1, p.y) };
                 if (!hasN.top) partDiv.classList.add('is-top-edge'); if (!hasN.bottom) partDiv.classList.add('is-bottom-edge');
@@ -380,9 +311,38 @@
                 cellEl.appendChild(partDiv);
             });
         }
-        
+        function saveGame() { if (player1Ships.length === 0 || player2Ships.length === 0) return; const gameState = { gridSize: GRID_SIZE, player1: { name: player1Name, ships: player1Ships, shots: player1Shots }, player2: { name: player2Name, ships: player2Ships, shots: player2Shots }, currentPlayer: currentPlayer, gameActive: gameActive, timestamp: new Date().toISOString() }; localStorage.setItem('battleship_savedGame', JSON.stringify(gameState)); }
+        function loadGame() { const savedState = JSON.parse(localStorage.getItem('battleship_savedGame')); if (!savedState) return; GRID_SIZE = savedState.gridSize; document.documentElement.style.setProperty('--grid-size', GRID_SIZE); player1Name = savedState.player1.name; player1Ships = savedState.player1.ships; player1Shots = savedState.player1.shots; player2Name = savedState.player2.name; player2Ships = savedState.player2.ships; player2Shots = savedState.player2.shots; currentPlayer = savedState.currentPlayer; gameActive = savedState.gameActive; setupTurn(); }
+        function deleteSavedGame() { localStorage.removeItem('battleship_savedGame'); }
         function startGame() { currentPlayer = 1; setupTurn(); }
-        function setupTurn() { gameActive = true; messages.currentPlayer.textContent = `Turno de ${getPlayerName(currentPlayer)}`; renderAttackGrid(); updateShipsStatus(); switchScreen('game'); }
+        function setupTurn() { gameActive = true; messages.currentPlayer.textContent = `Turno de ${getPlayerName(currentPlayer)}`; renderAttackGrid(); addAttackListeners(); updateShipsStatus(); switchScreen('game'); }
+        function addAttackListeners() {
+            let targetedCell = null, initialCell = null, isDragging = false, startX, startY;
+            grids.attack.removeEventListener('pointerdown', onPointerDown); grids.attack.addEventListener('pointerdown', onPointerDown);
+            function onPointerDown(e) {
+                if (!gameActive) return;
+                initialCell = e.target.closest('.cell');
+                if (!initialCell) return; isDragging = false; startX = e.clientX; startY = e.clientY;
+                window.addEventListener('pointermove', onPointerMove);
+                window.addEventListener('pointerup', onPointerUp, { once: true });
+            }
+            function onPointerMove(e) {
+                if (!isDragging && Math.hypot(e.clientX - startX, e.clientY - startY) > 5) { isDragging = true; panels.reticleH.classList.add('active'); panels.reticleV.classList.add('active'); }
+                if (isDragging) { const elementOver = document.elementFromPoint(e.clientX, e.clientY); const cellOver = elementOver ? elementOver.closest('.cell') : null; if (cellOver) { updateReticlePosition(cellOver); } }
+            }
+            function onPointerUp(e) {
+                window.removeEventListener('pointermove', onPointerMove);
+                if (isDragging) { if (targetedCell) { handleAttack(targetedCell); } } else { if (initialCell) { handleAttack(initialCell); } }
+                panels.reticleH.classList.remove('active'); panels.reticleV.classList.remove('active');
+                targetedCell = null; initialCell = null;
+            }
+            function updateReticlePosition(cell) {
+                targetedCell = cell;
+                const cellRect = cell.getBoundingClientRect(); const gridRect = grids.attack.getBoundingClientRect();
+                const top = cellRect.top - gridRect.top + (cellRect.height / 2); const left = cellRect.left - gridRect.left + (cellRect.width / 2);
+                panels.reticleH.style.top = `${top}px`; panels.reticleV.style.left = `${left}px`;
+            }
+        }
         function handleAttack(cell) {
             if (!cell || !gameActive || cell.classList.contains('hit') || cell.classList.contains('miss')) return;
             gameActive = false;
@@ -400,18 +360,17 @@
                     renderShipOutline(grids.attack, targetShip, true);
                     if(opponentShips.every(s => s.positions.filter(p=>p.hit).length >= s.positions.length)) { setTimeout(endGame, 800); return; }
                 }
-                updateShipsStatus();
-                gameActive = true;
+                updateShipsStatus(); gameActive = true;
             } else {
                 cell.classList.add('miss');
-                messages.nextPlayer.textContent = `¡Agua! Cediendo el turno...`;
-                messages.turnSwitchSubtitle.textContent = `Ahora juega ${getPlayerName(currentPlayer === 1 ? 2 : 1)}`;
+                messages.nextPlayer.textContent = `¡Agua! Cediendo el turno...`; messages.turnSwitchSubtitle.textContent = `Ahora juega ${getPlayerName(currentPlayer === 1 ? 2 : 1)}`;
                 setTimeout(() => {
                     grids.attack.innerHTML = '';
                     switchScreen('turnSwitch');
                     setTimeout(() => { currentPlayer = (currentPlayer % 2) + 1; setupTurn(); }, 1500);
                 }, 1500);
             }
+            saveGame();
         }
         function updateShipsStatus() {
             panels.shipsStatus.innerHTML = '';
@@ -422,7 +381,6 @@
                 shipGroups[ship.name].count++;
                 if (ship.positions.filter(p => p.hit).length >= ship.positions.length) { shipGroups[ship.name].sunk++; }
             });
-
             for (const name in shipGroups) {
                 const group = shipGroups[name];
                 const el = document.createElement('div'); el.className = 'ship-status';
@@ -444,7 +402,6 @@
         }
         function renderAttackGrid() {
             createGrid(grids.attack);
-            grids.attack.querySelectorAll('.cell').forEach(c => c.addEventListener('click', e => handleAttack(e.target)));
             const shots = currentPlayer === 1 ? player1Shots : player2Shots;
             const opponentShips = currentPlayer === 1 ? player2Ships : player1Ships;
             opponentShips.filter(s => s.positions.filter(p=>p.hit).length >= s.positions.length).forEach(sunkShip => renderShipOutline(grids.attack, sunkShip, false));
