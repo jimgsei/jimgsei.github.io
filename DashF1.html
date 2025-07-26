@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>F1 Dashboard: Próximo GP y Resultados</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827; /* bg-gray-900 */
+        }
+        .loader {
+            border-top-color: #f1251a;
+            -webkit-animation: spinner 1.5s linear infinite;
+            animation: spinner 1.5s linear infinite;
+        }
+        @-webkit-keyframes spinner {
+            0% { -webkit-transform: rotate(0deg); }
+            100% { -webkit-transform: rotate(360deg); }
+        }
+        @keyframes spinner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .details-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-in-out;
+        }
+        .details-content.open {
+            max-height: 500px; /* Adjust as needed */
+        }
+    </style>
+</head>
+<body class="text-gray-200 antialiased">
+
+    <div class="container mx-auto p-4 md:p-8">
+        
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-black text-white mb-2 tracking-tighter">F1 Dashboard</h1>
+        </header>
+
+        <!-- Widget del Próximo Evento -->
+        <div id="next-race-widget" class="bg-gray-800 p-6 rounded-2xl shadow-2xl mb-12 border border-gray-700/50">
+            <div id="widget-loader" class="text-center py-8">
+                <div class="loader ease-linear rounded-full border-8 border-t-8 border-gray-600 h-16 w-16 mx-auto mb-4"></div>
+                <p class="text-gray-400">Buscando el próximo evento...</p>
+            </div>
+            <div id="widget-content" class="hidden">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+                    <div>
+                        <p class="text-sm font-bold text-red-500 uppercase tracking-wider" id="widget-round"></p>
+                        <h2 class="text-3xl md:text-4xl font-bold text-white" id="widget-race-name"></h2>
+                        <p class="text-lg text-gray-400" id="widget-circuit-info"></p>
+                    </div>
+                    <div id="countdown" class="flex space-x-4 text-center mt-4 md:mt-0">
+                        <div><span id="days" class="text-4xl font-bold text-white">00</span><span class="block text-xs text-gray-400">Días</span></div>
+                        <div><span id="hours" class="text-4xl font-bold text-white">00</span><span class="block text-xs text-gray-400">Horas</span></div>
+                        <div><span id="minutes" class="text-4xl font-bold text-white">00</span><span class="block text-xs text-gray-400">Min</span></div>
+                        <div><span id="seconds" class="text-4xl font-bold text-white">00</span><span class="block text-xs text-gray-400">Seg</span></div>
+                    </div>
+                </div>
+                <div class="border-t border-gray-700 pt-4">
+                    <h4 class="text-md font-semibold text-white mb-3">Próximas Sesiones (Tu hora local)</h4>
+                    <ul id="widget-schedule" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 text-sm"></ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contenedores de Resultados y Calendario -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12">
+            <!-- Sección de Carrera -->
+            <div>
+                <h2 class="text-2xl font-bold text-white mb-4">Resultados de la Última Carrera</h2>
+                <div id="results-container-race" class="bg-gray-800 shadow-lg rounded-xl overflow-hidden">
+                    <div class="p-4 border-b border-gray-700">
+                        <h3 id="race-name" class="text-lg font-semibold text-red-500 truncate">Cargando...</h3>
+                    </div>
+                    <div id="status-message-race" class="flex items-center justify-center h-64"><p class="message-text text-gray-400">Cargando...</p></div>
+                    <div class="overflow-x-auto"><table id="positions-table-race" class="min-w-full hidden">
+                        <thead class="bg-gray-700/50"><tr><th class="px-2 py-3 text-center text-xs font-bold uppercase tracking-wider">Pos</th><th class="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider">Piloto</th><th class="px-3 py-3 text-right text-xs font-bold uppercase tracking-wider">Tiempo</th><th class="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider">Equipo</th></tr></thead>
+                        <tbody id="positions-body-race" class="divide-y divide-gray-700/50"></tbody>
+                    </table></div>
+                </div>
+            </div>
+
+            <!-- Sección de Calendario -->
+            <div>
+                <h2 class="text-2xl font-bold text-white mb-4">Calendario de la Temporada</h2>
+                <div id="circuits-list" class="space-y-2">
+                    <div id="calendar-loader" class="text-center py-8">
+                        <div class="loader ease-linear rounded-full border-8 border-t-8 border-gray-600 h-16 w-16 mx-auto mb-4"></div>
+                        <p class="text-gray-400">Cargando calendario...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sección de Clasificación de Pilotos -->
+        <div class="mb-12">
+             <h2 class="text-2xl font-bold text-white mb-4">Clasificación de Pilotos</h2>
+             <div id="standings-container" class="bg-gray-800 shadow-lg rounded-xl overflow-hidden">
+                 <div id="status-message-standings" class="flex items-center justify-center h-64"><p class="message-text text-gray-400">Cargando clasificación...</p></div>
+                 <div class="overflow-x-auto">
+                     <table id="standings-table" class="min-w-full hidden">
+                         <thead class="bg-gray-700/50">
+                             <tr>
+                                 <th class="px-2 py-3 text-center text-xs font-bold uppercase tracking-wider">Pos</th>
+                                 <th class="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">Piloto</th>
+                                 <th class="px-6 py-3 text-right text-xs font-bold uppercase tracking-wider">Puntos</th>
+                                 <th class="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">Equipo</th>
+                             </tr>
+                         </thead>
+                         <tbody id="standings-body" class="divide-y divide-gray-700/50"></tbody>
+                     </table>
+                 </div>
+             </div>
+        </div>
+
+        <!-- Sección de Clasificación de Escuderías -->
+        <div>
+             <h2 class="text-2xl font-bold text-white mb-4">Clasificación de Escuderías</h2>
+             <div id="constructors-standings-container" class="bg-gray-800 shadow-lg rounded-xl overflow-hidden">
+                 <div id="status-message-constructors" class="flex items-center justify-center h-64"><p class="message-text text-gray-400">Cargando clasificación...</p></div>
+                 <div class="overflow-x-auto">
+                     <table id="constructors-standings-table" class="min-w-full hidden">
+                         <thead class="bg-gray-700/50">
+                             <tr>
+                                 <th class="px-2 py-3 text-center text-xs font-bold uppercase tracking-wider">Pos</th>
+                                 <th class="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">Equipo</th>
+                                 <th class="px-6 py-3 text-right text-xs font-bold uppercase tracking-wider">Puntos</th>
+                             </tr>
+                         </thead>
+                         <tbody id="constructors-standings-body" class="divide-y divide-gray-700/50"></tbody>
+                     </table>
+                 </div>
+             </div>
+        </div>
+
+        <footer class="text-center mt-12 text-sm text-gray-500">
+            <p>Datos proporcionados por <a href="https://f1api.dev" target="_blank" class="text-red-500 hover:underline">f1api.dev</a></p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const teamData = {
+                'ferrari': { color: '#DC0000' }, 'mclaren': { color: '#FF8700' }, 'mercedes': { color: '#00D2BE' },
+                'red_bull': { color: '#1E41FF' }, 'aston_martin': { color: '#229971' }, 'alpine': { color: '#0090FF' },
+                'williams': { color: '#64C4FF' }, 'rb': { color: '#6692FF' }, 'sauber': { color: '#2CDD2C' },
+                'haas': { color: '#B6BABD' }, 'default': { color: '#374151' }
+            };
+            let countdownInterval;
+
+            // --- WIDGET Y CALENDARIO ---
+            async function fetchCalendarData() {
+                const API_URL = 'https://f1api.dev/api/current';
+                try {
+                    const response = await fetch(API_URL);
+                    if (!response.ok) throw new Error('No se pudo cargar el calendario');
+                    const data = await response.json();
+                    const now = new Date();
+                    
+                    const nextRace = data.races.find(race => new Date(`${race.schedule.race.date}T${race.schedule.race.time}`) > now);
+                    if (nextRace) {
+                        displayWidgetData(nextRace);
+                    } else {
+                        document.getElementById('widget-loader').innerHTML = '<p class="text-gray-400">La temporada ha concluido.</p>';
+                    }
+
+                    const futureRaces = data.races.filter(race => new Date(`${race.schedule.race.date}T${race.schedule.race.time}`) > now);
+                    displayCalendar(futureRaces);
+
+                } catch (error) {
+                    console.error('Error en calendario:', error);
+                    document.getElementById('widget-loader').innerHTML = `<p class="text-red-400">${error.message}</p>`;
+                    document.getElementById('circuits-list').innerHTML = `<p class="text-red-400 text-center">${error.message}</p>`;
+                }
+            }
+
+            function displayWidgetData(race) {
+                document.getElementById('widget-loader').style.display = 'none';
+                document.getElementById('widget-content').classList.remove('hidden');
+                document.getElementById('widget-round').textContent = `Ronda ${race.round}`;
+                document.getElementById('widget-race-name').textContent = race.raceName;
+                document.getElementById('widget-circuit-info').textContent = `${race.circuit.circuitName}, ${race.circuit.country}`;
+
+                const scheduleContainer = document.getElementById('widget-schedule');
+                scheduleContainer.innerHTML = '';
+                const sessions = [
+                    { name: 'Entrenamientos 1', date: race.schedule.fp1?.date, time: race.schedule.fp1?.time, icon: '🔧' },
+                    { name: 'Entrenamientos 2', date: race.schedule.fp2?.date, time: race.schedule.fp2?.time, icon: '🔧' },
+                    { name: 'Entrenamientos 3', date: race.schedule.fp3?.date, time: race.schedule.fp3?.time, icon: '🔧' },
+                    { name: 'Sprint Qualy', date: race.schedule.sprintQualy?.date, time: race.schedule.sprintQualy?.time, icon: '⚡' },
+                    { name: 'Sprint Race', date: race.schedule.sprintRace?.date, time: race.schedule.sprintRace?.time, icon: '💨' },
+                    { name: 'Clasificación', date: race.schedule.qualy?.date, time: race.schedule.qualy?.time, icon: '⏱️' },
+                    { name: 'Carrera', date: race.schedule.race?.date, time: race.schedule.race?.time, icon: '🏆' }
+                ];
+
+                const now = new Date();
+                const futureSessions = sessions.filter(session => session.date && session.time && new Date(`${session.date}T${session.time}`) > now);
+
+                futureSessions.forEach(session => {
+                    const sessionDate = new Date(`${session.date}T${session.time}`);
+                    const li = document.createElement('li');
+                    li.className = 'bg-gray-700/50 p-3 rounded-lg flex flex-col';
+                    li.innerHTML = `<p class="font-bold text-white">${session.icon} ${session.name}</p><p class="text-gray-300 mt-auto">${sessionDate.toLocaleDateString(undefined, { day: 'numeric', month: 'short' })} - ${sessionDate.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}</p>`;
+                    scheduleContainer.appendChild(li);
+                });
+
+                const raceDate = new Date(`${race.schedule.race.date}T${race.schedule.race.time}`);
+                startCountdown(raceDate);
+            }
+
+            function startCountdown(endDate) {
+                if (countdownInterval) clearInterval(countdownInterval);
+                countdownInterval = setInterval(() => {
+                    const now = new Date().getTime();
+                    const distance = endDate - now;
+                    if (distance < 0) {
+                        clearInterval(countdownInterval);
+                        document.getElementById('countdown').innerHTML = '<p class="text-lg font-bold text-green-400">¡CARRERA EN CURSO!</p>';
+                        return;
+                    }
+                    const d = Math.floor(distance / (1000 * 60 * 60 * 24));
+                    const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                    const s = Math.floor((distance % (1000 * 60)) / 1000);
+                    document.getElementById('days').textContent = String(d).padStart(2, '0');
+                    document.getElementById('hours').textContent = String(h).padStart(2, '0');
+                    document.getElementById('minutes').textContent = String(m).padStart(2, '0');
+                    document.getElementById('seconds').textContent = String(s).padStart(2, '0');
+                }, 1000);
+            }
+
+            function displayCalendar(races) {
+                const listContainer = document.getElementById('circuits-list');
+                listContainer.innerHTML = '';
+                if (races.length === 0) {
+                    listContainer.innerHTML = '<p class="text-center text-gray-400">No quedan más carreras esta temporada.</p>';
+                    return;
+                }
+                races.forEach(race => {
+                    const item = document.createElement('div');
+                    item.className = 'bg-gray-800 rounded-lg border border-gray-700/50';
+                    const sessions = [
+                        { name: 'Entrenamientos 1', date: race.schedule.fp1?.date, time: race.schedule.fp1?.time },
+                        { name: 'Entrenamientos 2', date: race.schedule.fp2?.date, time: race.schedule.fp2?.time },
+                        { name: 'Entrenamientos 3', date: race.schedule.fp3?.date, time: race.schedule.fp3?.time },
+                        { name: 'Sprint Qualy', date: race.schedule.sprintQualy?.date, time: race.schedule.sprintQualy?.time },
+                        { name: 'Sprint Race', date: race.schedule.sprintRace?.date, time: race.schedule.sprintRace?.time },
+                        { name: 'Clasificación', date: race.schedule.qualy?.date, time: race.schedule.qualy?.time },
+                        { name: 'Carrera', date: race.schedule.race?.date, time: race.schedule.race?.time }
+                    ];
+                    let scheduleHtml = '';
+                    sessions.forEach(s => {
+                        if (s.date && s.time) {
+                            const d = new Date(`${s.date}T${s.time}`);
+                            scheduleHtml += `<li class="flex justify-between items-center text-sm"><span class="text-gray-300">${s.name}</span><span class="font-semibold text-white">${d.toLocaleDateString(undefined, {weekday: 'short', day: 'numeric', month: 'short'})} ${d.toLocaleTimeString(undefined, {hour: '2-digit', minute: '2-digit'})}</span></li>`;
+                        }
+                    });
+
+                    item.innerHTML = `<button class="w-full p-4 text-left flex justify-between items-center focus:outline-none"><span class="font-bold text-white">${race.round}. ${race.raceName}</span><svg class="w-5 h-5 text-gray-400 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></button><div class="details-content px-4"><ul class="space-y-2 py-4 border-t border-gray-700">${scheduleHtml}</ul><div class="py-4 border-t border-gray-700"><a href="${race.circuit.url}" target="_blank" rel="noopener noreferrer" class="text-red-500 hover:text-red-400 font-semibold text-sm">Ver en Wikipedia &rarr;</a></div></div>`;
+                    listContainer.appendChild(item);
+                });
+
+                listContainer.addEventListener('click', e => {
+                    const button = e.target.closest('button');
+                    if (button) {
+                        const content = button.nextElementSibling;
+                        const icon = button.querySelector('svg');
+                        content.classList.toggle('open');
+                        icon.classList.toggle('rotate-180');
+                    }
+                });
+            }
+
+            // --- RESULTADOS DE CARRERA ---
+            async function fetchRaceResults() {
+                const API_URL = 'https://f1api.dev/api/current/last/race';
+                const statusMessage = document.getElementById('status-message-race');
+                const table = document.getElementById('positions-table-race');
+                const messageText = statusMessage.querySelector('.message-text');
+
+                try {
+                    const response = await fetch(API_URL);
+                    if (response.status === 404) {
+                        messageText.textContent = `No hay datos para la última carrera.`;
+                        return;
+                    }
+                    if (!response.ok) throw new Error('Error de red');
+                    
+                    const data = await response.json();
+                    const race = data?.races;
+
+                    if (!race || !race.results || race.results.length === 0) {
+                        messageText.textContent = `No se encontraron resultados.`;
+                        return;
+                    }
+                    
+                    displayResultsData(race);
+                    statusMessage.style.display = 'none';
+                    table.style.display = 'table';
+
+                } catch (error) {
+                    messageText.textContent = `Error al cargar datos.`;
+                }
+            }
+
+            function displayResultsData(raceData) {
+                const body = document.getElementById('positions-body-race');
+                const nameElem = document.getElementById('race-name');
+                
+                nameElem.textContent = raceData.raceName || 'Carrera Reciente';
+                body.innerHTML = '';
+
+                raceData.results.forEach(driverResult => {
+                    const row = document.createElement('tr');
+                    const teamId = driverResult.team.teamId;
+                    const currentTeam = teamData[teamId] || teamData['default'];
+                    row.style.backgroundColor = currentTeam.color + '2A';
+                    row.className = 'hover:!bg-gray-700/75 transition-colors duration-200';
+                    row.innerHTML = `<td class="px-2 py-2 whitespace-nowrap text-sm font-bold text-center ${parseInt(driverResult.position) <= 3 ? 'text-white' : 'text-gray-300'}">${driverResult.position}</td><td class="px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-200 font-mono">${driverResult.driver.shortName}</td><td class="px-3 py-2 whitespace-nowrap text-sm text-right text-gray-300 font-mono">${driverResult.time || 'N/A'}</td><td class="px-3 py-2 whitespace-nowrap text-xs font-bold text-gray-300 font-mono text-left">${driverResult.team.teamId.toUpperCase()}</td>`;
+                    body.appendChild(row);
+                });
+            }
+
+            // --- CLASIFICACIÓN DE PILOTOS ---
+            async function fetchDriverStandings() {
+                const API_URL = 'https://f1api.dev/api/current/drivers-championship';
+                const statusMessage = document.getElementById('status-message-standings');
+                const table = document.getElementById('standings-table');
+                const messageText = statusMessage.querySelector('.message-text');
+
+                try {
+                    const response = await fetch(API_URL);
+                    if (!response.ok) throw new Error('Error de red');
+                    
+                    const data = await response.json();
+                    const standings = data?.drivers_championship;
+
+                    if (!standings || standings.length === 0) {
+                        messageText.textContent = 'No se encontraron datos de clasificación.';
+                        return;
+                    }
+                    
+                    displayDriverStandings(standings);
+                    statusMessage.style.display = 'none';
+                    table.style.display = 'table';
+
+                } catch (error) {
+                    messageText.textContent = 'Error al cargar la clasificación.';
+                }
+            }
+
+            function displayDriverStandings(standings) {
+                const body = document.getElementById('standings-body');
+                body.innerHTML = '';
+
+                standings.forEach(driver => {
+                    const row = document.createElement('tr');
+                    const teamId = driver.teamId;
+                    const currentTeam = teamData[teamId] || teamData['default'];
+                    row.style.backgroundColor = currentTeam.color + '2A';
+                    row.className = 'hover:!bg-gray-700/75 transition-colors duration-200';
+                    row.innerHTML = `
+                        <td class="px-2 py-2 whitespace-nowrap text-sm font-bold text-center ${parseInt(driver.position) <= 3 ? 'text-white' : 'text-gray-300'}">${driver.position}</td>
+                        <td class="px-6 py-2 whitespace-nowrap text-sm font-medium text-gray-200">${driver.driver.name} ${driver.driver.surname}</td>
+                        <td class="px-6 py-2 whitespace-nowrap text-sm font-bold text-white text-right">${driver.points}</td>
+                        <td class="px-6 py-2 whitespace-nowrap text-sm text-gray-400">${driver.team.teamName}</td>
+                    `;
+                    body.appendChild(row);
+                });
+            }
+
+            // --- CLASIFICACIÓN DE CONSTRUCTORES ---
+            async function fetchConstructorsStandings() {
+                const API_URL = 'https://f1api.dev/api/current/constructors-championship';
+                const statusMessage = document.getElementById('status-message-constructors');
+                const table = document.getElementById('constructors-standings-table');
+                const messageText = statusMessage.querySelector('.message-text');
+
+                try {
+                    const response = await fetch(API_URL);
+                    if (!response.ok) throw new Error('Error de red');
+                    
+                    const data = await response.json();
+                    const standings = data?.constructors_championship;
+
+                    if (!standings || standings.length === 0) {
+                        messageText.textContent = 'No se encontraron datos de clasificación.';
+                        return;
+                    }
+                    
+                    displayConstructorsStandings(standings);
+                    statusMessage.style.display = 'none';
+                    table.style.display = 'table';
+
+                } catch (error) {
+                    messageText.textContent = 'Error al cargar la clasificación.';
+                }
+            }
+
+            function displayConstructorsStandings(standings) {
+                const body = document.getElementById('constructors-standings-body');
+                body.innerHTML = '';
+
+                standings.forEach(constructor => {
+                    const row = document.createElement('tr');
+                    const teamId = constructor.teamId;
+                    const currentTeam = teamData[teamId] || teamData['default'];
+                    row.style.backgroundColor = currentTeam.color + '2A';
+                    row.className = 'hover:!bg-gray-700/75 transition-colors duration-200';
+                    row.innerHTML = `
+                        <td class="px-2 py-2 whitespace-nowrap text-sm font-bold text-center ${parseInt(constructor.position) <= 3 ? 'text-white' : 'text-gray-300'}">${constructor.position}</td>
+                        <td class="px-6 py-2 whitespace-nowrap text-sm font-medium text-gray-200">${constructor.team.teamName}</td>
+                        <td class="px-6 py-2 whitespace-nowrap text-sm font-bold text-white text-right">${constructor.points}</td>
+                    `;
+                    body.appendChild(row);
+                });
+            }
+
+
+            // --- INICIAR TODO ---
+            fetchCalendarData();
+            fetchRaceResults();
+            fetchDriverStandings();
+            fetchConstructorsStandings();
+        });
+    </script>
+</body>
+</html>
+
