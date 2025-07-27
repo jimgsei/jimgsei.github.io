@@ -39,6 +39,9 @@
         .details-content.open {
             max-height: 500px; /* Adjust as needed */
         }
+        #info-modal {
+            transition: opacity 0.3s ease;
+        }
     </style>
 </head>
 <body class="text-gray-200 antialiased">
@@ -85,7 +88,7 @@
                     <div class="p-4 border-b border-gray-700">
                         <h3 id="race-name" class="text-lg font-semibold text-red-500 truncate">Cargando...</h3>
                     </div>
-                    <div id="status-message-race" class="flex items-center justify-center h-64"><p class="message-text text-gray-400">Cargando...</p></div>
+                    <div id="status-message-race" class="flex items-center justify-center h-64"><div class="loader ease-linear rounded-full border-8 border-t-8 border-gray-600 h-16 w-16"></div></div>
                     <div class="overflow-x-auto"><table id="positions-table-race" class="min-w-full hidden">
                         <thead class="bg-gray-700/50"><tr><th class="px-2 py-3 text-center text-xs font-bold uppercase tracking-wider">Pos</th><th class="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider">Piloto</th><th class="px-3 py-3 text-right text-xs font-bold uppercase tracking-wider">Tiempo</th><th class="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider">Equipo</th></tr></thead>
                         <tbody id="positions-body-race" class="divide-y divide-gray-700/50"></tbody>
@@ -109,7 +112,7 @@
         <div class="mb-12">
              <h2 class="text-2xl font-bold text-white mb-4">Clasificación de Pilotos</h2>
              <div id="standings-container" class="bg-gray-800 shadow-lg rounded-xl overflow-hidden">
-                 <div id="status-message-standings" class="flex items-center justify-center h-64"><p class="message-text text-gray-400">Cargando clasificación...</p></div>
+                 <div id="status-message-standings" class="flex items-center justify-center h-64"><div class="loader ease-linear rounded-full border-8 border-t-8 border-gray-600 h-16 w-16"></div></div>
                  <div class="overflow-x-auto">
                      <table id="standings-table" class="min-w-full hidden">
                          <thead class="bg-gray-700/50">
@@ -130,7 +133,7 @@
         <div>
              <h2 class="text-2xl font-bold text-white mb-4">Clasificación de Escuderías</h2>
              <div id="constructors-standings-container" class="bg-gray-800 shadow-lg rounded-xl overflow-hidden">
-                 <div id="status-message-constructors" class="flex items-center justify-center h-64"><p class="message-text text-gray-400">Cargando clasificación...</p></div>
+                 <div id="status-message-constructors" class="flex items-center justify-center h-64"><div class="loader ease-linear rounded-full border-8 border-t-8 border-gray-600 h-16 w-16"></div></div>
                  <div class="overflow-x-auto">
                      <table id="constructors-standings-table" class="min-w-full hidden">
                          <thead class="bg-gray-700/50">
@@ -151,6 +154,14 @@
         </footer>
     </div>
 
+    <!-- Modal para detalles -->
+    <div id="info-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 hidden z-50">
+        <div id="modal-content" class="bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md border border-gray-700/50 transform scale-95 transition-transform duration-300">
+            <!-- Contenido del modal se insertará aquí -->
+        </div>
+    </div>
+
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const teamData = {
@@ -160,6 +171,8 @@
                 'haas': { color: '#B6BABD' }, 'default': { color: '#374151' }
             };
             let countdownInterval;
+            let allDriversData = [];
+            let allTeamsInfoData = [];
 
             // --- WIDGET Y CALENDARIO ---
             async function fetchCalendarData() {
@@ -183,7 +196,7 @@
                 } catch (error) {
                     console.error('Error en calendario:', error);
                     document.getElementById('widget-loader').innerHTML = `<p class="text-red-400">${error.message}</p>`;
-                    document.getElementById('circuits-list').innerHTML = `<p class="text-red-400 text-center">${error.message}</p>`;
+                    document.getElementById('calendar-loader').innerHTML = `<p class="text-red-400 text-center">${error.message}</p>`;
                 }
             }
 
@@ -289,12 +302,13 @@
                 const API_URL = 'https://f1api.dev/api/current/last/race';
                 const statusMessage = document.getElementById('status-message-race');
                 const table = document.getElementById('positions-table-race');
-                const messageText = statusMessage.querySelector('.message-text');
+                const raceNameElem = document.getElementById('race-name');
 
                 try {
                     const response = await fetch(API_URL);
                     if (response.status === 404) {
-                        messageText.textContent = `No hay datos para la última carrera.`;
+                        statusMessage.innerHTML = `<div class="text-center p-8"><p class="text-lg font-semibold text-gray-300">Próximamente...</p><p class="text-sm text-gray-500 mt-1">Los resultados estarán disponibles al finalizar la carrera.</p></div>`;
+                        raceNameElem.textContent = 'Resultados no disponibles';
                         return;
                     }
                     if (!response.ok) throw new Error('Error de red');
@@ -303,7 +317,7 @@
                     const race = data?.races;
 
                     if (!race || !race.results || race.results.length === 0) {
-                        messageText.textContent = `No se encontraron resultados.`;
+                        statusMessage.innerHTML = `<p class="text-gray-400">No se encontraron resultados.</p>`;
                         return;
                     }
                     
@@ -312,7 +326,7 @@
                     table.style.display = 'table';
 
                 } catch (error) {
-                    messageText.textContent = `Error al cargar datos.`;
+                    statusMessage.innerHTML = `<p class="text-red-400">Error al cargar datos.</p>`;
                 }
             }
 
@@ -339,7 +353,6 @@
                 const API_URL = 'https://f1api.dev/api/current/drivers-championship';
                 const statusMessage = document.getElementById('status-message-standings');
                 const table = document.getElementById('standings-table');
-                const messageText = statusMessage.querySelector('.message-text');
 
                 try {
                     const response = await fetch(API_URL);
@@ -349,16 +362,17 @@
                     const standings = data?.drivers_championship;
 
                     if (!standings || standings.length === 0) {
-                        messageText.textContent = 'No se encontraron datos de clasificación.';
+                        statusMessage.innerHTML = '<p class="text-gray-400">No se encontraron datos de clasificación.</p>';
                         return;
                     }
                     
+                    allDriversData = standings; // Guardar datos para el modal
                     displayDriverStandings(standings);
                     statusMessage.style.display = 'none';
                     table.style.display = 'table';
 
                 } catch (error) {
-                    messageText.textContent = 'Error al cargar la clasificación.';
+                    statusMessage.innerHTML = '<p class="text-red-400">Error al cargar la clasificación.</p>';
                 }
             }
 
@@ -371,7 +385,8 @@
                     const teamId = driver.teamId;
                     const currentTeam = teamData[teamId] || teamData['default'];
                     row.style.backgroundColor = currentTeam.color + '2A';
-                    row.className = 'hover:!bg-gray-700/75 transition-colors duration-200';
+                    row.className = 'hover:!bg-gray-700/75 transition-colors duration-200 cursor-pointer';
+                    row.setAttribute('data-driver-id', driver.driverId);
                     row.innerHTML = `
                         <td class="px-2 py-2 whitespace-nowrap text-sm font-bold text-center ${parseInt(driver.position) <= 3 ? 'text-white' : 'text-gray-300'}">${driver.position}</td>
                         <td class="px-6 py-2 whitespace-nowrap text-sm font-medium text-gray-200">${driver.driver.name} ${driver.driver.surname}</td>
@@ -380,6 +395,17 @@
                     `;
                     body.appendChild(row);
                 });
+
+                body.addEventListener('click', (e) => {
+                    const clickedRow = e.target.closest('tr');
+                    if (clickedRow && clickedRow.dataset.driverId) {
+                        const driverId = clickedRow.dataset.driverId;
+                        const driverInfo = allDriversData.find(d => d.driverId === driverId);
+                        if (driverInfo) {
+                            showDriverModal(driverInfo);
+                        }
+                    }
+                });
             }
 
             // --- CLASIFICACIÓN DE CONSTRUCTORES ---
@@ -387,7 +413,6 @@
                 const API_URL = 'https://f1api.dev/api/current/constructors-championship';
                 const statusMessage = document.getElementById('status-message-constructors');
                 const table = document.getElementById('constructors-standings-table');
-                const messageText = statusMessage.querySelector('.message-text');
 
                 try {
                     const response = await fetch(API_URL);
@@ -397,7 +422,7 @@
                     const standings = data?.constructors_championship;
 
                     if (!standings || standings.length === 0) {
-                        messageText.textContent = 'No se encontraron datos de clasificación.';
+                        statusMessage.innerHTML = '<p class="text-gray-400">No se encontraron datos de clasificación.</p>';
                         return;
                     }
                     
@@ -406,7 +431,7 @@
                     table.style.display = 'table';
 
                 } catch (error) {
-                    messageText.textContent = 'Error al cargar la clasificación.';
+                    statusMessage.innerHTML = '<p class="text-red-400">Error al cargar la clasificación.</p>';
                 }
             }
 
@@ -419,7 +444,8 @@
                     const teamId = constructor.teamId;
                     const currentTeam = teamData[teamId] || teamData['default'];
                     row.style.backgroundColor = currentTeam.color + '2A';
-                    row.className = 'hover:!bg-gray-700/75 transition-colors duration-200';
+                    row.className = 'hover:!bg-gray-700/75 transition-colors duration-200 cursor-pointer';
+                    row.setAttribute('data-team-id', constructor.teamId);
                     row.innerHTML = `
                         <td class="px-2 py-2 whitespace-nowrap text-sm font-bold text-center ${parseInt(constructor.position) <= 3 ? 'text-white' : 'text-gray-300'}">${constructor.position}</td>
                         <td class="px-6 py-2 whitespace-nowrap text-sm font-medium text-gray-200">${constructor.team.teamName}</td>
@@ -427,7 +453,97 @@
                     `;
                     body.appendChild(row);
                 });
+
+                 body.addEventListener('click', (e) => {
+                    const clickedRow = e.target.closest('tr');
+                    if (clickedRow && clickedRow.dataset.teamId) {
+                        const teamId = clickedRow.dataset.teamId;
+                        const teamInfo = allTeamsInfoData.find(t => t.teamId === teamId);
+                        if (teamInfo) {
+                            showTeamModal(teamInfo);
+                        }
+                    }
+                });
             }
+            
+            // --- INFO DE TODOS LOS EQUIPOS ---
+            async function fetchAllTeamsInfo() {
+                const API_URL = 'https://f1api.dev/api/current/teams';
+                try {
+                    const response = await fetch(API_URL);
+                    if (!response.ok) return; // Fail silently
+                    const data = await response.json();
+                    if (data?.teams) {
+                        allTeamsInfoData = data.teams;
+                    }
+                } catch (error) {
+                    console.error('Error fetching all teams info:', error);
+                }
+            }
+
+            // --- MODAL ---
+            const modal = document.getElementById('info-modal');
+            const modalContent = document.getElementById('modal-content');
+
+            function showDriverModal(driverInfo) {
+                const driver = driverInfo.driver;
+                const team = driverInfo.team;
+                const currentTeam = teamData[team.teamId] || teamData['default'];
+                
+                modalContent.innerHTML = `
+                    <div class="p-5 border-b border-gray-700" style="background-color: ${currentTeam.color};">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-2xl font-bold text-white">${driver.name} ${driver.surname}</p>
+                                <p class="font-semibold" style="color: ${currentTeam.color === '#B6BABD' ? '#111827' : '#FFFFFF'};">${team.teamName}</p>
+                            </div>
+                            <div class="text-5xl font-black text-white opacity-50">#${driver.number}</div>
+                        </div>
+                    </div>
+                    <div class="p-5 grid grid-cols-2 gap-4 text-sm">
+                        <div><p class="text-gray-400">Nacionalidad</p><p class="font-semibold text-white">${driver.nationality}</p></div>
+                        <div><p class="text-gray-400">Nacimiento</p><p class="font-semibold text-white">${new Date(driver.birthday.split('/').reverse().join('-')).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}</p></div>
+                        <div><p class="text-gray-400">Puntos</p><p class="font-semibold text-white">${driverInfo.points}</p></div>
+                        <div><p class="text-gray-400">Victorias</p><p class="font-semibold text-white">${driverInfo.wins || 0}</p></div>
+                    </div>
+                    <div class="p-5 border-t border-gray-700 text-center"><a href="${driver.url}" target="_blank" rel="noopener noreferrer" class="text-red-500 hover:text-red-400 font-semibold text-sm">Ver perfil en Wikipedia &rarr;</a></div>
+                `;
+                showModal();
+            }
+
+            function showTeamModal(teamInfo) {
+                const currentTeam = teamData[teamInfo.teamId] || teamData['default'];
+
+                modalContent.innerHTML = `
+                     <div class="p-5 border-b border-gray-700" style="background-color: ${currentTeam.color};">
+                        <p class="text-2xl font-bold text-white">${teamInfo.teamName}</p>
+                     </div>
+                     <div class="p-5 grid grid-cols-2 gap-4 text-sm">
+                        <div><p class="text-gray-400">Nacionalidad</p><p class="font-semibold text-white">${teamInfo.teamNationality}</p></div>
+                        <div><p class="text-gray-400">Debut</p><p class="font-semibold text-white">${teamInfo.firstAppeareance}</p></div>
+                        <div><p class="text-gray-400">C. de Constructores</p><p class="font-semibold text-white">${teamInfo.constructorsChampionships || 0}</p></div>
+                        <div><p class="text-gray-400">C. de Pilotos</p><p class="font-semibold text-white">${teamInfo.driversChampionships || 0}</p></div>
+                     </div>
+                     <div class="p-5 border-t border-gray-700 text-center"><a href="${teamInfo.url}" target="_blank" rel="noopener noreferrer" class="text-red-500 hover:text-red-400 font-semibold text-sm">Ver en Wikipedia &rarr;</a></div>
+                `;
+                showModal();
+            }
+
+            function showModal() {
+                modal.classList.remove('hidden');
+                setTimeout(() => modalContent.classList.remove('scale-95'), 10);
+            }
+
+            function hideModal() {
+                modalContent.classList.add('scale-95');
+                setTimeout(() => modal.classList.add('hidden'), 300);
+            }
+
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    hideModal();
+                }
+            });
 
 
             // --- INICIAR TODO ---
@@ -435,6 +551,7 @@
             fetchRaceResults();
             fetchDriverStandings();
             fetchConstructorsStandings();
+            fetchAllTeamsInfo();
         });
     </script>
 </body>
