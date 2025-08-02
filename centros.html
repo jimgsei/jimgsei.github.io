@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscador de Centros Educativos - Andalucía</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding-top: 20px;
+        }
+        .search-container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        .result-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: transform 0.2s;
+        }
+        .result-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .badge-public {
+            background-color: #198754;
+        }
+        .badge-private {
+            background-color: #6c757d;
+        }
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        .map-container {
+            height: 300px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        .contact-info {
+            margin-top: 10px;
+        }
+        .highlight {
+            background-color: #fffde7;
+            padding: 2px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col-12 text-center">
+                <h1 class="display-4"><i class="bi bi-building"></i> Buscador de Centros Educativos</h1>
+                <p class="lead">Encuentra centros educativos en Andalucía</p>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="search-container">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="searchTerm" class="form-label">Nombre del centro</label>
+                            <input type="text" class="form-control" id="searchTerm" placeholder="Ej: IES Alborán">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="localidad" class="form-label">Localidad</label>
+                            <input type="text" class="form-control" id="localidad" placeholder="Ej: Almería">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="provincia" class="form-label">Provincia</label>
+                            <select class="form-select" id="provincia">
+                                <option value="">Todas</option>
+                                <option value="Almería">Almería</option>
+                                <option value="Cádiz">Cádiz</option>
+                                <option value="Córdoba">Córdoba</option>
+                                <option value="Granada">Granada</option>
+                                <option value="Huelva">Huelva</option>
+                                <option value="Jaén">Jaén</option>
+                                <option value="Málaga">Málaga</option>
+                                <option value="Sevilla">Sevilla</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button id="searchBtn" class="btn btn-primary w-100">
+                                <i class="bi bi-search"></i> Buscar
+                            </button>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="exactMatch">
+                                <label class="form-check-label" for="exactMatch">Coincidencia exacta</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 id="resultsCount">0 resultados encontrados</h5>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            Ordenar por
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="sortDropdown">
+                            <li><a class="dropdown-item sort-option" href="#" data-sort="name-asc">Nombre (A-Z)</a></li>
+                            <li><a class="dropdown-item sort-option" href="#" data-sort="name-desc">Nombre (Z-A)</a></li>
+                            <li><a class="dropdown-item sort-option" href="#" data-sort="location-asc">Localidad (A-Z)</a></li>
+                            <li><a class="dropdown-item sort-option" href="#" data-sort="location-desc">Localidad (Z-A)</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div id="loadingSpinner" class="loading-spinner">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-2">Buscando centros educativos...</p>
+                </div>
+
+                <div id="resultsContainer"></div>
+
+                <div id="noResults" class="alert alert-info" style="display: none;">
+                    No se encontraron resultados para tu búsqueda. Intenta con otros términos.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for details -->
+    <div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="detailsModalLabel">Detalles del Centro</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="modalBody">
+                    <!-- Details will be inserted here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="mt-5 py-3 bg-light">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center">
+                    <p class="mb-0">Datos proporcionados por la <a href="https://www.juntadeandalucia.es/datosabiertos/" target="_blank">Junta de Andalucía</a></p>
+                    <p class="text-muted small">Última actualización: <span id="updateDate"></span></p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.0/papaparse.min.js"></script>
+    <script>
+        // Set current date as last update
+        document.getElementById('updateDate').textContent = new Date().toLocaleDateString('es-ES');
+        
+        // Global variables
+        let allCenters = [];
+        let currentSort = 'name-asc';
+        
+        // Load data when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+            
+            // Setup event listeners
+            document.getElementById('searchBtn').addEventListener('click', searchCenters);
+            document.getElementById('searchTerm').addEventListener('keyup', function(e) {
+                if (e.key === 'Enter') searchCenters();
+            });
+            document.getElementById('localidad').addEventListener('keyup', function(e) {
+                if (e.key === 'Enter') searchCenters();
+            });
+            
+            // Sort options
+            document.querySelectorAll('.sort-option').forEach(option => {
+                option.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    currentSort = this.getAttribute('data-sort');
+                    const currentResults = filterCenters();
+                    displayResults(currentResults);
+                });
+            });
+        });
+        
+        // Load data from the CSV
+        function loadData() {
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            loadingSpinner.style.display = 'block';
+            
+            const csvUrl = 'https://www.juntadeandalucia.es/datosabiertos/portal/dataset/e039df22-4b82-4d0d-9884-0ab5952e24e4/resource/15aabed2-eec3-4b99-a027-9af5e27c9cac/download/da_centros.csv';
+            
+            Papa.parse(csvUrl, {
+                download: true,
+                header: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    allCenters = results.data.map(center => {
+                        // Clean up some data
+                        if (center.N_LATITUD) {
+                            center.N_LATITUD = center.N_LATITUD.replace(',', '.');
+                        }
+                        if (center.N_LONGITUD) {
+                            center.N_LONGITUD = center.N_LONGITUD.replace(',', '.');
+                        }
+                        return center;
+                    });
+                    loadingSpinner.style.display = 'none';
+                    searchCenters(); // Show all centers initially
+                },
+                error: function(error) {
+                    console.error('Error loading data:', error);
+                    loadingSpinner.style.display = 'none';
+                    alert('Error al cargar los datos. Por favor, intenta recargar la página.');
+                }
+            });
+        }
+        
+        // Search centers based on filters
+        function searchCenters() {
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            loadingSpinner.style.display = 'block';
+            
+            // Small delay to allow UI to update
+            setTimeout(() => {
+                const filtered = filterCenters();
+                displayResults(filtered);
+                loadingSpinner.style.display = 'none';
+            }, 100);
+        }
+        
+        // Filter centers based on search criteria
+        function filterCenters() {
+            const searchTerm = document.getElementById('searchTerm').value.toLowerCase();
+            const localidad = document.getElementById('localidad').value.toLowerCase();
+            const provincia = document.getElementById('provincia').value;
+            const exactMatch = document.getElementById('exactMatch').checked;
+            
+            return allCenters.filter(center => {
+                // Filter by province if selected
+                if (provincia && center.D_PROVINCIA !== provincia) {
+                    return false;
+                }
+                
+                // Filter by localidad
+                if (localidad) {
+                    if (exactMatch) {
+                        if (center.D_LOCALIDAD.toLowerCase() !== localidad) {
+                            return false;
+                        }
+                    } else {
+                        if (!center.D_LOCALIDAD.toLowerCase().includes(localidad)) {
+                            return false;
+                        }
+                    }
+                }
+                
+                // Filter by search term (name)
+                if (searchTerm) {
+                    const nameMatch = center.D_DENOMINA && center.D_DENOMINA.toLowerCase().includes(searchTerm);
+                    const specificNameMatch = center.D_ESPECIFICA && center.D_ESPECIFICA.toLowerCase().includes(searchTerm);
+                    
+                    if (exactMatch) {
+                        if (!(center.D_DENOMINA && center.D_DENOMINA.toLowerCase() === searchTerm) && 
+                            !(center.D_ESPECIFICA && center.D_ESPECIFICA.toLowerCase() === searchTerm)) {
+                            return false;
+                        }
+                    } else {
+                        if (!nameMatch && !specificNameMatch) {
+                            return false;
+                        }
+                    }
+                }
+                
+                return true;
+            });
+        }
+        
+        // Display results in the UI
+        function displayResults(centers) {
+            const resultsContainer = document.getElementById('resultsContainer');
+            const noResults = document.getElementById('noResults');
+            const resultsCount = document.getElementById('resultsCount');
+            
+            // Sort results
+            centers = sortCenters(centers, currentSort);
+            
+            // Update count
+            resultsCount.textContent = `${centers.length} resultados encontrados`;
+            
+            // Clear previous results
+            resultsContainer.innerHTML = '';
+            
+            if (centers.length === 0) {
+                noResults.style.display = 'block';
+                return;
+            }
+            
+            noResults.style.display = 'none';
+            
+            // Display each center
+            centers.forEach(center => {
+                const card = document.createElement('div');
+                card.className = 'result-card';
+                
+                const name = center.D_ESPECIFICA || center.D_DENOMINA || 'Centro sin nombre';
+                const tipo = center.D_TIPO === 'Público' ? 
+                    '<span class="badge badge-public bg-success">Público</span>' : 
+                    '<span class="badge badge-private bg-secondary">Privado</span>';
+                
+                const localidad = center.D_LOCALIDAD || 'Localidad desconocida';
+                const provincia = center.D_PROVINCIA || 'Provincia desconocida';
+                
+                // Highlight search terms if they exist
+                const searchTerm = document.getElementById('searchTerm').value.toLowerCase();
+                const localidadTerm = document.getElementById('localidad').value.toLowerCase();
+                
+                let displayName = name;
+                let displayLocalidad = localidad;
+                
+                if (searchTerm && !document.getElementById('exactMatch').checked) {
+                    displayName = highlightTerm(name, searchTerm);
+                }
+                
+                if (localidadTerm && !document.getElementById('exactMatch').checked) {
+                    displayLocalidad = highlightTerm(localidad, localidadTerm);
+                }
+                
+                card.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h5>${displayName}</h5>
+                            <p class="mb-1"><i class="bi bi-geo-alt"></i> ${displayLocalidad}, ${provincia}</p>
+                            <p class="mb-1"><i class="bi bi-building"></i> ${center.D_DENOMINA || 'Tipo no especificado'} ${tipo}</p>
+                        </div>
+                        <button class="btn btn-outline-primary btn-sm" onclick="showDetails('${center.codigo}')">
+                            <i class="bi bi-info-circle"></i> Detalles
+                        </button>
+                    </div>
+                `;
+                
+                resultsContainer.appendChild(card);
+            });
+        }
+        
+        // Highlight search terms in text
+        function highlightTerm(text, term) {
+            if (!term || !text) return text;
+            
+            const lowerText = text.toLowerCase();
+            const lowerTerm = term.toLowerCase();
+            let result = '';
+            let lastIndex = 0;
+            let index = lowerText.indexOf(lowerTerm);
+            
+            while (index !== -1) {
+                result += text.substring(lastIndex, index) + 
+                          '<span class="highlight">' + text.substring(index, index + term.length) + '</span>';
+                lastIndex = index + term.length;
+                index = lowerText.indexOf(lowerTerm, lastIndex);
+            }
+            
+            result += text.substring(lastIndex);
+            return result;
+        }
+        
+        // Sort centers based on current sort option
+        function sortCenters(centers, sortOption) {
+            return [...centers].sort((a, b) => {
+                const nameA = (a.D_ESPECIFICA || a.D_DENOMINA || '').toLowerCase();
+                const nameB = (b.D_ESPECIFICA || b.D_DENOMINA || '').toLowerCase();
+                const locationA = (a.D_LOCALIDAD || '').toLowerCase();
+                const locationB = (b.D_LOCALIDAD || '').toLowerCase();
+                
+                switch(sortOption) {
+                    case 'name-asc':
+                        return nameA.localeCompare(nameB);
+                    case 'name-desc':
+                        return nameB.localeCompare(nameA);
+                    case 'location-asc':
+                        return locationA.localeCompare(locationB) || nameA.localeCompare(nameB);
+                    case 'location-desc':
+                        return locationB.localeCompare(locationA) || nameA.localeCompare(nameB);
+                    default:
+                        return 0;
+                }
+            });
+        }
+        
+        // Show detailed information in a modal
+        function showDetails(codigo) {
+            const center = allCenters.find(c => c.codigo === codigo);
+            if (!center) return;
+            
+            const modalTitle = document.getElementById('detailsModalLabel');
+            const modalBody = document.getElementById('modalBody');
+            
+            const name = center.D_ESPECIFICA || center.D_DENOMINA || 'Centro sin nombre';
+            const tipo = center.D_TIPO === 'Público' ? 
+                '<span class="badge badge-public bg-success">Público</span>' : 
+                '<span class="badge badge-private bg-secondary">Privado</span>';
+            
+            modalTitle.textContent = name;
+            
+            let detailsHtml = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Información básica</h6>
+                        <p><strong>Tipo:</strong> ${center.D_DENOMINA || 'No especificado'} ${tipo}</p>
+                        <p><strong>Localidad:</strong> ${center.D_LOCALIDAD || 'No especificada'}</p>
+                        <p><strong>Municipio:</strong> ${center.D_MUNICIPIO || 'No especificado'}</p>
+                        <p><strong>Provincia:</strong> ${center.D_PROVINCIA || 'No especificada'}</p>
+                        <p><strong>Código postal:</strong> ${center.C_POSTAL || 'No especificado'}</p>
+                        
+                        <div class="contact-info">
+                            <h6>Contacto</h6>
+                            <p><strong>Dirección:</strong> ${center.D_DOMICILIO || 'No especificada'}</p>
+                            <p><strong>Teléfono:</strong> ${center.N_TELEFONO ? formatPhone(center.N_TELEFONO) : 'No especificado'}</p>
+                            <p><strong>Email:</strong> ${center.Correo_e ? `<a href="mailto:${center.Correo_e}">${center.Correo_e}</a>` : 'No especificado'}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+            `;
+            
+            // Add map if coordinates are available
+            if (center.N_LATITUD && center.N_LONGITUD) {
+                detailsHtml += `
+                    <h6>Ubicación</h6>
+                    <div class="map-container" id="map-${codigo}"></div>
+                    <small class="text-muted">Coordenadas: ${center.N_LATITUD}, ${center.N_LONGITUD}</small>
+                `;
+            } else {
+                detailsHtml += `<p class="text-muted">No hay información de ubicación disponible</p>`;
+            }
+            
+            detailsHtml += `
+                    </div>
+                </div>
+            `;
+            
+            modalBody.innerHTML = detailsHtml;
+            
+            // Show the modal
+            const modal = new bootstrap.Modal(document.getElementById('detailsModal'));
+            modal.show();
+            
+            // Initialize map if coordinates exist
+            if (center.N_LATITUD && center.N_LONGITUD) {
+                // Small delay to allow modal to fully display
+                setTimeout(() => {
+                    initMap(`map-${codigo}`, parseFloat(center.N_LATITUD), parseFloat(center.N_LONGITUD), name);
+                }, 300);
+            }
+        }
+        
+        // Format phone number
+        function formatPhone(phone) {
+            if (!phone) return '';
+            // Basic formatting - you can enhance this as needed
+            return phone.replace(/(\d{3})(\d{3})(\d{3})/, '$1 $2 $3');
+        }
+        
+        // Initialize a simple map (using Leaflet would be better for a production app)
+        function initMap(mapId, lat, lng, name) {
+            const mapContainer = document.getElementById(mapId);
+            if (!mapContainer) return;
+            
+            // This is a simple iframe with OpenStreetMap
+            // In a real app, you would use Leaflet or Google Maps API
+            mapContainer.innerHTML = `
+                <iframe 
+                    width="100%" 
+                    height="100%" 
+                    frameborder="0" 
+                    scrolling="no" 
+                    marginheight="0" 
+                    marginwidth="0" 
+                    src="https://www.openstreetmap.org/export/embed.html?bbox=${lng-0.01}%2C${lat-0.01}%2C${lng+0.01}%2C${lat+0.01}&amp;layer=mapnik&amp;marker=${lat}%2C${lng}" 
+                    style="border: 1px solid #ddd; border-radius: 4px;">
+                </iframe>
+                <br/>
+                <small>
+                    <a href="https://www.openstreetmap.org/?mlat=${lat}&amp;mlon=${lng}#map=16/${lat}/${lng}" target="_blank">
+                        Ver mapa más grande
+                    </a>
+                </small>
+            `;
+        }
+    </script>
+</body>
+</html>
