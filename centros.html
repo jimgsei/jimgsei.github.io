@@ -154,8 +154,7 @@
         <div class="container mx-auto text-center text-slate-600">
             <p>Datos proporcionados por la <a href="https://www.juntadeandalucia.es/datosabiertos/" target="_blank" rel="noopener noreferrer" class="font-medium text-blue-600 hover:underline">Junta de Andalucía</a>.</p>
             <p class="text-sm text-slate-500">Última actualización de datos: <span id="updateDate"></span></p>
-        </div>
-    </footer>
+        </footer>
 
     <!-- PapaParse for CSV parsing -->
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.0/papaparse.min.js"></script>
@@ -219,8 +218,7 @@
                     download: true,
                     header: true,
                     skipEmptyLines: true,
-                    // FIX 3: Removed explicit encoding to let the browser/PapaParse auto-detect.
-                    // This is often the most reliable way to handle CSVs from varied sources.
+                    encoding: "UTF-8", // Explicitly set to UTF-8 for consistency
                     complete: function(results) {
                         if (results.errors.length > 0) {
                             console.error("Errors during parsing:", results.errors);
@@ -264,7 +262,10 @@
                 const exactMatch = document.getElementById('exactMatch').checked;
 
                 return allCenters.filter(center => {
-                    if (provincia && center.D_PROVINCIA !== provincia) return false;
+                    // FIX: Make province comparison case-insensitive
+                    if (provincia && center.D_PROVINCIA.toUpperCase() !== provincia.toUpperCase()) {
+                        return false;
+                    }
 
                     const centerLocalidad = (center.D_LOCALIDAD || '').toLowerCase();
                     if (localidad) {
