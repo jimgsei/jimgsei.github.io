@@ -165,6 +165,7 @@
             const searchBtn = document.getElementById('searchBtn');
             const searchTermInput = document.getElementById('searchTerm');
             const localidadInput = document.getElementById('localidad');
+            const provinciaSelect = document.getElementById('provincia'); // Get select element
             const loadingSpinner = document.getElementById('loadingSpinner');
             const resultsContainer = document.getElementById('resultsContainer');
             const noResults = document.getElementById('noResults');
@@ -187,6 +188,7 @@
             searchBtn.addEventListener('click', searchCenters);
             searchTermInput.addEventListener('keyup', e => e.key === 'Enter' && searchCenters());
             localidadInput.addEventListener('keyup', e => e.key === 'Enter' && searchCenters());
+            provinciaSelect.addEventListener('change', searchCenters); // FIX: Search when province is changed
 
             sortOptions.forEach(option => {
                 option.addEventListener('click', function(e) {
@@ -210,36 +212,41 @@
 
             // --- Core Functions ---
 
-            function loadData() {
+            async function loadData() {
                 loadingSpinner.classList.remove('hidden');
                 const csvUrl = 'https://www.juntadeandalucia.es/datosabiertos/portal/dataset/e039df22-4b82-4d0d-9884-0ab5952e24e4/resource/15aabed2-eec3-4b99-a027-9af5e27c9cac/download/da_centros.csv';
                 
-                Papa.parse(csvUrl, {
-                    download: true,
-                    header: true,
-                    skipEmptyLines: true,
-                    encoding: "UTF-8", // Explicitly set to UTF-8 for consistency
-                    complete: function(results) {
-                        if (results.errors.length > 0) {
-                            console.error("Errors during parsing:", results.errors);
+                try {
+                    // FIX: Manually fetch and decode the file to ensure correct character encoding
+                    const response = await fetch(csvUrl);
+                    const buffer = await response.arrayBuffer();
+                    const decoder = new TextDecoder('windows-1252'); // Common encoding for Spanish gov data
+                    const decodedCsv = decoder.decode(buffer);
+
+                    Papa.parse(decodedCsv, {
+                        header: true,
+                        skipEmptyLines: true,
+                        complete: function(results) {
+                            if (results.errors.length > 0) {
+                                console.error("Errors during parsing:", results.errors);
+                            }
+                            
+                            allCenters = results.data.map(center => {
+                                // Sanitize coordinate data
+                                if (center.N_LATITUD) center.N_LATITUD = center.N_LATITUD.replace(',', '.');
+                                if (center.N_LONGITUD) center.N_LONGITUD = center.N_LONGITUD.replace(',', '.');
+                                return center;
+                            });
+                            loadingSpinner.classList.add('hidden');
+                            
+                            resultsCount.textContent = `${allCenters.length.toLocaleString('es-ES')} centros en Andalucía. Utiliza los filtros para buscar.`;
                         }
-                        
-                        allCenters = results.data.map(center => {
-                            // Sanitize coordinate data
-                            if (center.N_LATITUD) center.N_LATITUD = center.N_LATITUD.replace(',', '.');
-                            if (center.N_LONGITUD) center.N_LONGITUD = center.N_LONGITUD.replace(',', '.');
-                            return center;
-                        });
-                        loadingSpinner.classList.add('hidden');
-                        
-                        resultsCount.textContent = `${allCenters.length.toLocaleString('es-ES')} centros en Andalucía. Utiliza los filtros para buscar.`;
-                    },
-                    error: function(error) {
-                        console.error('Error loading or parsing data:', error);
-                        loadingSpinner.classList.add('hidden');
-                        resultsContainer.innerHTML = `<div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg" role="alert"><p class="font-bold">Error de Carga</p><p>No se pudieron cargar los datos de los centros. Por favor, intenta recargar la página más tarde.</p></div>`;
-                    }
-                });
+                    });
+                } catch (error) {
+                     console.error('Error loading or parsing data:', error);
+                     loadingSpinner.classList.add('hidden');
+                     resultsContainer.innerHTML = `<div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg" role="alert"><p class="font-bold">Error de Carga</p><p>No se pudieron cargar los datos de los centros. Por favor, intenta recargar la página más tarde.</p></div>`;
+                }
             }
 
             function searchCenters() {
@@ -255,6 +262,11 @@
                 }, 100);
             }
 
+            function normalizeText(text) {
+                if (!text) return '';
+                return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
+            }
+
             function filterCenters() {
                 const searchTerm = document.getElementById('searchTerm').value.toLowerCase().trim();
                 const localidad = document.getElementById('localidad').value.toLowerCase().trim();
@@ -262,9 +274,11 @@
                 const exactMatch = document.getElementById('exactMatch').checked;
 
                 return allCenters.filter(center => {
-                    // FIX: Make province comparison case-insensitive
-                    if (provincia && center.D_PROVINCIA.toUpperCase() !== provincia.toUpperCase()) {
-                        return false;
+                    // FIX: Robust, case-insensitive, and accent-insensitive province comparison
+                    if (provincia) {
+                        if (!center.D_PROVINCIA || normalizeText(center.D_PROVINCIA) !== normalizeText(provincia)) {
+                            return false;
+                        }
                     }
 
                     const centerLocalidad = (center.D_LOCALIDAD || '').toLowerCase();
