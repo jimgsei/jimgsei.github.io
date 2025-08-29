@@ -20,12 +20,18 @@
     .leaflet-container {
       background: #0b0e14;
     }
+    @keyframes pulse {
+      0% { transform: scale(0.95); }
+      70% { transform: scale(1.05); }
+      100% { transform: scale(0.95); }
+    }
     .glow-base {
       width: 8px;
       height: 8px;
       background: #ffffff;
       border-radius: 50%;
       transition: box-shadow 0.3s ease-in-out;
+      animation: pulse 4s infinite ease-in-out;
     }
     .ui-panel {
       position: absolute;
@@ -100,6 +106,7 @@
         border-radius: 12px;
         font-size: 14px;
         display: none;
+        pointer-events: none;
     }
     .leaflet-popup-content-wrapper {
         background: rgba(18, 22, 30, 0.85);
@@ -144,6 +151,9 @@
     .popup-links a:hover {
         text-decoration: underline;
     }
+    .leaflet-control-attribution .leaflet-ukraine-icon {
+        display: none !important;
+    }
     @media (max-width: 600px) {
       .topbar {
         width: calc(100% - 24px);
@@ -168,7 +178,6 @@
   <div id="loader">Cargando faros...</div>
 
   <div class="topbar ui-panel">
-    <button id="fitBtn" class="btn">Enfocar España</button>
     <button id="exportBtn" class="btn">Exportar GeoJSON</button>
     <span class="notice">Datos de OpenStreetMap</span>
   </div>
@@ -202,25 +211,26 @@
     const loader = document.getElementById('loader');
 
     function getGlowStyle(range) {
-      const minRange = 5, maxRange = 30;
+      const minRange = 5, maxRange = 35;
       const clampedRange = Math.max(minRange, Math.min(range || 0, maxRange));
       const intensity = (clampedRange - minRange) / (maxRange - minRange);
 
-      const blur = 6 + (intensity * 12);
-      const spread = 2 + (intensity * 6);
-      const mainOpacity = 0.9 + (intensity * 0.1);
+      const blur = 4 + (intensity * 10);
+      const spread = 1 + (intensity * 5);
+      const mainOpacity = 0.85 + (intensity * 0.15);
       
-      const glow1 = `0 0 ${blur}px ${spread}px rgba(255,255,255,${mainOpacity})`;
-      const glow2 = `0 0 ${blur * 2}px ${spread * 2}px rgba(100,180,255,0.5)`;
-      const glow3 = `0 0 ${blur * 3.5}px ${spread * 3}px rgba(100,180,255,0.2)`;
+      const glow1 = `0 0 ${blur}px ${spread}px rgba(173, 216, 230, ${mainOpacity * 0.9})`;
+      const glow2 = `0 0 ${blur * 2}px ${spread * 1.5}px rgba(100, 180, 255, 0.4)`;
+      const glow3 = `0 0 ${blur * 3.5}px ${spread * 2.5}px rgba(0, 100, 255, 0.15)`;
 
-      return `box-shadow: ${glow1}, ${glow2}, ${glow3};`;
+      return `box-shadow: ${glow1}, ${glow2}, ${glow3}; background-color: rgba(220, 240, 255, 1);`;
     }
     
     function glowingIcon(range) {
+      const randomDelay = -(Math.random() * 4);
       return L.divIcon({
         className: '',
-        html: `<div class="glow-base" style="${getGlowStyle(range)}"></div>`,
+        html: `<div class="glow-base" style="${getGlowStyle(range)} animation-delay: ${randomDelay}s;"></div>`,
         iconSize: [16, 16],
         iconAnchor: [8, 8]
       });
@@ -252,8 +262,7 @@
         const json = await res.json();
         renderLighthouses(json);
       } catch (err) {
-        console.error(err);
-        alert('No se pudo cargar la lista de faros. Inténtalo de nuevo más tarde.');
+        console.error("Error fetching lighthouses:", err);
       } finally {
         loader.style.display = 'none';
       }
@@ -313,14 +322,6 @@
       window.__lighthousesGeoJSON = { type: 'FeatureCollection', features };
     }
 
-    document.getElementById('fitBtn').addEventListener('click', () => {
-      if (lighthouseLayer.getLayers().length > 0) {
-        map.fitBounds(lighthouseLayer.getBounds(), { padding: [40, 40] });
-      } else {
-        map.fitBounds([[27.5, -18.5], [44.5, 5.0]]);
-      }
-    });
-
     document.getElementById('exportBtn').addEventListener('click', () => {
       const data = window.__lighthousesGeoJSON || { type: 'FeatureCollection', features: [] };
       if (data.features.length === 0) {
@@ -344,4 +345,3 @@
   </script>
 </body>
 </html>
-
