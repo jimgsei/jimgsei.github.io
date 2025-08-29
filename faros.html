@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Mapa Mejorado de Faros de España</title>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+  <style>
+    html, body, #map {
+      height: 100%;
+      margin: 0;
+      background: #0b0e14;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    .leaflet-container {
+      background: #0b0e14;
+    }
+    .glow-base {
+      width: 8px;
+      height: 8px;
+      background: #ffffff;
+      border-radius: 50%;
+      transition: box-shadow 0.3s ease-in-out;
+    }
+    .ui-panel {
+      position: absolute;
+      z-index: 1000;
+      background: rgba(10, 14, 20, 0.8);
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      border-radius: 16px;
+      padding: 10px 14px;
+      color: #cbd5e1;
+    }
+    .topbar {
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .legend {
+      bottom: 16px;
+      left: 16px;
+    }
+    .legend h3 {
+      margin: 0 0 6px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #e2e8f0;
+    }
+    .legend p {
+      margin: 2px 0;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    .legend a {
+      color: #93c5fd;
+      text-decoration: none;
+    }
+    .legend a:hover {
+      text-decoration: underline;
+    }
+    .btn {
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 10px;
+      padding: 8px 12px;
+      cursor: pointer;
+      background: rgba(20,24,32,0.8);
+      color: #e2e8f0;
+      font-size: 13px;
+      font-weight: 500;
+      transition: background-color 0.2s ease;
+    }
+    .btn:hover {
+      background: rgba(40,48,64,0.9);
+    }
+    .notice {
+      font-size: 12px;
+      opacity: 0.9;
+    }
+    #loader {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1001;
+        color: #e2e8f0;
+        background: rgba(10, 14, 20, 0.85);
+        padding: 15px 20px;
+        border-radius: 12px;
+        font-size: 14px;
+        display: none;
+    }
+    .leaflet-popup-content-wrapper {
+        background: rgba(18, 22, 30, 0.85);
+        backdrop-filter: blur(5px);
+        color: #e2e8f0;
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px;
+    }
+    .leaflet-popup-content {
+        margin: 14px !important;
+        min-width: 240px;
+    }
+    .leaflet-popup-tip {
+        background: rgba(18, 22, 30, 0.85);
+    }
+    .popup-title {
+        font-weight: 700;
+        font-size: 16px;
+        margin-bottom: 8px;
+        color: #f8fafc;
+    }
+    .popup-info {
+        font-size: 13px;
+        opacity: .9;
+        margin-bottom: 4px;
+    }
+    .popup-info strong {
+        font-weight: 600;
+        color: #94a3b8;
+    }
+    .popup-links {
+        margin-top: 10px;
+        display: flex;
+        gap: 15px;
+    }
+    .popup-links a {
+        color: #93c5fd;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 500;
+    }
+    .popup-links a:hover {
+        text-decoration: underline;
+    }
+    @media (max-width: 600px) {
+      .topbar {
+        width: calc(100% - 24px);
+        top: 10px;
+      }
+      .legend {
+        bottom: 10px;
+        left: 10px;
+        right: 10px;
+        text-align: center;
+      }
+      .btn {
+        padding: 9px 10px;
+        font-size: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="map"></div>
+  <div id="loader">Cargando faros...</div>
+
+  <div class="topbar ui-panel">
+    <button id="fitBtn" class="btn">Enfocar España</button>
+    <button id="exportBtn" class="btn">Exportar GeoJSON</button>
+    <span class="notice">Datos de OpenStreetMap</span>
+  </div>
+
+  <div class="legend ui-panel">
+    <h3>Faros de España</h3>
+    <p>El brillo representa el alcance lumínico del faro.</p>
+    <p style="opacity:.8">Fuente: <a href="https://www.openstreetmap.org/" target="_blank" rel="noopener">OpenStreetMap</a> vía Overpass API</p>
+  </div>
+
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+
+  <script>
+    const map = L.map('map', {
+      zoomControl: true,
+      preferCanvas: true,
+      worldCopyJump: true
+    }).setView([40.2, -3.7], 5);
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains: 'abcd',
+      maxZoom: 20
+    }).addTo(map);
+
+    const lighthouseLayer = L.layerGroup().addTo(map);
+    const loader = document.getElementById('loader');
+
+    function getGlowStyle(range) {
+      const minRange = 5, maxRange = 30;
+      const clampedRange = Math.max(minRange, Math.min(range || 0, maxRange));
+      const intensity = (clampedRange - minRange) / (maxRange - minRange);
+
+      const blur = 6 + (intensity * 12);
+      const spread = 2 + (intensity * 6);
+      const mainOpacity = 0.9 + (intensity * 0.1);
+      
+      const glow1 = `0 0 ${blur}px ${spread}px rgba(255,255,255,${mainOpacity})`;
+      const glow2 = `0 0 ${blur * 2}px ${spread * 2}px rgba(100,180,255,0.5)`;
+      const glow3 = `0 0 ${blur * 3.5}px ${spread * 3}px rgba(100,180,255,0.2)`;
+
+      return `box-shadow: ${glow1}, ${glow2}, ${glow3};`;
+    }
+    
+    function glowingIcon(range) {
+      return L.divIcon({
+        className: '',
+        html: `<div class="glow-base" style="${getGlowStyle(range)}"></div>`,
+        iconSize: [16, 16],
+        iconAnchor: [8, 8]
+      });
+    }
+    
+    const overpassQuery = `
+      [out:json][timeout:45];
+      area["ISO3166-1"="ES"][admin_level=2]->.searchArea;
+      (
+        node["man_made"="lighthouse"](area.searchArea);
+        way["man_made"="lighthouse"](area.searchArea);
+        relation["man_made"="lighthouse"](area.searchArea);
+        node["seamark:type"="lighthouse"](area.searchArea);
+        way["seamark:type"="lighthouse"](area.searchArea);
+        relation["seamark:type"="lighthouse"](area.searchArea);
+      );
+      out center tags;
+    `;
+
+    async function fetchLighthouses() {
+      loader.style.display = 'block';
+      try {
+        const res = await fetch('https://overpass-api.de/api/interpreter', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+          body: new URLSearchParams({ data: overpassQuery })
+        });
+        if (!res.ok) throw new Error(`Overpass API error ${res.status}`);
+        const json = await res.json();
+        renderLighthouses(json);
+      } catch (err) {
+        console.error(err);
+        alert('No se pudo cargar la lista de faros. Inténtalo de nuevo más tarde.');
+      } finally {
+        loader.style.display = 'none';
+      }
+    }
+
+    function renderLighthouses(geo) {
+      lighthouseLayer.clearLayers();
+      const features = [];
+      geo.elements.forEach(el => {
+        let lat, lon;
+        if (el.type === 'node') { lat = el.lat; lon = el.lon; }
+        else if (el.center) { lat = el.center.lat; lon = el.center.lon; }
+        if (lat == null || lon == null) return;
+
+        const tags = el.tags || {};
+        const name = tags.name || tags["seamark:name"] || 'Faro sin nombre';
+        const rangeStr = tags["seamark:light:range"];
+        const range = rangeStr ? parseFloat(rangeStr) : 0;
+        const height = tags.height;
+        const lightChar = tags["seamark:light:character"] || tags["seamark:light:1:character"];
+        const wikidata = tags.wikidata;
+        const wikipedia = tags.wikipedia;
+
+        let popupHtml = `<div class="popup-title">${name}</div>`;
+        if (range) popupHtml += `<div class="popup-info"><strong>Alcance:</strong> ${range} mn</div>`;
+        if (height) popupHtml += `<div class="popup-info"><strong>Altura:</strong> ${height} m</div>`;
+        if (lightChar) popupHtml += `<div class="popup-info"><strong>Característica:</strong> ${lightChar}</div>`;
+        popupHtml += `<div class="popup-info" style="opacity: 0.7">Lat ${lat.toFixed(5)}, Lon ${lon.toFixed(5)}</div>`;
+        
+        if(wikipedia || wikidata) {
+            popupHtml += `<div class="popup-links">`;
+            if (wikipedia) {
+                const wikiPage = wikipedia.split(':').slice(1).join(':');
+                popupHtml += `<a href="https://es.wikipedia.org/wiki/${encodeURIComponent(wikiPage)}" target="_blank" rel="noopener">Wikipedia</a>`;
+            }
+            if (wikidata) {
+                popupHtml += `<a href="https://www.wikidata.org/wiki/${wikidata}" target="_blank" rel="noopener">Wikidata</a>`;
+            }
+            popupHtml += `</div>`;
+        }
+
+        const marker = L.marker([lat, lon], { icon: glowingIcon(range), title: name })
+          .bindPopup(popupHtml);
+        marker.addTo(lighthouseLayer);
+        
+        features.push({
+            type: 'Feature',
+            geometry: { type: 'Point', coordinates: [lon, lat] },
+            properties: { name, range, height, lightChar, wikidata, wikipedia }
+        });
+      });
+
+      if (features.length) {
+        map.fitBounds(lighthouseLayer.getBounds(), { padding: [40, 40] });
+      }
+
+      window.__lighthousesGeoJSON = { type: 'FeatureCollection', features };
+    }
+
+    document.getElementById('fitBtn').addEventListener('click', () => {
+      if (lighthouseLayer.getLayers().length > 0) {
+        map.fitBounds(lighthouseLayer.getBounds(), { padding: [40, 40] });
+      } else {
+        map.fitBounds([[27.5, -18.5], [44.5, 5.0]]);
+      }
+    });
+
+    document.getElementById('exportBtn').addEventListener('click', () => {
+      const data = window.__lighthousesGeoJSON || { type: 'FeatureCollection', features: [] };
+      if (data.features.length === 0) {
+        alert("No hay datos de faros para exportar.");
+        return;
+      }
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/geo+json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'faros_espana_mejorado.geojson';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        URL.revokeObjectURL(url);
+        a.remove();
+      }, 1000);
+    });
+
+    fetchLighthouses();
+  </script>
+</body>
+</html>
+
