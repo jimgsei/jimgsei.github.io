@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Mapa Mejorado de Faros de España</title>
+  <title>Mapa Profesional de Faros de España</title>
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -154,6 +154,21 @@
     .leaflet-control-attribution .leaflet-ukraine-icon {
         display: none !important;
     }
+    .leaflet-control-layers {
+        background: rgba(10, 14, 20, 0.8);
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        border-radius: 12px;
+        padding: 8px;
+    }
+    .leaflet-control-layers-base label {
+        color: #e2e8f0;
+        font-size: 13px;
+    }
+    .leaflet-top.leaflet-left {
+        margin-top: 12px;
+    }
     @media (max-width: 600px) {
       .topbar {
         width: calc(100% - 24px);
@@ -195,17 +210,36 @@
   ></script>
 
   <script>
-    const map = L.map('map', {
-      zoomControl: true,
-      preferCanvas: true,
-      worldCopyJump: true
-    }).setView([40.2, -3.7], 5);
-
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    const darkMap = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
       subdomains: 'abcd',
       maxZoom: 20
-    }).addTo(map);
+    });
+
+    const lightMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        maxZoom: 19,
+    });
+
+    const satelliteMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+        maxZoom: 18
+    });
+
+    const map = L.map('map', {
+      zoomControl: true,
+      preferCanvas: true,
+      worldCopyJump: true,
+      layers: [darkMap]
+    }).setView([40.2, -3.7], 5);
+
+    const baseMaps = {
+        "Oscuro": darkMap,
+        "Claro": lightMap,
+        "Satélite": satelliteMap
+    };
+
+    L.control.layers(baseMaps, null, { position: 'topleft' }).addTo(map);
 
     const lighthouseLayer = L.layerGroup().addTo(map);
     const loader = document.getElementById('loader');
