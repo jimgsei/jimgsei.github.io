@@ -124,13 +124,19 @@
             z-index: 1000;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.3s ease;
+            transition: all 0.4s ease;
         }
         
+        .controls.hidden {
+            transform: translateX(calc(100% + 20px));
+            opacity: 0;
+            pointer-events: none;
+        }
+
         #toggleControlsBtn {
             position: absolute;
             top: 19px;
-            right: 15px;
+            right: 40px; /* Dejar espacio para el nuevo botón de cerrar */
             background: rgba(255, 158, 0, 0.8);
             color: #0d1b2a;
             border: none;
@@ -140,6 +146,42 @@
             font-weight: bold;
             cursor: pointer;
             z-index: 1001;
+        }
+        
+        #hidePanelBtn {
+            position: absolute;
+            top: 19px;
+            right: 15px;
+            background: rgba(255, 107, 107, 0.8);
+            color: #0d1b2a;
+            border: none;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 1001;
+            line-height: 18px;
+            padding: 0;
+        }
+
+        #showPanelBtn {
+            position: absolute;
+            top: 110px;
+            right: 10px;
+            background: rgba(13, 27, 42, 0.95);
+            color: #ff9e00;
+            border: 1px solid #ff9e00;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 950;
+            display: none; /* Oculto por defecto */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
         }
 
         .controls.minimized #extra-controls {
@@ -325,7 +367,7 @@
             .controls {
                 width: 90vw;
                 right: 5vw;
-                top: 110px; /* Corregido: Empuja el panel debajo de la brújula */
+                top: 110px;
             }
         }
     </style>
@@ -354,6 +396,7 @@
             <span>Simulador de Sombras</span>
         </div>
         <button id="toggleControlsBtn">Menos Opciones</button>
+        <button id="hidePanelBtn">X</button>
 
         <div id="collapsible-content">
             <div id="essential-controls">
@@ -406,6 +449,8 @@
             </div>
         </div>
     </div>
+    <button id="showPanelBtn">⚙️</button>
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         const map = L.map('map').setView([40.4168, -3.7038], 18);
@@ -430,6 +475,8 @@
         const objectHeightValue = document.getElementById('objectHeightValue');
         const objectWidthValue = document.getElementById('objectWidthValue');
         const toggleControlsBtn = document.getElementById('toggleControlsBtn');
+        const hidePanelBtn = document.getElementById('hidePanelBtn');
+        const showPanelBtn = document.getElementById('showPanelBtn');
         const locationSearchInput = document.getElementById('locationSearchInput');
         const locationSearchBtn = document.getElementById('locationSearchBtn');
         const currentLocationBtn = document.getElementById('currentLocationBtn');
@@ -444,7 +491,7 @@
         let isDragging = false;
         let dragOffset = { x: 0, y: 0 };
         let animationStartTime = null;
-        const ANIMATION_DURATION = 15000; // 15 segundos
+        const ANIMATION_DURATION = 15000;
 
         function initPanelDrag() {
             panelTitle.addEventListener('mousedown', startDrag);
@@ -456,7 +503,7 @@
         }
 
         function startDrag(e) {
-            if (e.target === toggleControlsBtn) return;
+            if (e.target === toggleControlsBtn || e.target === hidePanelBtn) return;
             isDragging = true;
             const rect = controlsPanel.getBoundingClientRect();
             dragOffset.x = e.clientX - rect.left;
@@ -466,7 +513,7 @@
         }
 
         function startDragTouch(e) {
-            if (e.target === toggleControlsBtn) return;
+            if (e.target === toggleControlsBtn || e.target === hidePanelBtn) return;
             if (e.touches.length === 1) {
                 isDragging = true;
                 const rect = controlsPanel.getBoundingClientRect();
@@ -741,13 +788,23 @@
             );
         }
 
-        function togglePanel() {
+        function toggleMinimizePanel() {
              controlsPanel.classList.toggle('minimized');
              if (controlsPanel.classList.contains('minimized')) {
                  toggleControlsBtn.textContent = 'Más Opciones';
              } else {
                  toggleControlsBtn.textContent = 'Menos Opciones';
              }
+        }
+        
+        function hidePanel() {
+            controlsPanel.classList.add('hidden');
+            showPanelBtn.style.display = 'block';
+        }
+        
+        function showPanel() {
+            controlsPanel.classList.remove('hidden');
+            showPanelBtn.style.display = 'none';
         }
         
         async function searchLocation() {
@@ -778,7 +835,9 @@
         map.on('moveend', () => updateDisplay(true));
         map.on('zoomend', () => updateDisplay());
         currentLocationBtn.addEventListener('click', getCurrentLocation);
-        toggleControlsBtn.addEventListener('click', togglePanel);
+        toggleControlsBtn.addEventListener('click', toggleMinimizePanel);
+        hidePanelBtn.addEventListener('click', hidePanel);
+        showPanelBtn.addEventListener('click', showPanel);
         locationSearchBtn.addEventListener('click', searchLocation);
         locationSearchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') searchLocation(); });
         document.querySelectorAll('.capital-buttons button').forEach(button => {
