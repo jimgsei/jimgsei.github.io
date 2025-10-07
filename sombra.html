@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador de Sombras Solares</title>
+    <title>Simulador de Sombras Solares y Lunares</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://cdn.jsdelivr.net/npm/suncalc@1.8.0/suncalc.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -22,15 +23,24 @@
 
         #map {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: -100%;
+            left: -100%;
+            width: 300%;
+            height: 300%;
             z-index: 1;
             transition: transform 0.5s ease-out;
         }
         #map.locked {
             border: 2px solid #ff6b6b;
+        }
+
+        #map-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
         }
 
         #compass {
@@ -61,42 +71,17 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: transform 0.2s ease-out; /* Para suavizar la rotación del cuerpo de la brújula */
+            transition: transform 0.3s ease-out;
         }
 
-        .compass-north {
+        .compass-north, .compass-south, .compass-east, .compass-west {
             position: absolute;
-            top: 2px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #ff6b6b;
-            font-weight: bold;
             font-size: 12px;
         }
-
-        .compass-south {
-            position: absolute;
-            bottom: 2px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 12px;
-        }
-
-        .compass-east {
-            position: absolute;
-            right: 2px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 12px;
-        }
-
-        .compass-west {
-            position: absolute;
-            left: 2px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 12px;
-        }
+        .compass-north { top: 2px; left: 50%; transform: translateX(-50%); color: #ff6b6b; font-weight: bold; }
+        .compass-south { bottom: 2px; left: 50%; transform: translateX(-50%); }
+        .compass-east { right: 2px; top: 50%; transform: translateY(-50%); }
+        .compass-west { left: 2px; top: 50%; transform: translateY(-50%); }
 
         .compass-center {
             width: 6px;
@@ -115,7 +100,7 @@
             left: 50%;
             transform-origin: bottom center;
             transform: translate(-50%, -100%) rotate(0deg);
-            transition: transform 0.2s ease-out;
+            transition: transform 0.3s ease-out;
         }
 
         .controls {
@@ -190,17 +175,12 @@
             backdrop-filter: blur(10px);
         }
 
-        .controls.minimized #extra-controls {
-            display: none;
-        }
-
+        .controls.minimized #extra-controls { display: none; }
         .control-group { margin-bottom: 12px; }
         .control-group:last-child { margin-bottom: 0; }
-
-        label {
-            display: block; font-size: 13px; margin-bottom: 6px;
-            color: #90e0ef; font-weight: 600;
-        }
+        label { display: block; font-size: 13px; margin-bottom: 6px; color: #90e0ef; font-weight: 600; }
+        .checkbox-label { display: flex; align-items: center; cursor: pointer; font-size: 13px; }
+        .checkbox-label input { margin-right: 8px; }
 
         input[type="range"] {
             width: 100%; height: 8px; border-radius: 4px; background: rgba(255, 255, 255, 0.1);
@@ -213,9 +193,7 @@
             transition: transform 0.1s ease;
             border: 2px solid #fff;
         }
-        input[type="range"]:active::-webkit-slider-thumb {
-            transform: scale(1.2);
-        }
+        input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.2); }
 
         .time-slider-container { display: flex; align-items: center; gap: 8px; }
         .time-slider-container input[type="range"] { flex-grow: 1; }
@@ -237,95 +215,91 @@
 
         .shadow-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; z-index: 500;
+            pointer-events: none; z-index: 350;
         }
 
         .shadow-caster {
             position: absolute; background: rgba(180, 180, 190, 0.9); border: 1px solid #333;
             z-index: 400; transform: translate(-50%, -50%);
+            box-shadow: 0 0 5px rgba(0,0,0,0.5);
         }
 
         .shadow {
-            position: absolute; background: rgba(0, 0, 0, 0.5);
-            transform-origin: 50% 0; z-index: 300;
+            position: absolute; 
+            z-index: 399;
+            transform-origin: top center;
+            border-radius: 2px;
+        }
+        
+        .sun-shadow {
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.2));
+        }
+        
+        .moon-shadow {
+            background: linear-gradient(to bottom, rgba(30, 60, 150, 0.5), rgba(30, 60, 150, 0.2));
         }
 
         #sunPathContainer {
             position: absolute;
             left: 50%;
             top: 50%;
-            width: 280px;
-            height: 140px;
+            width: 500px;
+            height: 500px;
             transform: translate(-50%, -50%);
-            z-index: 200;
+            z-index: 300;
             pointer-events: none;
         }
-        .sun-path {
-            position: relative;
-            width: 100%;
-            height: 100%;
-        }
-        .sun-path svg {
-            width: 100%; height: 100%; overflow: visible;
-        }
-        .sun-path-line {
-            stroke-width: 1.5;
-            fill: none;
-            stroke-linecap: round;
-        }
-        #horizon-circle { 
-            stroke: #000; 
-            stroke-opacity: 0.8;
-            fill: rgba(0,0,0,0.1);
-        }
-        #sun-path-line { stroke: #ff4444; stroke-width: 2.5; }
+        .sun-path { position: relative; width: 100%; height: 100%; }
+        .sun-path svg { width: 100%; height: 100%; overflow: visible; }
         
-        .time-marker, .sun-marker {
+        .hour-label {
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+            text-shadow: 0 0 2px black;
             position: absolute;
-            border-radius: 50%;
             transform: translate(-50%, -50%);
         }
-        .time-marker {
-            width: 6px; height: 6px; background: #ffff00;
-            z-index: 202; border: 1px solid rgba(0,0,0,0.3);
-            box-shadow: 0 0 4px rgba(255, 255, 0, 0.8);
+        
+        .moon-hour-label {
+            color: #87CEEB;
         }
 
-        .time-label {
-            position: absolute; font-size: 11px; color: white; background: rgba(0, 0, 0, 0.7);
-            padding: 2px 6px; border-radius: 3px; z-index: 203;
-            font-weight: bold;
+        .celestial-marker {
+            position: absolute;
+            font-size: 20px;
+            transform: translate(-50%, -50%);
+            z-index: 310;
+            text-shadow: 0 0 3px rgba(0, 0, 0, 0.7);
         }
-        .sun-marker {
-            width: 24px; height: 24px;
-            z-index: 201;
-            text-align: center;
-            line-height: 24px;
-            font-size: 16px;
-            transition: left 0.1s linear, top 0.1s linear;
+        
+        .moon-phase {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            transform: translate(-50%, -50%);
+            z-index: 305;
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+            overflow: hidden;
         }
-
-        .sun-marker.animated {
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: translate(-50%, -50%) scale(1); }
-            50% { transform: translate(-50%, -50%) scale(1.1); }
-            100% { transform: translate(-50%, -50%) scale(1); }
+        
+        .moon-phase-mask {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 50%;
+            transition: all 0.5s ease;
         }
 
         .title {
             font-size: 16px; font-weight: 700; margin-bottom: 12px; color: #ff9e00;
             text-align: center; cursor: grab; position: relative; user-select: none;
-            padding: 8px 0;
-            border-radius: 6px;
-            background: rgba(255, 158, 0, 0.1);
+            padding: 8px 0; border-radius: 6px; background: rgba(255, 158, 0, 0.1);
         }
-
-        .title:active {
-            cursor: grabbing;
-        }
+        .title:active { cursor: grabbing; }
         
         .location-search { display: flex; gap: 6px; margin-bottom: 8px; }
         .location-search input {
@@ -337,44 +311,13 @@
             border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px;
         }
 
-        .location-buttons {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 6px;
-        }
-
-        .location-buttons button {
-            padding: 8px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 11px;
-            transition: background-color 0.3s;
-        }
-
-        #currentLocationBtn {
-            background: #48cae4;
-            color: #0d1b2a;
-        }
-        
-        #lockMapBtn {
-            background: #4895ef;
-            color: #0d1b2a;
-        }
-        #lockMapBtn.active {
-            background: #f77f00;
-            color: #0d1b2a;
-        }
-
-        #realCompassBtn {
-            background: #4895ef;
-            color: #0d1b2a;
-        }
-        #realCompassBtn.active {
-            background-color: #f77f00;
-            color: #0d1b2a;
-        }
+        .location-buttons { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+        .location-buttons button { padding: 8px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 11px; transition: background-color 0.3s; }
+        #currentLocationBtn { background: #48cae4; color: #0d1b2a; }
+        #lockMapBtn { background: #4895ef; color: #0d1b2a; }
+        #lockMapBtn.active { background: #f77f00; color: #0d1b2a; }
+        #realCompassBtn { background: #4895ef; color: #0d1b2a; }
+        #realCompassBtn.active { background-color: #f77f00; color: #0d1b2a; }
 
         .capital-buttons { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;}
         .capital-buttons button {
@@ -384,19 +327,16 @@
         }
 
         @media (max-width: 768px) {
-            .controls {
-                width: 90vw;
-                right: 5vw;
-                top: 110px;
-            }
-            .location-buttons {
-                grid-template-columns: 1fr;
-            }
+            .controls { width: 90vw; right: 5vw; top: 110px; }
+            .location-buttons { grid-template-columns: 1fr; }
+            #sunPathContainer { width: 90vw; height: 90vw; }
         }
     </style>
 </head>
 <body>
-    <div id="map"></div>
+    <div id="map-container">
+        <div id="map"></div>
+    </div>
     <div id="compass">
         <div class="compass-inner" id="compassInner">
             <div class="compass-north">N</div>
@@ -407,13 +347,11 @@
             <div class="compass-needle" id="compassNeedle"></div>
         </div>
     </div>
-    <div class="shadow-overlay" id="shadowOverlay">
-        <div class="sun-path-overlay" id="sunPathOverlay"></div>
-        <div id="sunPathContainer">
-            <div class="sun-path" id="sunPath"></div>
-        </div>
+    <div id="sunPathContainer">
+        <div class="sun-path" id="sunPath"></div>
     </div>
-
+    <div class="shadow-overlay" id="shadowOverlay"></div>
+    
     <div class="controls" id="controlsPanel">
         <div class="title" id="panelTitle">
             <span>Simulador de Sombras</span>
@@ -425,15 +363,22 @@
             <div id="essential-controls">
                 <div class="control-group">
                     <label for="dateSlider">Día del año: <span id="currentDate"></span></label>
-                    <div class="time-slider-container"><span>Ene</span><input type="range" id="dateSlider" min="1" max="365" value="280"><span>Dic</span></div>
+                    <div class="time-slider-container"><span>Ene</span><input type="range" id="dateSlider" min="1" max="365" ><span>Dic</span></div>
                 </div>
 
                 <div class="control-group">
-                    <label for="timeSlider">Hora del día: <span id="currentTime">10:30</span></label>
+                    <label for="timeSlider">Hora del día: <span id="currentTime">12:00</span></label>
                     <div class="time-slider-container">
-                        <button id="animationBtn">▶ Animar</button>
-                        <input type="range" id="timeSlider" min="5" max="21" step="0.1" value="10.5">
+                        <span>00:00</span>
+                        <input type="range" id="timeSlider" min="0" max="24" step="0.1" value="12">
+                        <span>24:00</span>
                     </div>
+                     <button id="animationBtn" style="width: 100%; margin-top: 8px;">▶ Animar 24h</button>
+                </div>
+                 <div class="control-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="moonToggle" checked> Mostrar Simulación Lunar
+                    </label>
                 </div>
             </div>
             <div id="extra-controls">
@@ -465,10 +410,10 @@
                 </div>
                 <div class="info-panel">
                     <div class="solar-data">
-                        <div class="data-item"><span class="data-label">Altura solar</span><span class="data-value" id="solarAltitude">-</span></div>
-                        <div class="data-item"><span class="data-label">Acimut</span><span class="data-value" id="solarAzimuth">-</span></div>
-                        <div class="data-item"><span class="data-label">Longitud sombra</span><span class="data-value" id="shadowLength">-</span></div>
-                        <div class="data-item"><span class="data-label">Hora solar</span><span class="data-value" id="solarTime">-</span></div>
+                        <div class="data-item"><span class="data-label">Altura Astro</span><span class="data-value" id="solarAltitude">-</span></div>
+                        <div class="data-item"><span class="data-label">Acimut Astro</span><span class="data-value" id="solarAzimuth">-</span></div>
+                        <div class="data-item"><span class="data-label">Longitud Sombra</span><span class="data-value" id="shadowLength">-</span></div>
+                        <div class="data-item"><span class="data-label">Astro Actual</span><span class="data-value" id="activeCelestial">-</span></div>
                     </div>
                 </div>
             </div>
@@ -483,384 +428,390 @@
             attribution: 'Tiles &copy; Esri'
         }).addTo(map);
 
-        const controlsPanel = document.getElementById('controlsPanel');
-        const panelTitle = document.getElementById('panelTitle');
-        const dateSlider = document.getElementById('dateSlider');
-        const currentDate = document.getElementById('currentDate');
-        const timeSlider = document.getElementById('timeSlider');
-        const currentTimeDisplay = document.getElementById('currentTime');
-        const solarAltitudeDisplay = document.getElementById('solarAltitude');
-        const solarAzimuthDisplay = document.getElementById('solarAzimuth');
-        const shadowLengthDisplay = document.getElementById('shadowLength');
-        const solarTimeDisplay = document.getElementById('solarTime');
-        const shadowOverlay = document.getElementById('shadowOverlay');
-        const sunPath = document.getElementById('sunPath');
-        const objectHeightSlider = document.getElementById('objectHeightSlider');
-        const objectWidthSlider = document.getElementById('objectWidthSlider');
-        const objectHeightValue = document.getElementById('objectHeightValue');
-        const objectWidthValue = document.getElementById('objectWidthValue');
-        const toggleControlsBtn = document.getElementById('toggleControlsBtn');
-        const hidePanelBtn = document.getElementById('hidePanelBtn');
-        const showPanelBtn = document.getElementById('showPanelBtn');
-        const locationSearchInput = document.getElementById('locationSearchInput');
-        const locationSearchBtn = document.getElementById('locationSearchBtn');
-        const currentLocationBtn = document.getElementById('currentLocationBtn');
-        const lockMapBtn = document.getElementById('lockMapBtn');
-        const realCompassBtn = document.getElementById('realCompassBtn');
-        const animationBtn = document.getElementById('animationBtn');
-        const compassInner = document.getElementById('compassInner');
-        const compassNeedle = document.getElementById('compassNeedle');
+        // --- DOM Elements ---
+        const controlsPanel = document.getElementById('controlsPanel'), panelTitle = document.getElementById('panelTitle'),
+              dateSlider = document.getElementById('dateSlider'), currentDate = document.getElementById('currentDate'),
+              timeSlider = document.getElementById('timeSlider'), currentTimeDisplay = document.getElementById('currentTime'),
+              solarAltitudeDisplay = document.getElementById('solarAltitude'), solarAzimuthDisplay = document.getElementById('solarAzimuth'),
+              shadowLengthDisplay = document.getElementById('shadowLength'), activeCelestialDisplay = document.getElementById('activeCelestial'),
+              shadowOverlay = document.getElementById('shadowOverlay'), sunPath = document.getElementById('sunPath'),
+              objectHeightSlider = document.getElementById('objectHeightSlider'), objectWidthSlider = document.getElementById('objectWidthSlider'),
+              objectHeightValue = document.getElementById('objectHeightValue'), objectWidthValue = document.getElementById('objectWidthValue'),
+              toggleControlsBtn = document.getElementById('toggleControlsBtn'), hidePanelBtn = document.getElementById('hidePanelBtn'),
+              showPanelBtn = document.getElementById('showPanelBtn'), locationSearchInput = document.getElementById('locationSearchInput'),
+              locationSearchBtn = document.getElementById('locationSearchBtn'), currentLocationBtn = document.getElementById('currentLocationBtn'),
+              lockMapBtn = document.getElementById('lockMapBtn'), realCompassBtn = document.getElementById('realCompassBtn'),
+              animationBtn = document.getElementById('animationBtn'), moonToggle = document.getElementById('moonToggle'),
+              compassInner = document.getElementById('compassInner'), compassNeedle = document.getElementById('compassNeedle');
         
         L.DomEvent.disableClickPropagation(controlsPanel);
         L.DomEvent.disableScrollPropagation(controlsPanel);
 
-        let metersPerPixel = 1;
-        let animationFrameId = null;
-        let isPlaying = false;
-        let isDragging = false;
-        let dragOffset = { x: 0, y: 0 };
-        let animationStartTime = null;
+        // --- State Variables ---
+        let metersPerPixel = 1, animationFrameId = null, isPlaying = false, isDragging = false;
+        let dragOffset = { x: 0, y: 0 }, animationStartTime = null, isMapLocked = false, isRealCompassActive = false;
+        let currentHeading = 0, targetHeading = 0;
         const ANIMATION_DURATION = 15000;
-        let isMapLocked = false;
-        let isRealCompassActive = false;
         
-        function initPanelDrag() {
-            panelTitle.addEventListener('mousedown', startDrag);
-            panelTitle.addEventListener('touchstart', startDragTouch);
-            document.addEventListener('mousemove', drag);
-            document.addEventListener('touchmove', dragTouch);
-            document.addEventListener('mouseup', stopDrag);
-            document.addEventListener('touchend', stopDrag);
-        }
+        // --- UI & Panel Functions ---
+        function initPanelDrag() { panelTitle.addEventListener('mousedown', startDrag); panelTitle.addEventListener('touchstart', startDragTouch); document.addEventListener('mousemove', drag); document.addEventListener('touchmove', dragTouch); document.addEventListener('mouseup', stopDrag); document.addEventListener('touchend', stopDrag); }
+        function startDrag(e) { if (e.target.closest('button')) return; isDragging = true; const rect = controlsPanel.getBoundingClientRect(); dragOffset.x = e.clientX - rect.left; dragOffset.y = e.clientY - rect.top; controlsPanel.style.transition = 'none'; }
+        function startDragTouch(e) { if (e.target.closest('button')) return; if (e.touches.length === 1) { isDragging = true; const rect = controlsPanel.getBoundingClientRect(); dragOffset.x = e.touches[0].clientX - rect.left; dragOffset.y = e.touches[0].clientY - rect.top; controlsPanel.style.transition = 'none'; } }
+        function drag(e) { if (!isDragging) return; const x = e.clientX - dragOffset.x; const y = e.clientY - dragOffset.y; controlsPanel.style.right = 'auto'; controlsPanel.style.left = `${x}px`; controlsPanel.style.top = `${y}px`; }
+        function dragTouch(e) { if (!isDragging || e.touches.length !== 1) return; const x = e.touches[0].clientX - dragOffset.x; const y = e.touches[0].clientY - dragOffset.y; controlsPanel.style.right = 'auto'; controlsPanel.style.left = `${x}px`; controlsPanel.style.top = `${y}px`; }
+        function stopDrag() { isDragging = false; controlsPanel.style.transition = 'all 0.3s ease';}
+        function toggleMinimizePanel() { controlsPanel.classList.toggle('minimized'); toggleControlsBtn.textContent = controlsPanel.classList.contains('minimized') ? 'Más Opciones' : 'Menos Opciones'; }
+        function hidePanel() { controlsPanel.classList.add('hidden'); showPanelBtn.style.display = 'block'; }
+        function showPanel() { controlsPanel.classList.remove('hidden'); showPanelBtn.style.display = 'none'; }
 
-        function startDrag(e) {
-            if (e.target.closest('button')) return;
-            isDragging = true;
-            const rect = controlsPanel.getBoundingClientRect();
-            dragOffset.x = e.clientX - rect.left;
-            dragOffset.y = e.clientY - rect.top;
-            controlsPanel.style.transition = 'none';
-            e.preventDefault();
-        }
-
-        function startDragTouch(e) {
-            if (e.target.closest('button')) return;
-            if (e.touches.length === 1) {
-                isDragging = true;
-                const rect = controlsPanel.getBoundingClientRect();
-                dragOffset.x = e.touches[0].clientX - rect.left;
-                dragOffset.y = e.touches[0].clientY - rect.top;
-                controlsPanel.style.transition = 'none';
-                e.preventDefault();
-            }
-        }
-
-        function drag(e) {
-            if (!isDragging) return;
-            const x = e.clientX - dragOffset.x;
-            const y = e.clientY - dragOffset.y;
-            controlsPanel.style.right = 'auto';
-            controlsPanel.style.left = `${x}px`;
-            controlsPanel.style.top = `${y}px`;
-            e.preventDefault();
-        }
-
-        function dragTouch(e) {
-            if (!isDragging || e.touches.length !== 1) return;
-            const x = e.touches[0].clientX - dragOffset.x;
-            const y = e.touches[0].clientY - dragOffset.y;
-            controlsPanel.style.right = 'auto';
-            controlsPanel.style.left = `${x}px`;
-            controlsPanel.style.top = `${y}px`;
-            e.preventDefault();
-        }
-
-        function stopDrag() {
-            isDragging = false;
-            controlsPanel.style.transition = 'all 0.3s ease';
-        }
-
-        function toggleMinimizePanel() {
-             controlsPanel.classList.toggle('minimized');
-             toggleControlsBtn.textContent = controlsPanel.classList.contains('minimized') ? 'Más Opciones' : 'Menos Opciones';
-        }
+        // --- Core Calculation & Drawing ---
+        function updateScale() { const center = map.getCenter(); const p1 = map.latLngToContainerPoint(center); const p2 = L.point(p1.x + 1, p1.y); metersPerPixel = center.distanceTo(map.containerPointToLatLng(p2)); }
+        function createObject() { if (document.getElementById('shadowCaster')) return; const el = document.createElement('div'); el.className = 'shadow-caster'; el.id = 'shadowCaster'; el.style.left = '50%'; el.style.top = '50%'; shadowOverlay.appendChild(el); }
+        function updateObjectAppearance() { const el = document.getElementById('shadowCaster'); if (!el) return; objectHeightValue.textContent = objectHeightSlider.value; objectWidthValue.textContent = objectWidthSlider.value; el.style.height = `${objectHeightSlider.value / metersPerPixel}px`; el.style.width = `${objectWidthSlider.value / metersPerPixel}px`; }
+        function dayOfYearToDate(dayOfYear, year = new Date().getFullYear()) { const date = new Date(year, 0); return new Date(date.setDate(dayOfYear)); }
+        function dateToDayOfYear(date) { return (Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) - Date.UTC(date.getFullYear(), 0, 0)) / 86400000; }
         
-        function hidePanel() {
-            controlsPanel.classList.add('hidden');
-            showPanelBtn.style.display = 'block';
-        }
-        
-        function showPanel() {
-            controlsPanel.classList.remove('hidden');
-            showPanelBtn.style.display = 'none';
-        }
-
-        function updateScale() {
-            const center = map.getCenter();
-            const point1 = map.latLngToContainerPoint(center);
-            const point2 = L.point(point1.x + 1, point1.y);
-            metersPerPixel = center.distanceTo(map.containerPointToLatLng(point2));
-        }
-
-        function createObject() {
-            const shadowCaster = document.createElement('div');
-            shadowCaster.className = 'shadow-caster';
-            shadowCaster.id = 'shadowCaster';
-            shadowCaster.style.left = '50%';
-            shadowCaster.style.top = '50%';
-            shadowOverlay.appendChild(shadowCaster);
-        }
-
-        function updateObjectAppearance() {
-            const shadowCaster = document.getElementById('shadowCaster');
-            if (!shadowCaster) return;
-            const heightInMeters = objectHeightSlider.value;
-            const widthInMeters = objectWidthSlider.value;
-            shadowCaster.style.height = `${heightInMeters / metersPerPixel}px`;
-            shadowCaster.style.width = `${widthInMeters / metersPerPixel}px`;
-            objectHeightValue.textContent = heightInMeters;
-            objectWidthValue.textContent = widthInMeters;
-        }
-
-        function dayOfYearToDate(dayOfYear, year = new Date().getFullYear()) {
-            return new Date(new Date(year, 0).setDate(dayOfYear));
-        }
-
-        function dateToDayOfYear(date) {
-            return Math.floor((date - new Date(date.getFullYear(), 0, 0)) / 86400000);
-        }
-
-        function calculateSolarPosition(date, hour, lat, lng) {
-            const dayOfYear = dateToDayOfYear(date);
-            const latRad = lat * Math.PI / 180;
-            const declination = 23.45 * Math.PI / 180 * Math.sin(2 * Math.PI * (284 + dayOfYear) / 365);
-            const hourAngleRad = (hour - 12) * 15 * Math.PI / 180;
-            const sinAltitude = Math.sin(latRad) * Math.sin(declination) +
-                Math.cos(latRad) * Math.cos(declination) * Math.cos(hourAngleRad);
-            const altitude = Math.asin(Math.max(-1, Math.min(1, sinAltitude)));
-            const cosAzimuth = (Math.sin(declination) - Math.sin(latRad) * Math.sin(altitude)) /
-                (Math.cos(latRad) * Math.cos(altitude));
-            let azimuth = Math.acos(Math.max(-1, Math.min(1, cosAzimuth))) * 180 / Math.PI;
-            if ((hour - 12) > 0) {
-                azimuth = 360 - azimuth;
-            }
-            return {
-                altitude: altitude * 180 / Math.PI,
-                azimuth: azimuth
-            };
-        }
-        
-        const DIAGRAM_W = 280;
-        const DIAGRAM_H = 140;
-        const DIAGRAM_CX = DIAGRAM_W / 2;
-        const DIAGRAM_CY = DIAGRAM_H / 2;
-        const DIAGRAM_RADIUS = DIAGRAM_H / 2 - 5;
-
-        function getSunScreenPos(altitude, azimuth) {
+        function getScreenPosFromAzAlt(azimuth, altitude, radius) {
+            // Corrección para hemisferio norte: el sol se mueve de este a oeste pasando por el sur
+            const azRad = (azimuth) * Math.PI / 180;
             const altRad = altitude * Math.PI / 180;
-            const azRad = azimuth * Math.PI / 180;
-            const dist = DIAGRAM_RADIUS * Math.cos(altRad);
-            const x = DIAGRAM_CX + dist * Math.sin(azRad);
-            const y = DIAGRAM_CY - dist * Math.cos(azRad);
+            
+            // Proyectar en 2D con perspectiva (simulando una esfera)
+            const r = radius * Math.cos(altRad);
+            const x = (r * Math.sin(azRad));
+            const y = -(r * Math.cos(azRad));
+            
             return { x, y };
         }
 
-        function drawSunPath(date, lat, lng) {
+        function getMoonPhase(date) {
+            // Calcular fase lunar (0 = luna nueva, 0.5 = luna llena)
+            const LUNAR_CYCLE = 29.53; // días
+            const knownNewMoon = new Date('2024-01-11'); // Luna nueva conocida
+            const diffTime = Math.abs(date - knownNewMoon);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            const phase = (diffDays % LUNAR_CYCLE) / LUNAR_CYCLE;
+            return phase;
+        }
+
+        function drawPaths(date, lat, lng) {
             sunPath.innerHTML = '';
             const svgNS = "http://www.w3.org/2000/svg";
             const svg = document.createElementNS(svgNS, "svg");
-            
-            svg.innerHTML = `<circle id="horizon-circle" class="sun-path-line" cx="${DIAGRAM_CX}" cy="${DIAGRAM_CY}" r="${DIAGRAM_RADIUS}"></circle>`;
+            const w = sunPath.clientWidth;
+            const h = sunPath.clientHeight;
+            const center = { x: w / 2, y: h / 2 };
+            const radius = Math.min(w, h) / 2 * 0.85;
 
-            const pathPoints = [];
-            for (let hour = 4; hour <= 22; hour += 0.25) {
-                const solarPos = calculateSolarPosition(date, hour, lat, lng);
-                if (solarPos.altitude > 0) {
-                    const pos = getSunScreenPos(solarPos.altitude, solarPos.azimuth);
-                    pathPoints.push(`${pos.x},${pos.y}`);
+            // Dibujar círculo base y ejes cardinales
+            svg.innerHTML = `
+                <circle cx="${center.x}" cy="${center.y}" r="${radius}" fill="rgba(0,0,0,0.2)" stroke="black" stroke-width="2"></circle>
+                <line x1="${center.x}" y1="${center.y - radius}" x2="${center.x}" y2="${center.y + radius}" stroke="white" stroke-width="1" stroke-dasharray="2,3"></line>
+                <line x1="${center.x - radius}" y1="${center.y}" x2="${center.x + radius}" y2="${center.y}" stroke="white" stroke-width="1" stroke-dasharray="2,3"></line>
+                <text x="${center.x}" y="${center.y - radius - 10}" fill="white" text-anchor="middle" font-size="12">N</text>
+                <text x="${center.x}" y="${center.y + radius + 15}" fill="white" text-anchor="middle" font-size="12">S</text>
+                <text x="${center.x + radius + 15}" y="${center.y}" fill="white" text-anchor="middle" font-size="12" dy="5">E</text>
+                <text x="${center.x - radius - 15}" y="${center.y}" fill="white" text-anchor="middle" font-size="12" dy="5">O</text>
+            `;
+
+            const sunPathPoints = [], moonPathPoints = [];
+
+            // Dibujar trayectoria del sol
+            for (let i = 0; i < 24; i += 0.25) {
+                const hourDate = new Date(date.getTime() + i * 3600 * 1000);
+                const sunPos = SunCalc.getPosition(hourDate, lat, lng);
+                const sunAzimuth = (sunPos.azimuth * 180 / Math.PI) + 180;
+                const sunAltitude = sunPos.altitude * 180 / Math.PI;
+                
+                if (sunPos.altitude > 0) {
+                    const screenPos = getScreenPosFromAzAlt(sunAzimuth, sunAltitude, radius);
+                    sunPathPoints.push(`${center.x + screenPos.x},${center.y + screenPos.y}`);
                 }
             }
-
-            if (pathPoints.length > 1) {
-                const pathLine = document.createElementNS(svgNS, "polyline");
-                pathLine.id = "sun-path-line";
-                pathLine.classList.add("sun-path-line");
-                pathLine.setAttribute("points", pathPoints.join(' '));
-                svg.appendChild(pathLine);
+            
+            // Dibujar trayectoria de la luna (solo puntos consecutivos)
+            if (moonToggle.checked) {
+                let previousPoint = null;
+                for (let i = 0; i < 24; i += 0.25) {
+                    const hourDate = new Date(date.getTime() + i * 3600 * 1000);
+                    const moonPos = SunCalc.getMoonPosition(hourDate, lat, lng);
+                    const moonAltitude = moonPos.altitude * 180 / Math.PI;
+                    
+                    if (moonPos.altitude > 0) {
+                        const moonAzimuth = (moonPos.azimuth * 180 / Math.PI) + 180;
+                        const screenPos = getScreenPosFromAzAlt(moonAzimuth, moonAltitude, radius);
+                        
+                        // Solo añadir puntos consecutivos para evitar líneas rectas
+                        if (previousPoint) {
+                            moonPathPoints.push(`${center.x + screenPos.x},${center.y + screenPos.y}`);
+                        } else {
+                            moonPathPoints.push(`${center.x + screenPos.x},${center.y + screenPos.y}`);
+                        }
+                        previousPoint = screenPos;
+                    } else {
+                        previousPoint = null; // Reiniciar cuando la luna se pone
+                    }
+                }
             }
+            
+            if (sunPathPoints.length > 1) { 
+                const pathLine = document.createElementNS(svgNS, "polyline"); 
+                pathLine.setAttribute("points", sunPathPoints.join(' ')); 
+                pathLine.style.stroke = "#ff4444"; 
+                pathLine.style.strokeWidth = "2.5"; 
+                pathLine.style.fill = "none"; 
+                svg.appendChild(pathLine); 
+            }
+            
+            if (moonToggle.checked && moonPathPoints.length > 1) { 
+                const pathLine = document.createElementNS(svgNS, "polyline"); 
+                pathLine.setAttribute("points", moonPathPoints.join(' ')); 
+                pathLine.style.stroke = "#87CEEB"; 
+                pathLine.style.strokeWidth = "2.5"; 
+                pathLine.style.fill = "none"; 
+                svg.appendChild(pathLine); 
+            }
+            
             sunPath.appendChild(svg);
             
-            for (let hour = 6; hour <= 20; hour += 2) {
-                const solarPos = calculateSolarPosition(date, hour, lat, lng);
-                if (solarPos.altitude > 1) {
-                    const pos = getSunScreenPos(solarPos.altitude, solarPos.azimuth);
-                    const marker = document.createElement('div');
-                    marker.className = 'time-marker';
-                    marker.style.left = `${pos.x}px`;
-                    marker.style.top = `${pos.y}px`;
-                    sunPath.appendChild(marker);
-                    
+            // Añadir etiquetas de horas para el sol
+            for (let hour of [6, 8, 10, 12, 14, 16, 18]) {
+                const hourDate = new Date(date.getTime() + hour * 3600 * 1000);
+                const sunPos = SunCalc.getPosition(hourDate, lat, lng);
+                 if (sunPos.altitude > 0) {
+                    const sunAzimuth = (sunPos.azimuth * 180 / Math.PI) + 180;
+                    const sunAltitude = sunPos.altitude * 180 / Math.PI;
+                    const screenPos = getScreenPosFromAzAlt(sunAzimuth, sunAltitude, radius);
                     const label = document.createElement('div');
-                    label.className = 'time-label';
-                    label.textContent = `${hour}:00`;
-                    label.style.left = `${pos.x}px`;
-                    label.style.top = `${pos.y}px`;
-                    label.style.transform = `translate(-50%, ${pos.y > DIAGRAM_CY ? '120%' : '-120%'})`;
+                    label.className = 'hour-label';
+                    label.textContent = `${hour}h`;
+                    label.style.left = `${center.x + screenPos.x}px`;
+                    label.style.top = `${center.y + screenPos.y}px`;
                     sunPath.appendChild(label);
                 }
             }
+            
+            // Añadir etiquetas de horas para la luna
+            if (moonToggle.checked) {
+                for (let hour of [18, 20, 22, 0, 2, 4, 6]) {
+                    const hourDate = new Date(date.getTime() + hour * 3600 * 1000);
+                    const moonPos = SunCalc.getMoonPosition(hourDate, lat, lng);
+                    if (moonPos.altitude > 0) {
+                        const moonAzimuth = (moonPos.azimuth * 180 / Math.PI) + 180;
+                        const moonAltitude = moonPos.altitude * 180 / Math.PI;
+                        const screenPos = getScreenPosFromAzAlt(moonAzimuth, moonAltitude, radius);
+                        const label = document.createElement('div');
+                        label.className = 'hour-label moon-hour-label';
+                        label.textContent = `${hour}h`;
+                        label.style.left = `${center.x + screenPos.x}px`;
+                        label.style.top = `${center.y + screenPos.y}px`;
+                        sunPath.appendChild(label);
+                    }
+                }
+            }
         }
 
-        function drawCurrentSunPosition(altitude, azimuth) {
-            let marker = document.getElementById('currentSun');
-            if (!marker) {
-                marker = document.createElement('div');
-                marker.id = 'currentSun';
-                marker.className = 'sun-marker';
+        function updateShadowAndMarkers(date, hour, lat, lng) {
+            // Eliminar sombra anterior si existe
+            let shadow = document.getElementById('objectShadow');
+            if (shadow) shadow.remove();
+            
+            // Crear nueva sombra
+            shadow = document.createElement('div');
+            shadow.id = 'objectShadow';
+            shadow.className = 'shadow';
+            shadowOverlay.appendChild(shadow);
+            
+            const fullDate = new Date(date.getTime() + hour * 3600 * 1000);
+            const sunPos = SunCalc.getPosition(fullDate, lat, lng);
+            const moonPos = SunCalc.getMoonPosition(fullDate, lat, lng);
+            const sunAltitude = sunPos.altitude * 180 / Math.PI, sunAzimuth = (sunPos.azimuth * 180 / Math.PI) + 180;
+            const moonAltitude = moonPos.altitude * 180 / Math.PI, moonAzimuth = (moonPos.azimuth * 180 / Math.PI) + 180;
+            let activeCelestialName = null, celestialForShadow = null;
+            
+            if (sunPos.altitude > 0) { 
+                activeCelestialName = 'sol'; 
+                celestialForShadow = {altitude: sunPos.altitude, azimuth: sunAzimuth}; 
+                shadow.classList.add('sun-shadow');
+                activeCelestialDisplay.textContent = 'Sol'; 
+            }
+            else if (moonPos.altitude > 0 && moonToggle.checked) { 
+                activeCelestialName = 'luna'; 
+                celestialForShadow = {altitude: moonPos.altitude, azimuth: moonAzimuth}; 
+                shadow.classList.add('moon-shadow');
+                activeCelestialDisplay.textContent = 'Luna'; 
+            }
+            
+            const w = sunPath.clientWidth, h = sunPath.clientHeight;
+            const center = { x: w / 2, y: h / 2 };
+            const radius = Math.min(w, h) / 2 * 0.85;
+
+            // Limpiar marcadores anteriores
+            sunPath.querySelectorAll('.celestial-marker, .axis-line, .moon-phase').forEach(el => el.remove());
+
+            // Marcador y línea para el sol
+            if (sunPos.altitude > 0) {
+                const screenPos = getScreenPosFromAzAlt(sunAzimuth, sunAltitude, radius);
+                const marker = document.createElement('div');
+                marker.className = 'celestial-marker';
+                marker.style.left = `${center.x + screenPos.x}px`;
+                marker.style.top = `${center.y + screenPos.y}px`;
                 marker.textContent = '☀️';
                 sunPath.appendChild(marker);
+
+                const axis = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                axis.setAttribute('x1', center.x); axis.setAttribute('y1', center.y);
+                axis.setAttribute('x2', center.x + screenPos.x); axis.setAttribute('y2', center.y + screenPos.y);
+                axis.setAttribute('stroke', '#FFD700'); axis.setAttribute('stroke-width', '1.5'); axis.classList.add('axis-line');
+                sunPath.querySelector('svg').appendChild(axis);
             }
 
-            if (altitude > 0) {
-                const pos = getSunScreenPos(altitude, azimuth);
-                marker.style.left = `${pos.x}px`;
-                marker.style.top = `${pos.y}px`;
-                marker.style.display = 'block';
-                marker.classList.toggle('animated', isPlaying);
-            } else {
-                 marker.style.display = 'none';
-            }
-        }
-        
-        function updateShadow(date, hour, lat, lng) {
-            let shadow = document.getElementById('objectShadow');
-             if (!shadow) {
-                shadow = document.createElement('div');
-                shadow.id = 'objectShadow';
-                shadow.className = 'shadow';
-                shadowOverlay.appendChild(shadow);
-            }
-
-            const solarPos = calculateSolarPosition(date, hour, lat, lng);
-            if (solarPos.altitude > 0) {
-                const objectHeightMeters = parseFloat(objectHeightSlider.value);
-                const objectWidthMeters = parseFloat(objectWidthSlider.value);
-                const shadowRatio = 1 / Math.tan(solarPos.altitude * Math.PI / 180);
-                const shadowLengthMeters = objectHeightMeters * shadowRatio;
+            // Marcador y línea para la luna
+            if (moonToggle.checked && moonPos.altitude > 0) {
+                const screenPos = getScreenPosFromAzAlt(moonAzimuth, moonAltitude, radius);
                 
-                shadow.style.width = `${objectWidthMeters / metersPerPixel}px`;
-                shadow.style.height = `${shadowLengthMeters / metersPerPixel}px`;
-                shadow.style.left = '50%';
-                shadow.style.top = '50%';
-                shadow.style.transform = `translateX(-50%) rotate(${solarPos.azimuth}deg)`;
-                shadow.style.display = 'block';
+                // Crear marcador de fase lunar
+                const moonPhase = document.createElement('div');
+                moonPhase.className = 'moon-phase';
+                moonPhase.style.left = `${center.x + screenPos.x}px`;
+                moonPhase.style.top = `${center.y + screenPos.y}px`;
+                
+                const phase = getMoonPhase(fullDate);
+                const mask = document.createElement('div');
+                mask.className = 'moon-phase-mask';
+                
+                // Aplicar fase lunar correcta (nunca un círculo completo en diagonal)
+                if (phase < 0.25) {
+                    // Luna creciente
+                    mask.style.clipPath = `inset(0 ${50 - phase * 200}% 0 0)`;
+                } else if (phase < 0.5) {
+                    // Cuarto creciente a llena
+                    mask.style.clipPath = `inset(0 0 0 ${(phase - 0.25) * 200}%)`;
+                } else if (phase < 0.75) {
+                    // Luna menguante
+                    mask.style.clipPath = `inset(0 0 0 ${50 - (phase - 0.5) * 200}%)`;
+                } else {
+                    // Cuarto menguante a nueva
+                    mask.style.clipPath = `inset(0 ${(phase - 0.75) * 200}% 0 0)`;
+                }
+                
+                moonPhase.appendChild(mask);
+                sunPath.appendChild(moonPhase);
 
-                solarAltitudeDisplay.textContent = `${solarPos.altitude.toFixed(1)}°`;
-                solarAzimuthDisplay.textContent = `${solarPos.azimuth.toFixed(1)}°`;
+                const axis = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                axis.setAttribute('x1', center.x); axis.setAttribute('y1', center.y);
+                axis.setAttribute('x2', center.x + screenPos.x); axis.setAttribute('y2', center.y + screenPos.y);
+                axis.setAttribute('stroke', '#87CEEB'); axis.setAttribute('stroke-width', '1.5'); axis.classList.add('axis-line');
+                sunPath.querySelector('svg').appendChild(axis);
+            }
+
+            // Actualizar sombra si hay un astro activo
+            if (celestialForShadow) {
+                const shadowLengthMeters = objectHeightSlider.value / Math.tan(celestialForShadow.altitude);
+                const objectWidthPx = objectWidthSlider.value / metersPerPixel;
+                const objectHeightPx = objectHeightSlider.value / metersPerPixel;
+                const shadowLengthPx = shadowLengthMeters / metersPerPixel;
+                
+                // Posicionar la sombra desde la base del objeto
+                shadow.style.width = `${objectWidthPx}px`;
+                shadow.style.height = `${shadowLengthPx}px`;
+                shadow.style.left = '50%';
+                shadow.style.top = `calc(50% + ${objectHeightPx/2}px)`;
+                shadow.style.transform = `translateX(-50%) rotate(${celestialForShadow.azimuth}deg)`;
+                shadow.style.display = 'block';
+                
+                // Actualizar datos de visualización
+                solarAltitudeDisplay.textContent = `${(celestialForShadow.altitude * 180 / Math.PI).toFixed(1)}°`;
+                solarAzimuthDisplay.textContent = `${celestialForShadow.azimuth.toFixed(1)}°`;
                 shadowLengthDisplay.textContent = `${shadowLengthMeters.toFixed(1)} m`;
             } else {
                 shadow.style.display = 'none';
-                solarAltitudeDisplay.textContent = 'Bajo el horizonte';
-                solarAzimuthDisplay.textContent = '-';
+                solarAltitudeDisplay.textContent = '-'; 
+                solarAzimuthDisplay.textContent = '-'; 
                 shadowLengthDisplay.textContent = '-';
+                activeCelestialDisplay.textContent = 'Ninguno';
             }
-            drawCurrentSunPosition(solarPos.altitude, solarPos.azimuth);
         }
 
-        function updateDisplay(forceSunPathRedraw = false) {
-            updateScale();
+        function updateDisplay(forcePathRedraw = false) {
+            updateScale(); 
             updateObjectAppearance();
-            const dayOfYear = parseInt(dateSlider.value);
-            const date = dayOfYearToDate(dayOfYear);
-            const hour = parseFloat(timeSlider.value);
-            const hours = Math.floor(hour);
-            const minutes = Math.round((hour - hours) * 60);
-            const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-            currentTimeDisplay.textContent = timeString;
-            solarTimeDisplay.textContent = timeString;
+            const dayOfYear = parseInt(dateSlider.value), date = dayOfYearToDate(dayOfYear), hour = parseFloat(timeSlider.value);
+            const hours = Math.floor(hour), minutes = Math.round((hour - hours) * 60);
+            currentTimeDisplay.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
             currentDate.textContent = date.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
             const center = map.getCenter();
             
-            if (forceSunPathRedraw || sunPath.dataset.day !== dayOfYear.toString() || sunPath.dataset.lat !== center.lat.toString()) {
-                 drawSunPath(date, center.lat, center.lng);
+            if (forcePathRedraw || sunPath.dataset.day !== dayOfYear.toString() || sunPath.dataset.lat !== center.lat.toString()) {
+                 drawPaths(date, center.lat, center.lng);
                  sunPath.dataset.day = dayOfYear;
                  sunPath.dataset.lat = center.lat;
             }
-            updateShadow(date, hour, center.lat, center.lng);
+            updateShadowAndMarkers(date, hour, center.lat, center.lng);
         }
 
         function stopAnimation() {
             if (isPlaying) {
-                cancelAnimationFrame(animationFrameId);
-                animationFrameId = null;
-                isPlaying = false;
+                cancelAnimationFrame(animationFrameId); 
+                animationFrameId = null; 
+                isPlaying = false; 
                 animationStartTime = null;
-                animationBtn.textContent = '▶ Animar';
-                const sunMarker = document.getElementById('currentSun');
-                if(sunMarker) sunMarker.classList.remove('animated');
+                animationBtn.textContent = '▶ Animar 24h';
             }
         }
 
-        function animateSun(currentTime) {
+        function animate(currentTime) {
             if (!isPlaying) return;
             if (!animationStartTime) animationStartTime = currentTime;
             let elapsed = currentTime - animationStartTime;
-            if (elapsed >= ANIMATION_DURATION) {
-                elapsed = 0;
-                animationStartTime = currentTime;
-            }
+            if (elapsed >= ANIMATION_DURATION) { elapsed = 0; animationStartTime = currentTime; }
             const progress = elapsed / ANIMATION_DURATION;
-            const minHour = parseFloat(timeSlider.min);
-            const maxHour = parseFloat(timeSlider.max);
-            const hourSpan = maxHour - minHour;
-            timeSlider.value = minHour + (progress * hourSpan);
+            timeSlider.value = parseFloat(timeSlider.min) + (progress * (timeSlider.max - timeSlider.min));
             updateDisplay();
-            animationFrameId = requestAnimationFrame(animateSun);
+            animationFrameId = requestAnimationFrame(animate);
         }
 
-        function toggleAnimation() {
-            if (isPlaying) {
-                stopAnimation();
-            } else {
-                isPlaying = true;
-                animationBtn.textContent = '❚❚ Pausa';
-                animationFrameId = requestAnimationFrame(animateSun);
-            }
+        function toggleAnimation() { 
+            if (isPlaying) { 
+                stopAnimation(); 
+            } else { 
+                isPlaying = true; 
+                animationBtn.textContent = '❚❚ Pausa'; 
+                animationFrameId = requestAnimationFrame(animate); 
+            } 
         }
         
         async function searchLocation() {
-            const query = locationSearchInput.value;
-            if (!query) return;
+            const query = locationSearchInput.value; 
+            if (!query) return; 
             stopAnimation();
-            const contactEmail = 'simulador.sombras@example.com';
-            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&email=${contactEmail}`;
+            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&email=simulador.sombras@example.com`;
             try {
                 const response = await fetch(url, { headers: { 'User-Agent': 'SolarShadowSimulator/1.0' } });
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 const data = await response.json();
-                if (data && data.length > 0) {
-                    map.setView([data[0].lat, data[0].lon], 18);
-                    locationSearchInput.value = '';
-                } else {
-                    alert("Ubicación no encontrada.");
+                if (data && data.length > 0) { 
+                    map.setView([data[0].lat, data[0].lon], 18); 
+                    locationSearchInput.value = ''; 
                 }
-            } catch (error) {
-                console.error("Search error:", error);
-                alert("Error en la búsqueda de ubicación.");
+                else { alert("Ubicación no encontrada."); }
+            } catch (error) { 
+                console.error("Search error:", error); 
+                alert("Error en la búsqueda de ubicación."); 
             }
         }
         
-        function getCurrentLocation() {
-            navigator.geolocation.getCurrentPosition(
-                (position) => map.setView([position.coords.latitude, position.coords.longitude]),
-                (error) => alert('No se pudo obtener tu ubicación: ' + error.message),
-                { enableHighAccuracy: true }
-            );
+        function getCurrentLocation() { 
+            navigator.geolocation.getCurrentPosition( 
+                p => map.setView([p.coords.latitude, p.coords.longitude]), 
+                e => alert('No se pudo obtener tu ubicación: ' + e.message), 
+                { enableHighAccuracy: true } 
+            ); 
         }
-
+        
         function toggleMapLock() {
             isMapLocked = !isMapLocked;
-            if (isMapLocked) {
+            if (isMapLocked) { 
                 map.dragging.disable();
                 map.touchZoom.disable();
                 map.doubleClickZoom.disable();
@@ -868,10 +819,11 @@
                 map.boxZoom.disable();
                 map.keyboard.disable();
                 if (map.tap) map.tap.disable();
-                document.getElementById('map').classList.add('locked');
-                lockMapBtn.textContent = '🔓 Desbloquear';
-                lockMapBtn.classList.add('active');
-            } else {
+                document.getElementById('map').classList.add('locked'); 
+                lockMapBtn.textContent = '🔓 Desbloquear'; 
+                lockMapBtn.classList.add('active'); 
+            }
+            else { 
                 map.dragging.enable();
                 map.touchZoom.enable();
                 map.doubleClickZoom.enable();
@@ -879,97 +831,117 @@
                 map.boxZoom.enable();
                 map.keyboard.enable();
                 if (map.tap) map.tap.enable();
-                document.getElementById('map').classList.remove('locked');
-                lockMapBtn.textContent = '🔒 Bloquear Mapa';
-                lockMapBtn.classList.remove('active');
+                document.getElementById('map').classList.remove('locked'); 
+                lockMapBtn.textContent = '🔒 Bloquear Mapa'; 
+                lockMapBtn.classList.remove('active'); 
             }
         }
-
-        function handleOrientation(event) {
-            if (typeof event.alpha !== 'number') return;
-            const heading = event.alpha;
+        
+        // --- Brújula Real Mejorada ---
+        function animateCompass() {
+            const diff = targetHeading - currentHeading;
+            if (Math.abs(diff) > 180) {
+                currentHeading += diff > 0 ? -360 : 360;
+            }
             
-            // Rota el mapa para que la parte superior coincida con la dirección del móvil
-            // y lo escala para evitar huecos negros en las esquinas.
-            map.getContainer().style.transform = `rotate(${-heading}deg) scale(1.5)`;
+            currentHeading += (targetHeading - currentHeading) * 0.1;
             
-            // La aguja se queda estática (apuntando "arriba" en la pantalla).
-            compassNeedle.style.transform = 'translate(-50%, -100%) rotate(0deg)';
+            if (Math.abs(targetHeading - currentHeading) < 0.1) {
+                currentHeading = targetHeading;
+            } else {
+                requestAnimationFrame(animateCompass);
+            }
             
-            // El cuerpo de la brújula rota para indicar dónde está el Norte real.
-            compassInner.style.transform = `rotate(${-heading}deg)`;
+            compassNeedle.style.transform = `translate(-50%, -100%) rotate(${-currentHeading}deg)`;
+            
+            // Rotar el mapa si está activa la brújula real - solo rotación, sin perder el centro
+            if (isRealCompassActive) {
+                map.getPanes().mapPane.style.transform = `rotate(${currentHeading}deg)`;
+            }
         }
 
         function toggleRealCompass() {
             if (isRealCompassActive) {
-                // Desactivar
-                window.removeEventListener('deviceorientationabsolute', handleOrientation, true);
+                // Desactivar brújula
+                if (window.DeviceOrientationEvent) {
+                    window.removeEventListener('deviceorientation', handleOrientation);
+                }
                 isRealCompassActive = false;
+                realCompassBtn.textContent = '🛰️ Brújula Real';
                 realCompassBtn.classList.remove('active');
-                map.getContainer().style.transform = ''; // Resetear rotación y escala del mapa
-                compassInner.style.transform = ''; // Resetear rotación del cuerpo de la brújula
-                compassNeedle.style.transform = 'translate(-50%, -100%) rotate(0deg)'; // Resetear aguja
+                targetHeading = 0;
+                animateCompass();
+                // Restaurar rotación del mapa
+                map.getPanes().mapPane.style.transform = 'rotate(0deg)';
             } else {
-                // Activar
-                const startCompass = () => {
-                    window.addEventListener('deviceorientationabsolute', handleOrientation, true);
-                    isRealCompassActive = true;
-                    realCompassBtn.classList.add('active');
-                };
-
-                if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                    DeviceOrientationEvent.requestPermission()
-                        .then(permissionState => {
-                            if (permissionState === 'granted') {
-                                startCompass();
-                            } else {
-                                alert('Permiso para acceder a la orientación denegado.');
-                            }
-                        }).catch(console.error);
-                } else if ('DeviceOrientationEvent' in window) {
-                    startCompass();
+                // Activar brújula
+                if (window.DeviceOrientationEvent) {
+                    // Solicitar permiso para orientación en iOS
+                    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                        DeviceOrientationEvent.requestPermission()
+                            .then(permissionState => {
+                                if (permissionState === 'granted') {
+                                    window.addEventListener('deviceorientation', handleOrientation);
+                                    isRealCompassActive = true;
+                                    realCompassBtn.textContent = '🛰️ Brújula Activa';
+                                    realCompassBtn.classList.add('active');
+                                } else {
+                                    alert('Se necesita permiso para usar la brújula del dispositivo.');
+                                }
+                            })
+                            .catch(console.error);
+                    } else {
+                        // Para navegadores que no requieren permiso
+                        window.addEventListener('deviceorientation', handleOrientation);
+                        isRealCompassActive = true;
+                        realCompassBtn.textContent = '🛰️ Brújula Activa';
+                        realCompassBtn.classList.add('active');
+                    }
                 } else {
-                    alert('Este dispositivo no soporta la brújula en el navegador.');
+                    alert('Tu dispositivo no soporta la brújula o estás en un entorno sin sensores.');
+                }
+            }
+        }
+
+        function handleOrientation(event) {
+            if (event.alpha !== null) {
+                // alpha: rotación alrededor del eje z (0-360)
+                targetHeading = event.alpha;
+                if (!animationFrameId) {
+                    requestAnimationFrame(animateCompass);
                 }
             }
         }
 
         // --- Event Listeners ---
         animationBtn.addEventListener('click', toggleAnimation);
-        dateSlider.addEventListener('input', () => { stopAnimation(); updateDisplay(); });
+        dateSlider.addEventListener('input', () => { stopAnimation(); updateDisplay(true); });
         timeSlider.addEventListener('input', () => { stopAnimation(); updateDisplay(); });
-        objectHeightSlider.addEventListener('input', () => { stopAnimation(); updateDisplay(); });
-        objectWidthSlider.addEventListener('input', () => { stopAnimation(); updateDisplay(); });
-        
+        moonToggle.addEventListener('change', () => updateDisplay(true));
+        objectHeightSlider.addEventListener('input', () => { stopAnimation(); updateDisplay(true); });
+        objectWidthSlider.addEventListener('input', () => { stopAnimation(); updateDisplay(true); });
         map.on('movestart', stopAnimation);
         map.on('moveend', () => updateDisplay(true));
         map.on('zoomend', () => updateDisplay());
-        
         currentLocationBtn.addEventListener('click', getCurrentLocation);
         lockMapBtn.addEventListener('click', toggleMapLock);
         realCompassBtn.addEventListener('click', toggleRealCompass);
-        
         toggleControlsBtn.addEventListener('click', toggleMinimizePanel);
         hidePanelBtn.addEventListener('click', hidePanel);
         showPanelBtn.addEventListener('click', showPanel);
-        
         locationSearchBtn.addEventListener('click', searchLocation);
         locationSearchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') searchLocation(); });
-        
-        document.querySelectorAll('.capital-buttons button').forEach(button => {
-            button.addEventListener('click', (e) => {
-                stopAnimation();
-                map.setView([e.target.dataset.lat, e.target.dataset.lng], 18);
-            });
+        document.querySelectorAll('.capital-buttons button').forEach(button => { 
+            button.addEventListener('click', (e) => { 
+                stopAnimation(); 
+                map.setView([e.target.dataset.lat, e.target.dataset.lng], 18); 
+            }); 
         });
 
         function initialize() {
             const initialDate = new Date();
             dateSlider.value = dateToDayOfYear(initialDate);
-            const currentHour = initialDate.getHours() + initialDate.getMinutes() / 60;
-            if (currentHour >= timeSlider.min && currentHour <= timeSlider.max) {
-                 timeSlider.value = currentHour;
-            }
+            timeSlider.value = initialDate.getHours() + initialDate.getMinutes() / 60;
             createObject();
             initPanelDrag();
             updateDisplay(true);
@@ -979,4 +951,3 @@
     </script>
 </body>
 </html>
-
