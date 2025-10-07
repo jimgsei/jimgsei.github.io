@@ -28,6 +28,9 @@
             height: 100%;
             z-index: 1;
         }
+        #map.locked {
+            border: 2px solid #ff6b6b;
+        }
 
         #compass {
             position: absolute;
@@ -136,7 +139,7 @@
         #toggleControlsBtn {
             position: absolute;
             top: 19px;
-            right: 40px; /* Dejar espacio para el nuevo botón de cerrar */
+            right: 40px;
             background: rgba(255, 158, 0, 0.8);
             color: #0d1b2a;
             border: none;
@@ -179,7 +182,7 @@
             font-size: 24px;
             cursor: pointer;
             z-index: 950;
-            display: none; /* Oculto por defecto */
+            display: none;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
             backdrop-filter: blur(10px);
         }
@@ -262,12 +265,18 @@
         .sun-path svg {
             width: 100%; height: 100%; overflow: visible;
         }
-        .sun-path-red-line {
-            stroke: #ff4444;
-            stroke-width: 2;
+        .sun-path-line {
+            stroke-width: 1.5;
             fill: none;
             stroke-linecap: round;
         }
+        #horizon-circle { 
+            stroke: #000; 
+            stroke-opacity: 0.8;
+            fill: rgba(0,0,0,0.1);
+        }
+        #sun-path-line { stroke: #ff4444; stroke-width: 2.5; }
+        
 
         .time-marker, .sun-marker {
             position: absolute;
@@ -282,7 +291,7 @@
 
         .time-label {
             position: absolute; font-size: 11px; color: white; background: rgba(0, 0, 0, 0.7);
-            padding: 2px 6px; border-radius: 3px; transform: translate(-50%, -190%); z-index: 203;
+            padding: 2px 6px; border-radius: 3px; z-index: 203;
             font-weight: bold;
         }
         .sun-marker {
@@ -327,22 +336,32 @@
         }
 
         .location-buttons {
-            display: flex;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 6px;
         }
 
         .location-buttons button {
-            flex: 1;
             padding: 8px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
             font-weight: bold;
             font-size: 11px;
+            transition: background-color 0.3s;
         }
 
         #currentLocationBtn {
             background: #48cae4;
+            color: #0d1b2a;
+        }
+        
+        #lockMapBtn {
+            background: #4895ef;
+            color: #0d1b2a;
+        }
+        #lockMapBtn.active {
+            background: #f77f00;
             color: #0d1b2a;
         }
 
@@ -351,16 +370,6 @@
             background: rgba(144, 224, 239, 0.2); color: #ade8f4; border: 1px solid #90e0ef;
             padding: 6px 10px; border-radius: 4px; cursor: pointer; flex-grow: 1;
             font-size: 11px;
-        }
-
-        .sun-path-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 250;
         }
 
         @media (max-width: 768px) {
@@ -381,7 +390,7 @@
             <div class="compass-east">E</div>
             <div class="compass-west">O</div>
             <div class="compass-center"></div>
-            <div class="compass-needle"></div>
+            <div class="compass-needle" id="compassNeedle"></div>
         </div>
     </div>
     <div class="shadow-overlay" id="shadowOverlay">
@@ -429,7 +438,8 @@
                          <button id="locationSearchBtn">Buscar</button>
                      </div>
                      <div class="location-buttons">
-                         <button id="currentLocationBtn">📍 Mi Ubicación</button>
+                         <button id="currentLocationBtn" title="Centrar en mi ubicación actual">📍 Mi Ubicación</button>
+                         <button id="lockMapBtn" title="Bloquear/Desbloquear el movimiento del mapa">🔒 Bloquear Mapa</button>
                      </div>
                      <div class="capital-buttons">
                          <button data-lat="40.4168" data-lng="-3.7038">Madrid</button>
@@ -480,6 +490,7 @@
         const locationSearchInput = document.getElementById('locationSearchInput');
         const locationSearchBtn = document.getElementById('locationSearchBtn');
         const currentLocationBtn = document.getElementById('currentLocationBtn');
+        const lockMapBtn = document.getElementById('lockMapBtn');
         const animationBtn = document.getElementById('animationBtn');
         
         L.DomEvent.disableClickPropagation(controlsPanel);
@@ -492,7 +503,9 @@
         let dragOffset = { x: 0, y: 0 };
         let animationStartTime = null;
         const ANIMATION_DURATION = 15000;
-
+        let isMapLocked = false;
+        
+        // --- Paneles y Arrastre ---
         function initPanelDrag() {
             panelTitle.addEventListener('mousedown', startDrag);
             panelTitle.addEventListener('touchstart', startDragTouch);
@@ -503,7 +516,7 @@
         }
 
         function startDrag(e) {
-            if (e.target === toggleControlsBtn || e.target === hidePanelBtn) return;
+            if (e.target.closest('button')) return;
             isDragging = true;
             const rect = controlsPanel.getBoundingClientRect();
             dragOffset.x = e.clientX - rect.left;
@@ -513,7 +526,7 @@
         }
 
         function startDragTouch(e) {
-            if (e.target === toggleControlsBtn || e.target === hidePanelBtn) return;
+            if (e.target.closest('button')) return;
             if (e.touches.length === 1) {
                 isDragging = true;
                 const rect = controlsPanel.getBoundingClientRect();
@@ -549,6 +562,22 @@
             controlsPanel.style.transition = 'all 0.3s ease';
         }
 
+        function toggleMinimizePanel() {
+             controlsPanel.classList.toggle('minimized');
+             toggleControlsBtn.textContent = controlsPanel.classList.contains('minimized') ? 'Más Opciones' : 'Menos Opciones';
+        }
+        
+        function hidePanel() {
+            controlsPanel.classList.add('hidden');
+            showPanelBtn.style.display = 'block';
+        }
+        
+        function showPanel() {
+            controlsPanel.classList.remove('hidden');
+            showPanelBtn.style.display = 'none';
+        }
+
+        // --- Cálculos y Dibujo ---
         function updateScale() {
             const center = map.getCenter();
             const point1 = map.latLngToContainerPoint(center);
@@ -588,14 +617,14 @@
             const dayOfYear = dateToDayOfYear(date);
             const latRad = lat * Math.PI / 180;
             const declination = 23.45 * Math.PI / 180 * Math.sin(2 * Math.PI * (284 + dayOfYear) / 365);
-            const hourAngle = (hour - 12) * 15 * Math.PI / 180;
+            const hourAngleRad = (hour - 12) * 15 * Math.PI / 180;
             const sinAltitude = Math.sin(latRad) * Math.sin(declination) +
-                Math.cos(latRad) * Math.cos(declination) * Math.cos(hourAngle);
+                Math.cos(latRad) * Math.cos(declination) * Math.cos(hourAngleRad);
             const altitude = Math.asin(Math.max(-1, Math.min(1, sinAltitude)));
             const cosAzimuth = (Math.sin(declination) - Math.sin(latRad) * Math.sin(altitude)) /
                 (Math.cos(latRad) * Math.cos(altitude));
             let azimuth = Math.acos(Math.max(-1, Math.min(1, cosAzimuth))) * 180 / Math.PI;
-            if (hourAngle > 0) {
+            if ((hour - 12) > 0) {
                 azimuth = 360 - azimuth;
             }
             return {
@@ -607,7 +636,10 @@
         function getSunScreenPos(altitude, azimuth) {
             const altRad = altitude * Math.PI / 180;
             const azRad = azimuth * Math.PI / 180;
-            const dist = 48 * Math.cos(altRad);
+            const radius = 48;
+            
+            // Proyección polar (vista desde arriba)
+            const dist = radius * Math.cos(altRad);
             const x = 50 + dist * Math.sin(azRad);
             const y = 50 - dist * Math.cos(azRad);
             return { x, y };
@@ -617,30 +649,30 @@
             sunPath.innerHTML = '';
             const svgNS = "http://www.w3.org/2000/svg";
             const svg = document.createElementNS(svgNS, "svg");
+            const w = 300; const h = 150;
             
-            const containerWidth = sunPath.clientWidth;
-            const containerHeight = sunPath.clientHeight;
-            if (containerWidth === 0 || containerHeight === 0) return;
+            svg.innerHTML = `<circle id="horizon-circle" class="sun-path-line" cx="150" cy="75" r="${(w * 0.48)}"></circle>`;
 
             const pathPoints = [];
             for (let hour = 4; hour <= 22; hour += 0.25) {
                 const solarPos = calculateSolarPosition(date, hour, lat, lng);
                 if (solarPos.altitude > 0) {
                     const pos = getSunScreenPos(solarPos.altitude, solarPos.azimuth);
-                    const svgX = (pos.x / 100) * containerWidth;
-                    const svgY = (pos.y / 100) * containerHeight;
+                    const svgX = (pos.x / 100) * w;
+                    const svgY = (pos.y / 100) * h;
                     pathPoints.push(`${svgX},${svgY}`);
                 }
             }
 
             if (pathPoints.length > 1) {
                 const pathLine = document.createElementNS(svgNS, "polyline");
-                pathLine.setAttribute("class", "sun-path-red-line");
+                pathLine.id = "sun-path-line";
+                pathLine.classList.add("sun-path-line");
                 pathLine.setAttribute("points", pathPoints.join(' '));
                 svg.appendChild(pathLine);
             }
             sunPath.appendChild(svg);
-
+            
             for (let hour = 6; hour <= 20; hour += 2) {
                 const solarPos = calculateSolarPosition(date, hour, lat, lng);
                 if (solarPos.altitude > 1) {
@@ -650,12 +682,13 @@
                     marker.style.left = `${pos.x}%`;
                     marker.style.top = `${pos.y}%`;
                     sunPath.appendChild(marker);
+                    
                     const label = document.createElement('div');
                     label.className = 'time-label';
                     label.textContent = `${hour}:00`;
                     label.style.left = `${pos.x}%`;
                     label.style.top = `${pos.y}%`;
-                    label.style.transform = `translate(-50%, ${pos.y > 50 ? '80%' : '-190%'})`;
+                    label.style.transform = `translate(-50%, ${pos.y > 50 ? '120%' : '-120%'})`;
                     sunPath.appendChild(label);
                 }
             }
@@ -702,8 +735,7 @@
                 shadow.style.height = `${shadowLengthMeters / metersPerPixel}px`;
                 shadow.style.left = '50%';
                 shadow.style.top = '50%';
-                const shadowDirection = solarPos.azimuth;
-                shadow.style.transform = `translateX(-50%) rotate(${shadowDirection}deg)`;
+                shadow.style.transform = `translateX(-50%) rotate(${solarPos.azimuth}deg)`;
                 shadow.style.display = 'block';
 
                 solarAltitudeDisplay.textContent = `${solarPos.altitude.toFixed(1)}°`;
@@ -740,6 +772,7 @@
             updateShadow(date, hour, center.lat, center.lng);
         }
 
+        // --- Animación y Geolocalización ---
         function stopAnimation() {
             if (isPlaying) {
                 cancelAnimationFrame(animationFrameId);
@@ -747,7 +780,8 @@
                 isPlaying = false;
                 animationStartTime = null;
                 animationBtn.textContent = '▶ Animar';
-                drawCurrentSunPosition(0,-1);
+                const sunMarker = document.getElementById('currentSun');
+                if(sunMarker) sunMarker.classList.remove('animated');
             }
         }
 
@@ -781,50 +815,17 @@
                 animationFrameId = requestAnimationFrame(animateSun);
             }
         }
-
-        function getCurrentLocation() {
-            navigator.geolocation?.getCurrentPosition(
-                (position) => map.setView([position.coords.latitude, position.coords.longitude], 18),
-                (error) => alert('No se pudo obtener tu ubicación: ' + error.message), 
-                { enableHighAccuracy: true }
-            );
-        }
-
-        function toggleMinimizePanel() {
-             controlsPanel.classList.toggle('minimized');
-             if (controlsPanel.classList.contains('minimized')) {
-                 toggleControlsBtn.textContent = 'Más Opciones';
-             } else {
-                 toggleControlsBtn.textContent = 'Menos Opciones';
-             }
-        }
-        
-        function hidePanel() {
-            controlsPanel.classList.add('hidden');
-            showPanelBtn.style.display = 'block';
-        }
-        
-        function showPanel() {
-            controlsPanel.classList.remove('hidden');
-            showPanelBtn.style.display = 'none';
-        }
         
         async function searchLocation() {
             const query = locationSearchInput.value;
             if (!query) return;
             stopAnimation();
-            
-            // Corregido: Añadimos un email de contacto a la URL para cumplir la política de Nominatim
-            const contactEmail = 'simulador.sombras@example.com'; // Email de ejemplo
+            const contactEmail = 'simulador.sombras@example.com';
             const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&email=${contactEmail}`;
             
             try {
-                const response = await fetch(url, {
-                    headers: { 'User-Agent': 'SolarShadowSimulator/1.0' }
-                });
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status} ${response.statusText}`);
-                }
+                const response = await fetch(url, { headers: { 'User-Agent': 'SolarShadowSimulator/1.0' } });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 const data = await response.json();
                 if (data && data.length > 0) {
                     map.setView([data[0].lat, data[0].lon], 18);
@@ -834,24 +835,66 @@
                 }
             } catch (error) {
                 console.error("Search error:", error);
-                alert("Error en la búsqueda de ubicación. El servicio puede estar temporalmente no disponible.");
+                alert("Error en la búsqueda de ubicación.");
+            }
+        }
+        
+        function getCurrentLocation() {
+            navigator.geolocation.getCurrentPosition(
+                (position) => map.setView([position.coords.latitude, position.coords.longitude]),
+                (error) => alert('No se pudo obtener tu ubicación: ' + error.message),
+                { enableHighAccuracy: true }
+            );
+        }
+
+        function toggleMapLock() {
+            isMapLocked = !isMapLocked;
+            if (isMapLocked) {
+                map.dragging.disable();
+                map.touchZoom.disable();
+                map.doubleClickZoom.disable();
+                map.scrollWheelZoom.disable();
+                map.boxZoom.disable();
+                map.keyboard.disable();
+                if (map.tap) map.tap.disable();
+                document.getElementById('map').classList.add('locked');
+                lockMapBtn.textContent = '🔓 Desbloquear';
+                lockMapBtn.classList.add('active');
+            } else {
+                map.dragging.enable();
+                map.touchZoom.enable();
+                map.doubleClickZoom.enable();
+                map.scrollWheelZoom.enable();
+                map.boxZoom.enable();
+                map.keyboard.enable();
+                if (map.tap) map.tap.enable();
+                document.getElementById('map').classList.remove('locked');
+                lockMapBtn.textContent = '🔒 Bloquear Mapa';
+                lockMapBtn.classList.remove('active');
             }
         }
 
+        // --- Event Listeners ---
         animationBtn.addEventListener('click', toggleAnimation);
         dateSlider.addEventListener('input', () => { stopAnimation(); updateDisplay(); });
         timeSlider.addEventListener('input', () => { stopAnimation(); updateDisplay(); });
         objectHeightSlider.addEventListener('input', () => { stopAnimation(); updateDisplay(); });
         objectWidthSlider.addEventListener('input', () => { stopAnimation(); updateDisplay(); });
+        
         map.on('movestart', stopAnimation);
         map.on('moveend', () => updateDisplay(true));
         map.on('zoomend', () => updateDisplay());
+        
         currentLocationBtn.addEventListener('click', getCurrentLocation);
+        lockMapBtn.addEventListener('click', toggleMapLock);
+        
         toggleControlsBtn.addEventListener('click', toggleMinimizePanel);
         hidePanelBtn.addEventListener('click', hidePanel);
         showPanelBtn.addEventListener('click', showPanel);
+        
         locationSearchBtn.addEventListener('click', searchLocation);
         locationSearchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') searchLocation(); });
+        
         document.querySelectorAll('.capital-buttons button').forEach(button => {
             button.addEventListener('click', (e) => {
                 stopAnimation();
