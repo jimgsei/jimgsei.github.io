@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Sombras Solares</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #0d1b2a;
+            color: white;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        #map {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        #compass {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 80px;
+            height: 80px;
+            background: rgba(13, 27, 42, 0.9);
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            z-index: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: white;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .compass-inner {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .compass-north {
+            position: absolute;
+            top: 2px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #ff6b6b;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .compass-south {
+            position: absolute;
+            bottom: 2px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+        }
+
+        .compass-east {
+            position: absolute;
+            right: 2px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+        }
+
+        .compass-west {
+            position: absolute;
+            left: 2px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+        }
+
+        .compass-center {
+            width: 6px;
+            height: 6px;
+            background: #ff6b6b;
+            border-radius: 50%;
+            position: absolute;
+        }
+
+        .compass-needle {
+            position: absolute;
+            width: 2px;
+            height: 25px;
+            background: #ff6b6b;
+            top: 50%;
+            left: 50%;
+            transform-origin: bottom center;
+            transform: translate(-50%, -100%) rotate(0deg);
+        }
+
+        .controls {
+            position: absolute;
+            right: 10px;
+            top: 110px;
+            width: 300px;
+            background: rgba(13, 27, 42, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            border-radius: 10px;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .controls.collapsed {
+            width: auto;
+            height: auto;
+            padding: 5px;
+            overflow: hidden;
+            border-radius: 20px;
+            border: none;
+            background: rgba(13, 27, 42, 0.95);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .controls.collapsed #collapsible-content {
+            display: none;
+        }
+
+        .controls.collapsed .title {
+             display: none;
+        }
+        
+        #toggleControlsBtn {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: rgba(255, 158, 0, 0.8);
+            color: #0d1b2a;
+            border: none;
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 1001;
+        }
+
+        .controls:not(.collapsed) .toggle-display-btn{
+             display: none;
+        }
+
+        .toggle-display-btn {
+             display: none; /* Hidden by default */
+             background: #ff9e00;
+             color: #0d1b2a;
+             border: none;
+             border-radius: 50%;
+             width: 30px;
+             height: 30px;
+             font-weight: bold;
+             cursor: pointer;
+             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        .controls.collapsed .toggle-display-btn {
+            display: block; /* Shown only when collapsed */
+        }
+
+        .control-group { margin-bottom: 12px; }
+        .control-group:last-child { margin-bottom: 0; }
+
+        label {
+            display: block; font-size: 13px; margin-bottom: 6px;
+            color: #90e0ef; font-weight: 600;
+        }
+
+        input[type="range"] {
+            width: 100%; height: 8px; border-radius: 4px; background: rgba(255, 255, 255, 0.1);
+            outline: none; -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%;
+            background: #ff9e00; cursor: pointer; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            transition: transform 0.1s ease;
+            border: 2px solid #fff;
+        }
+        input[type="range"]:active::-webkit-slider-thumb {
+            transform: scale(1.2);
+        }
+
+        .time-slider-container { display: flex; align-items: center; gap: 8px; }
+        .time-slider-container input[type="range"] { flex-grow: 1; }
+        #animationBtn {
+            background: #ff9e00; color: #0d1b2a; border: none; padding: 6px 10px;
+            border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12px;
+            min-width: 70px;
+        }
+
+        .info-panel {
+            background: rgba(13, 27, 42, 0.9); border-radius: 8px; padding: 12px;
+            margin-top: 12px; border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .solar-data { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px; }
+        .data-item { display: flex; flex-direction: column; }
+        .data-label { color: #90e0ef; font-size: 11px; }
+        .data-value { font-weight: 600; margin-top: 2px; }
+
+        .shadow-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 500;
+        }
+
+        .shadow-caster {
+            position: absolute; background: rgba(180, 180, 190, 0.9); border: 1px solid #333;
+            z-index: 400; transform: translate(-50%, -50%);
+        }
+
+        .shadow {
+            position: absolute; background: rgba(0, 0, 0, 0.5);
+            transform-origin: 50% 0; z-index: 300;
+        }
+
+        #sunPathContainer {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 300px;
+            height: 150px;
+            transform: translate(-50%, -50%);
+            z-index: 200;
+            pointer-events: none;
+        }
+        .sun-path {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+        .sun-path svg {
+            width: 100%; height: 100%; overflow: visible;
+        }
+        .sun-path-red-line {
+            stroke: #ff4444;
+            stroke-width: 2;
+            fill: none;
+            stroke-linecap: round;
+        }
+
+        .time-marker, .sun-marker {
+            position: absolute;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .time-marker {
+            width: 6px; height: 6px; background: #ffff00;
+            z-index: 202; border: 1px solid rgba(0,0,0,0.3);
+            box-shadow: 0 0 4px rgba(255, 255, 0, 0.8);
+        }
+
+        .time-label {
+            position: absolute; font-size: 11px; color: white; background: rgba(0, 0, 0, 0.7);
+            padding: 2px 6px; border-radius: 3px; transform: translate(-50%, -190%); z-index: 203;
+            font-weight: bold;
+        }
+        .sun-marker {
+            width: 24px; height: 24px;
+            z-index: 201;
+            text-align: center;
+            line-height: 24px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .sun-marker.animated {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+
+        .title {
+            font-size: 16px; font-weight: 700; margin-bottom: 12px; color: #ff9e00;
+            text-align: center; cursor: grab; position: relative; user-select: none;
+            padding: 8px;
+            border-radius: 6px;
+            background: rgba(255, 158, 0, 0.1);
+        }
+
+        .title:active {
+            cursor: grabbing;
+        }
+        
+        .location-search { display: flex; gap: 6px; margin-bottom: 8px; }
+        .location-search input {
+            flex-grow: 1; border: 1px solid #90e0ef; background: rgba(13, 27, 42, 0.8); color: white;
+            padding: 8px; border-radius: 4px; font-size: 13px;
+        }
+        .location-search button {
+            background: #90e0ef; color: #0d1b2a; border: none; padding: 0 12px;
+            border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px;
+        }
+
+        .location-buttons {
+            display: flex;
+            gap: 6px;
+        }
+
+        .location-buttons button {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 11px;
+        }
+
+        #currentLocationBtn {
+            background: #48cae4;
+            color: #0d1b2a;
+        }
+
+        .capital-buttons { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;}
+        .capital-buttons button {
+            background: rgba(144, 224, 239, 0.2); color: #ade8f4; border: 1px solid #90e0ef;
+            padding: 6px 10px; border-radius: 4px; cursor: pointer; flex-grow: 1;
+            font-size: 11px;
+        }
+
+        .sun-path-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 250;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                width: 90vw;
+                right: 5px;
+                top: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <div id="compass">
+        <div class="compass-inner">
+            <div class="compass-north">N</div>
+            <div class="compass-south">S</div>
+            <div class="compass-east">E</div>
+            <div class="compass-west">O</div>
+            <div class="compass-center"></div>
+            <div class="compass-needle"></div>
+        </div>
+    </div>
+    <div class="shadow-overlay" id="shadowOverlay">
+        <div class="sun-path-overlay" id="sunPathOverlay"></div>
+        <div id="sunPathContainer">
+            <div class="sun-path" id="sunPath"></div>
+        </div>
+    </div>
+
+    <div class="controls" id="controlsPanel">
+         <button class="toggle-display-btn" id="toggleDisplayBtn">▶</button>
+        <div class="title" id="panelTitle">
+            <span>Simulador de Sombras</span>
+            <button id="toggleControlsBtn">Esconder</button>
+        </div>
+
+        <div id="collapsible-content">
+            <div class="control-group">
+                <label for="dateSlider">Día del año: <span id="currentDate"></span></label>
+                <div class="time-slider-container"><span>Ene</span><input type="range" id="dateSlider" min="1" max="365" value="280"><span>Dic</span></div>
+            </div>
+
+            <div class="control-group">
+                <label for="timeSlider">Hora del día: <span id="currentTime">10:30</span></label>
+                <div class="time-slider-container">
+                    <button id="animationBtn">▶ Animar</button>
+                    <input type="range" id="timeSlider" min="5" max="21" step="0.1" value="10.5">
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label for="objectHeightSlider">Altura Objeto: <span id="objectHeightValue">15</span> m</label>
+                <input type="range" id="objectHeightSlider" min="1" max="50" value="15">
+            </div>
+            <div class="control-group">
+                <label for="objectWidthSlider">Ancho Objeto: <span id="objectWidthValue">10</span> m</label>
+                <input type="range" id="objectWidthSlider" min="1" max="50" value="10">
+            </div>
+            <div class="control-group">
+                 <label>Ubicación</label>
+                 <div class="location-search">
+                     <input type="text" id="locationSearchInput" placeholder="Buscar ciudad...">
+                     <button id="locationSearchBtn">Buscar</button>
+                 </div>
+                 <div class="location-buttons">
+                     <button id="currentLocationBtn">📍 Mi Ubicación</button>
+                 </div>
+                 <div class="capital-buttons">
+                     <button data-lat="40.4168" data-lng="-3.7038">Madrid</button>
+                     <button data-lat="41.3851" data-lng="2.1734">Barcelona</button>
+                     <button data-lat="37.3891" data-lng="-5.9845">Sevilla</button>
+                     <button data-lat="43.2630" data-lng="-2.9350">Bilbao</button>
+                 </div>
+            </div>
+
+            <div class="info-panel">
+                <div class="solar-data">
+                    <div class="data-item"><span class="data-label">Altura solar</span><span class="data-value" id="solarAltitude">-</span></div>
+                    <div class="data-item"><span class="data-label">Acimut</span><span class="data-value" id="solarAzimuth">-</span></div>
+                    <div class="data-item"><span class="data-label">Longitud sombra</span><span class="data-value" id="shadowLength">-</span></div>
+                    <div class="data-item"><span class="data-label">Hora solar</span><span class="data-value" id="solarTime">-</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const map = L.map('map').setView([40.4168, -3.7038], 18);
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri'
+        }).addTo(map);
+
+        const controlsPanel = document.getElementById('controlsPanel');
+        const panelTitle = document.getElementById('panelTitle');
+        const dateSlider = document.getElementById('dateSlider');
+        const currentDate = document.getElementById('currentDate');
+        const timeSlider = document.getElementById('timeSlider');
+        const currentTimeDisplay = document.getElementById('currentTime');
+        const solarAltitudeDisplay = document.getElementById('solarAltitude');
+        const solarAzimuthDisplay = document.getElementById('solarAzimuth');
+        const shadowLengthDisplay = document.getElementById('shadowLength');
+        const solarTimeDisplay = document.getElementById('solarTime');
+        const shadowOverlay = document.getElementById('shadowOverlay');
+        const sunPath = document.getElementById('sunPath');
+        const sunPathOverlay = document.getElementById('sunPathOverlay');
+        const objectHeightSlider = document.getElementById('objectHeightSlider');
+        const objectWidthSlider = document.getElementById('objectWidthSlider');
+        const objectHeightValue = document.getElementById('objectHeightValue');
+        const objectWidthValue = document.getElementById('objectWidthValue');
+        const toggleControlsBtn = document.getElementById('toggleControlsBtn');
+        const toggleDisplayBtn = document.getElementById('toggleDisplayBtn');
+        const locationSearchInput = document.getElementById('locationSearchInput');
+        const locationSearchBtn = document.getElementById('locationSearchBtn');
+        const currentLocationBtn = document.getElementById('currentLocationBtn');
+        const animationBtn = document.getElementById('animationBtn');
+        const compassNeedle = document.querySelector('.compass-needle');
+        let metersPerPixel = 1;
+        let animationFrameId = null;
+        let isPlaying = false;
+        let isDragging = false;
+        let dragOffset = { x: 0, y: 0 };
+        let animationDirection = 1; // 1 for forward, -1 for backward
+
+        function initPanelDrag() {
+            panelTitle.addEventListener('mousedown', startDrag);
+            panelTitle.addEventListener('touchstart', startDragTouch);
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('touchmove', dragTouch);
+            document.addEventListener('mouseup', stopDrag);
+            document.addEventListener('touchend', stopDrag);
+        }
+
+        function startDrag(e) {
+            isDragging = true;
+            const rect = controlsPanel.getBoundingClientRect();
+            dragOffset.x = e.clientX - rect.left;
+            dragOffset.y = e.clientY - rect.top;
+            controlsPanel.style.transition = 'none';
+            e.preventDefault();
+        }
+
+        function startDragTouch(e) {
+            if (e.touches.length === 1) {
+                isDragging = true;
+                const rect = controlsPanel.getBoundingClientRect();
+                dragOffset.x = e.touches[0].clientX - rect.left;
+                dragOffset.y = e.touches[0].clientY - rect.top;
+                controlsPanel.style.transition = 'none';
+                e.preventDefault();
+            }
+        }
+
+        function drag(e) {
+            if (!isDragging) return;
+            const x = e.clientX - dragOffset.x;
+            const y = e.clientY - dragOffset.y;
+            controlsPanel.style.left = `${x}px`;
+            controlsPanel.style.top = `${y}px`;
+            e.preventDefault();
+        }
+
+        function dragTouch(e) {
+            if (!isDragging || e.touches.length !== 1) return;
+            const x = e.touches[0].clientX - dragOffset.x;
+            const y = e.touches[0].clientY - dragOffset.y;
+            controlsPanel.style.left = `${x}px`;
+            controlsPanel.style.top = `${y}px`;
+            e.preventDefault();
+        }
+
+        function stopDrag() {
+            isDragging = false;
+            controlsPanel.style.transition = 'all 0.3s ease';
+        }
+
+        function updateScale() {
+            const center = map.getCenter();
+            const point1 = map.latLngToContainerPoint(center);
+            const point2 = L.point(point1.x + 1, point1.y);
+            metersPerPixel = center.distanceTo(map.containerPointToLatLng(point2));
+        }
+
+        function createObject() {
+            const shadowCaster = document.createElement('div');
+            shadowCaster.className = 'shadow-caster';
+            shadowCaster.id = 'shadowCaster';
+            shadowCaster.style.left = '50%';
+            shadowCaster.style.top = '50%';
+            shadowOverlay.appendChild(shadowCaster);
+        }
+
+        function updateObjectAppearance() {
+            const shadowCaster = document.getElementById('shadowCaster');
+            if (!shadowCaster) return;
+            const heightInMeters = objectHeightSlider.value;
+            const widthInMeters = objectWidthSlider.value;
+            shadowCaster.style.height = `${heightInMeters / metersPerPixel}px`;
+            shadowCaster.style.width = `${widthInMeters / metersPerPixel}px`;
+            objectHeightValue.textContent = heightInMeters;
+            objectWidthValue.textContent = widthInMeters;
+        }
+
+        function dayOfYearToDate(dayOfYear, year = 2025) {
+            return new Date(new Date(year, 0).setDate(dayOfYear));
+        }
+
+        function dateToDayOfYear(date) {
+            return Math.floor((date - new Date(date.getFullYear(), 0, 0)) / 86400000);
+        }
+
+        function calculateSolarPosition(date, hour, lat, lng) {
+            const dayOfYear = dateToDayOfYear(date);
+            const latRad = lat * Math.PI / 180;
+            const declination = 23.45 * Math.PI / 180 * Math.sin(2 * Math.PI * (284 + dayOfYear) / 365);
+            const hourAngle = (hour - 12) * 15 * Math.PI / 180;
+            const sinAltitude = Math.sin(latRad) * Math.sin(declination) +
+                Math.cos(latRad) * Math.cos(declination) * Math.cos(hourAngle);
+            const altitude = Math.asin(Math.max(-1, Math.min(1, sinAltitude)));
+            const cosAzimuth = (Math.sin(declination) - Math.sin(latRad) * Math.sin(altitude)) /
+                (Math.cos(latRad) * Math.cos(altitude));
+            let azimuth = Math.acos(Math.max(-1, Math.min(1, cosAzimuth))) * 180 / Math.PI;
+            if (hourAngle > 0) {
+                azimuth = 360 - azimuth;
+            }
+            return {
+                altitude: altitude * 180 / Math.PI,
+                azimuth: azimuth
+            };
+        }
+
+        function getSunScreenPos(altitude, azimuth) {
+            const altRad = altitude * Math.PI / 180;
+            const azRad = azimuth * Math.PI / 180;
+            const x = 50 + 45 * Math.sin(azRad) * Math.cos(altRad);
+            const y = 95 - 90 * Math.sin(altRad); // Adjusted y calculation for better arc
+            return { x, y };
+        }
+
+        function drawSunPath(date, lat, lng) {
+            sunPath.innerHTML = '';
+            const svgNS = "http://www.w3.org/2000/svg";
+            const svg = document.createElementNS(svgNS, "svg");
+            
+            const containerWidth = sunPath.clientWidth;
+            const containerHeight = sunPath.clientHeight;
+            if (containerWidth === 0 || containerHeight === 0) return;
+
+            const pathPoints = [];
+            for (let hour = 4; hour <= 22; hour += 0.25) {
+                const solarPos = calculateSolarPosition(date, hour, lat, lng);
+                if (solarPos.altitude > 0) {
+                    const pos = getSunScreenPos(solarPos.altitude, solarPos.azimuth);
+                    const svgX = (pos.x / 100) * containerWidth;
+                    const svgY = (pos.y / 100) * containerHeight;
+                    pathPoints.push(`${svgX},${svgY}`);
+                }
+            }
+
+            if (pathPoints.length > 1) {
+                const pathLine = document.createElementNS(svgNS, "polyline");
+                pathLine.setAttribute("class", "sun-path-red-line");
+                pathLine.setAttribute("points", pathPoints.join(' '));
+                svg.appendChild(pathLine);
+            }
+            sunPath.appendChild(svg);
+
+            for (let hour = 6; hour <= 20; hour += 2) {
+                const solarPos = calculateSolarPosition(date, hour, lat, lng);
+                if (solarPos.altitude > 1) {
+                    const pos = getSunScreenPos(solarPos.altitude, solarPos.azimuth);
+                    const marker = document.createElement('div');
+                    marker.className = 'time-marker';
+                    marker.style.left = `${pos.x}%`;
+                    marker.style.top = `${pos.y}%`;
+                    sunPath.appendChild(marker);
+                    const label = document.createElement('div');
+                    label.className = 'time-label';
+                    label.textContent = `${hour}:00`;
+                    label.style.left = `${pos.x}%`;
+                    label.style.top = `${pos.y}%`;
+                    sunPath.appendChild(label);
+                }
+            }
+        }
+
+        function drawCurrentSunPosition(altitude, azimuth) {
+            const oldMarker = document.getElementById('currentSun');
+            if (oldMarker) oldMarker.remove();
+
+            if (altitude > 0) {
+                const pos = getSunScreenPos(altitude, azimuth);
+                const marker = document.createElement('div');
+                marker.className = 'sun-marker' + (isPlaying ? ' animated' : '');
+                marker.id = 'currentSun';
+                marker.textContent = '☀️';
+                marker.style.left = `${pos.x}%`;
+                marker.style.top = `${pos.y}%`;
+                sunPath.appendChild(marker);
+            }
+        }
+
+        function updateShadow(date, hour, lat, lng) {
+            const oldShadow = document.getElementById('objectShadow');
+            if (oldShadow) oldShadow.remove();
+            const solarPos = calculateSolarPosition(date, hour, lat, lng);
+            if (solarPos.altitude > 0) {
+                const objectHeightMeters = parseFloat(objectHeightSlider.value);
+                const objectWidthMeters = parseFloat(objectWidthSlider.value);
+                const shadowRatio = 1 / Math.tan(solarPos.altitude * Math.PI / 180);
+                const shadowLengthMeters = objectHeightMeters * shadowRatio;
+                const shadow = document.createElement('div');
+                shadow.className = 'shadow';
+                shadow.id = 'objectShadow';
+                shadow.style.width = `${objectWidthMeters / metersPerPixel}px`;
+                shadow.style.height = `${shadowLengthMeters / metersPerPixel}px`;
+                shadow.style.left = '50%';
+                shadow.style.top = '50%';
+                const shadowDirection = solarPos.azimuth;
+                shadow.style.transform = `translateX(-50%) rotate(${shadowDirection}deg)`;
+                shadowOverlay.appendChild(shadow);
+                solarAltitudeDisplay.textContent = `${solarPos.altitude.toFixed(1)}°`;
+                solarAzimuthDisplay.textContent = `${solarPos.azimuth.toFixed(1)}°`;
+                shadowLengthDisplay.textContent = `${shadowLengthMeters.toFixed(1)} m (1:${shadowRatio.toFixed(2)})`;
+                drawCurrentSunPosition(solarPos.altitude, solarPos.azimuth);
+            } else {
+                solarAltitudeDisplay.textContent = 'Bajo el horizonte';
+                solarAzimuthDisplay.textContent = '-';
+                shadowLengthDisplay.textContent = '-';
+                drawCurrentSunPosition(-1, 0);
+            }
+        }
+
+        function updateDisplay() {
+            updateScale();
+            updateObjectAppearance();
+            const dayOfYear = parseInt(dateSlider.value);
+            const date = dayOfYearToDate(dayOfYear);
+            const hour = parseFloat(timeSlider.value);
+            const hours = Math.floor(hour);
+            const minutes = Math.round((hour - hours) * 60);
+            const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+            currentTimeDisplay.textContent = timeString;
+            solarTimeDisplay.textContent = timeString;
+            currentDate.textContent = date.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
+            const center = map.getCenter();
+            
+            if (sunPath.dataset.day !== dayOfYear.toString() || sunPath.dataset.lat !== center.lat.toString()) {
+                 drawSunPath(date, center.lat, center.lng);
+                 sunPath.dataset.day = dayOfYear;
+                 sunPath.dataset.lat = center.lat;
+            }
+            updateShadow(date, hour, center.lat, center.lng);
+        }
+
+        function stopAnimation() {
+            if (isPlaying) {
+                cancelAnimationFrame(animationFrameId);
+                isPlaying = false;
+                animationBtn.textContent = '▶ Animar';
+                const sunMarker = document.getElementById('currentSun');
+                if (sunMarker) sunMarker.classList.remove('animated');
+            }
+        }
+
+        function animateSun() {
+            let currentHour = parseFloat(timeSlider.value);
+            if (currentHour >= parseFloat(timeSlider.max) && animationDirection === 1) {
+                animationDirection = -1;
+            } else if (currentHour <= parseFloat(timeSlider.min) && animationDirection === -1) {
+                animationDirection = 1;
+            }
+            currentHour += 0.02 * animationDirection;
+            timeSlider.value = currentHour;
+            updateDisplay();
+            animationFrameId = requestAnimationFrame(animateSun);
+        }
+
+        function toggleAnimation() {
+            if (isPlaying) {
+                stopAnimation();
+            } else {
+                isPlaying = true;
+                if (parseFloat(timeSlider.value) >= parseFloat(timeSlider.max)) {
+                    animationDirection = -1;
+                } else if (parseFloat(timeSlider.value) <= parseFloat(timeSlider.min)) {
+                    animationDirection = 1;
+                }
+                animationBtn.textContent = '❚❚ Pausa';
+                animateSun();
+            }
+        }
+
+        function getCurrentLocation() {
+            if (!navigator.geolocation) {
+                alert('La geolocalización no es soportada por tu navegador');
+                return;
+            }
+            currentLocationBtn.textContent = 'Buscando...';
+            currentLocationBtn.disabled = true;
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    map.setView([lat, lng], 18);
+                    currentLocationBtn.textContent = '📍 Mi Ubicación';
+                    currentLocationBtn.disabled = false;
+                },
+                function(error) {
+                    alert('No se pudo obtener tu ubicación: ' + error.message);
+                    currentLocationBtn.textContent = '📍 Mi Ubicación';
+                    currentLocationBtn.disabled = false;
+                }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+            );
+        }
+
+        function togglePanel() {
+             controlsPanel.classList.toggle('collapsed');
+             toggleControlsBtn.textContent = controlsPanel.classList.contains('collapsed') ? 'Mostrar' : 'Esconder';
+        }
+
+        animationBtn.addEventListener('click', toggleAnimation);
+        dateSlider.addEventListener('input', () => { stopAnimation(); updateDisplay(); });
+        timeSlider.addEventListener('input', () => { stopAnimation(); updateDisplay(); });
+        objectHeightSlider.addEventListener('input', () => { stopAnimation(); updateDisplay(); });
+        objectWidthSlider.addEventListener('input', () => { stopAnimation(); updateDisplay(); });
+        map.on('movestart', stopAnimation);
+        map.on('moveend', updateDisplay);
+        map.on('zoomend', updateDisplay);
+        currentLocationBtn.addEventListener('click', getCurrentLocation);
+        toggleControlsBtn.addEventListener('click', togglePanel);
+        toggleDisplayBtn.addEventListener('click', togglePanel);
+
+
+        async function searchLocation() {
+            const query = locationSearchInput.value;
+            if (!query) return;
+            stopAnimation();
+            locationSearchInput.placeholder = "Buscando...";
+            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                if (data && data.length > 0) {
+                    map.setView([data[0].lat, data[0].lon], 18);
+                    locationSearchInput.value = '';
+                } else {
+                    locationSearchInput.placeholder = "No encontrado.";
+                }
+            } catch (error) {
+                locationSearchInput.placeholder = "Error de búsqueda.";
+            } finally {
+                if (locationSearchInput.placeholder !== 'Buscar ciudad...') setTimeout(() => {
+                    locationSearchInput.placeholder = 'Buscar ciudad...'
+                }, 2000)
+            }
+        }
+
+        locationSearchBtn.addEventListener('click', searchLocation);
+        locationSearchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') searchLocation();
+        });
+
+        document.querySelectorAll('.capital-buttons button').forEach(button => {
+            button.addEventListener('click', (e) => {
+                stopAnimation();
+                map.setView([e.target.dataset.lat, e.target.dataset.lng], 18)
+            });
+        });
+
+        function initialize() {
+            const initialDate = new Date();
+            dateSlider.value = dateToDayOfYear(initialDate);
+            timeSlider.value = initialDate.getHours() + initialDate.getMinutes() / 60;
+            createObject();
+            initPanelDrag();
+            updateDisplay();
+        }
+
+        initialize();
+    </script>
+</body>
+</html>
