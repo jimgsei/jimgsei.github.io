@@ -50,11 +50,6 @@
             color: white;
             backdrop-filter: blur(5px);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            cursor: pointer;
-            transition: border-color 0.3s;
-        }
-        #compass.active {
-            border-color: #f77f00;
         }
 
         .compass-inner {
@@ -258,8 +253,8 @@
             position: absolute;
             left: 50%;
             top: 50%;
-            width: 280px; /* Ajustado */
-            height: 140px; /* Ajustado */
+            width: 280px;
+            height: 140px;
             transform: translate(-50%, -50%);
             z-index: 200;
             pointer-events: none;
@@ -343,7 +338,7 @@
 
         .location-buttons {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr 1fr 1fr;
             gap: 6px;
         }
 
@@ -371,6 +366,15 @@
             color: #0d1b2a;
         }
 
+        #realCompassBtn {
+            background: #4895ef;
+            color: #0d1b2a;
+        }
+        #realCompassBtn.active {
+            background-color: #f77f00;
+            color: #0d1b2a;
+        }
+
         .capital-buttons { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;}
         .capital-buttons button {
             background: rgba(144, 224, 239, 0.2); color: #ade8f4; border: 1px solid #90e0ef;
@@ -384,12 +388,15 @@
                 right: 5vw;
                 top: 110px;
             }
+            .location-buttons {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
     <div id="map"></div>
-    <div id="compass" title="Pulsar para activar/desactivar rotación del mapa con el móvil">
+    <div id="compass">
         <div class="compass-inner">
             <div class="compass-north">N</div>
             <div class="compass-south">S</div>
@@ -446,6 +453,7 @@
                      <div class="location-buttons">
                          <button id="currentLocationBtn" title="Centrar en mi ubicación actual">📍 Mi Ubicación</button>
                          <button id="lockMapBtn" title="Bloquear/Desbloquear el movimiento del mapa">🔒 Bloquear Mapa</button>
+                         <button id="realCompassBtn" title="Activar/desactivar brújula y rotación del mapa con el móvil">🛰️ Brújula Real</button>
                      </div>
                      <div class="capital-buttons">
                          <button data-lat="40.4168" data-lng="-3.7038">Madrid</button>
@@ -497,13 +505,12 @@
         const locationSearchBtn = document.getElementById('locationSearchBtn');
         const currentLocationBtn = document.getElementById('currentLocationBtn');
         const lockMapBtn = document.getElementById('lockMapBtn');
+        const realCompassBtn = document.getElementById('realCompassBtn');
         const animationBtn = document.getElementById('animationBtn');
-        const compass = document.getElementById('compass');
         const compassNeedle = document.getElementById('compassNeedle');
         
         L.DomEvent.disableClickPropagation(controlsPanel);
         L.DomEvent.disableScrollPropagation(controlsPanel);
-        L.DomEvent.disableClickPropagation(compass); // Corregido: Aislar la brújula de los clics del mapa
 
         let metersPerPixel = 1;
         let animationFrameId = null;
@@ -513,7 +520,7 @@
         let animationStartTime = null;
         const ANIMATION_DURATION = 15000;
         let isMapLocked = false;
-        let isMapRotationActive = false;
+        let isRealCompassActive = false;
         
         // --- Paneles y Arrastre ---
         function initPanelDrag() {
@@ -643,21 +650,18 @@
             };
         }
         
-        // --- Nuevo Visualizador Solar ---
         const DIAGRAM_W = 280;
         const DIAGRAM_H = 140;
         const DIAGRAM_CX = DIAGRAM_W / 2;
         const DIAGRAM_CY = DIAGRAM_H / 2;
-        const DIAGRAM_RADIUS = (DIAGRAM_H / 2) - 5;
+        const DIAGRAM_RADIUS = DIAGRAM_H / 2 - 5;
 
         function getSunScreenPos(altitude, azimuth) {
             const altRad = altitude * Math.PI / 180;
             const azRad = azimuth * Math.PI / 180;
-            
             const dist = DIAGRAM_RADIUS * Math.cos(altRad);
             const x = DIAGRAM_CX + dist * Math.sin(azRad);
             const y = DIAGRAM_CY - dist * Math.cos(azRad);
-            
             return { x, y };
         }
 
@@ -728,7 +732,6 @@
             }
         }
         
-        // --- Lógica principal ---
         function updateShadow(date, hour, lat, lng) {
             let shadow = document.getElementById('objectShadow');
              if (!shadow) {
@@ -826,6 +829,28 @@
             }
         }
         
+        async function searchLocation() {
+            const query = locationSearchInput.value;
+            if (!query) return;
+            stopAnimation();
+            const contactEmail = 'simulador.sombras@example.com';
+            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&email=${contactEmail}`;
+            try {
+                const response = await fetch(url, { headers: { 'User-Agent': 'SolarShadowSimulator/1.0' } });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+                if (data && data.length > 0) {
+                    map.setView([data[0].lat, data[0].lon], 18);
+                    locationSearchInput.value = '';
+                } else {
+                    alert("Ubicación no encontrada.");
+                }
+            } catch (error) {
+                console.error("Search error:", error);
+                alert("Error en la búsqueda de ubicación.");
+            }
+        }
+        
         function getCurrentLocation() {
             navigator.geolocation.getCurrentPosition(
                 (position) => map.setView([position.coords.latitude, position.coords.longitude]),
@@ -861,33 +886,41 @@
             }
         }
 
-        function handleOrientationAndRotateMap(event) {
-             // Esta función ya no es necesaria, la brújula solo se moverá a sí misma
+        function handleOrientation(event) {
+            if (typeof event.alpha !== 'number') return;
+            const heading = event.alpha;
+            map.getContainer().style.transform = `rotate(${-heading}deg)`;
+            compassNeedle.style.transform = `translate(-50%, -100%) rotate(${heading}deg)`;
         }
 
         function toggleRealCompass() {
-            // Esta función ya no es necesaria, la hemos integrado en un nuevo listener para la brújula
-        }
-        
-        async function searchLocation() {
-            const query = locationSearchInput.value;
-            if (!query) return;
-            stopAnimation();
-            const contactEmail = 'simulador.sombras@example.com';
-            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&email=${contactEmail}`;
-            try {
-                const response = await fetch(url, { headers: { 'User-Agent': 'SolarShadowSimulator/1.0' } });
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                const data = await response.json();
-                if (data && data.length > 0) {
-                    map.setView([data[0].lat, data[0].lon], 18);
-                    locationSearchInput.value = '';
+            if (isRealCompassActive) {
+                window.removeEventListener('deviceorientationabsolute', handleOrientation, true);
+                isRealCompassActive = false;
+                realCompassBtn.classList.remove('active');
+                map.getContainer().style.transform = '';
+                compassNeedle.style.transform = 'translate(-50%, -100%) rotate(0deg)';
+            } else {
+                const startCompass = () => {
+                    window.addEventListener('deviceorientationabsolute', handleOrientation, true);
+                    isRealCompassActive = true;
+                    realCompassBtn.classList.add('active');
+                };
+
+                if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    DeviceOrientationEvent.requestPermission()
+                        .then(permissionState => {
+                            if (permissionState === 'granted') {
+                                startCompass();
+                            } else {
+                                alert('Permiso para acceder a la orientación denegado.');
+                            }
+                        }).catch(console.error);
+                } else if ('DeviceOrientationEvent' in window) {
+                    startCompass();
                 } else {
-                    alert("Ubicación no encontrada.");
+                    alert('Este dispositivo no soporta la brújula en el navegador.');
                 }
-            } catch (error) {
-                console.error("Search error:", error);
-                alert("Error en la búsqueda de ubicación.");
             }
         }
 
@@ -904,6 +937,7 @@
         
         currentLocationBtn.addEventListener('click', getCurrentLocation);
         lockMapBtn.addEventListener('click', toggleMapLock);
+        realCompassBtn.addEventListener('click', toggleRealCompass);
         
         toggleControlsBtn.addEventListener('click', toggleMinimizePanel);
         hidePanelBtn.addEventListener('click', hidePanel);
