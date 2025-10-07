@@ -61,6 +61,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: transform 0.2s ease-out; /* Para suavizar la rotación del cuerpo de la brújula */
         }
 
         .compass-north {
@@ -397,7 +398,7 @@
 <body>
     <div id="map"></div>
     <div id="compass">
-        <div class="compass-inner">
+        <div class="compass-inner" id="compassInner">
             <div class="compass-north">N</div>
             <div class="compass-south">S</div>
             <div class="compass-east">E</div>
@@ -507,6 +508,7 @@
         const lockMapBtn = document.getElementById('lockMapBtn');
         const realCompassBtn = document.getElementById('realCompassBtn');
         const animationBtn = document.getElementById('animationBtn');
+        const compassInner = document.getElementById('compassInner');
         const compassNeedle = document.getElementById('compassNeedle');
         
         L.DomEvent.disableClickPropagation(controlsPanel);
@@ -522,7 +524,6 @@
         let isMapLocked = false;
         let isRealCompassActive = false;
         
-        // --- Paneles y Arrastre ---
         function initPanelDrag() {
             panelTitle.addEventListener('mousedown', startDrag);
             panelTitle.addEventListener('touchstart', startDragTouch);
@@ -594,7 +595,6 @@
             showPanelBtn.style.display = 'none';
         }
 
-        // --- Cálculos y Dibujo ---
         function updateScale() {
             const center = map.getCenter();
             const point1 = map.latLngToContainerPoint(center);
@@ -789,7 +789,6 @@
             updateShadow(date, hour, center.lat, center.lng);
         }
 
-        // --- Animación, Brújula, Geolocalización ---
         function stopAnimation() {
             if (isPlaying) {
                 cancelAnimationFrame(animationFrameId);
@@ -889,18 +888,29 @@
         function handleOrientation(event) {
             if (typeof event.alpha !== 'number') return;
             const heading = event.alpha;
-            map.getContainer().style.transform = `rotate(${-heading}deg)`;
-            compassNeedle.style.transform = `translate(-50%, -100%) rotate(${heading}deg)`;
+            
+            // Rota el mapa para que la parte superior coincida con la dirección del móvil
+            // y lo escala para evitar huecos negros en las esquinas.
+            map.getContainer().style.transform = `rotate(${-heading}deg) scale(1.5)`;
+            
+            // La aguja se queda estática (apuntando "arriba" en la pantalla).
+            compassNeedle.style.transform = 'translate(-50%, -100%) rotate(0deg)';
+            
+            // El cuerpo de la brújula rota para indicar dónde está el Norte real.
+            compassInner.style.transform = `rotate(${-heading}deg)`;
         }
 
         function toggleRealCompass() {
             if (isRealCompassActive) {
+                // Desactivar
                 window.removeEventListener('deviceorientationabsolute', handleOrientation, true);
                 isRealCompassActive = false;
                 realCompassBtn.classList.remove('active');
-                map.getContainer().style.transform = '';
-                compassNeedle.style.transform = 'translate(-50%, -100%) rotate(0deg)';
+                map.getContainer().style.transform = ''; // Resetear rotación y escala del mapa
+                compassInner.style.transform = ''; // Resetear rotación del cuerpo de la brújula
+                compassNeedle.style.transform = 'translate(-50%, -100%) rotate(0deg)'; // Resetear aguja
             } else {
+                // Activar
                 const startCompass = () => {
                     window.addEventListener('deviceorientationabsolute', handleOrientation, true);
                     isRealCompassActive = true;
@@ -969,3 +979,4 @@
     </script>
 </body>
 </html>
+
