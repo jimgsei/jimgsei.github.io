@@ -607,8 +607,9 @@
         function getSunScreenPos(altitude, azimuth) {
             const altRad = altitude * Math.PI / 180;
             const azRad = azimuth * Math.PI / 180;
-            const x = 50 + 48 * Math.sin(azRad) * Math.cos(altRad);
-            const y = 95 - 90 * Math.sin(altRad);
+            const dist = 48 * Math.cos(altRad);
+            const x = 50 + dist * Math.sin(azRad);
+            const y = 50 - dist * Math.cos(azRad);
             return { x, y };
         }
 
@@ -654,6 +655,7 @@
                     label.textContent = `${hour}:00`;
                     label.style.left = `${pos.x}%`;
                     label.style.top = `${pos.y}%`;
+                    label.style.transform = `translate(-50%, ${pos.y > 50 ? '80%' : '-190%'})`;
                     sunPath.appendChild(label);
                 }
             }
@@ -811,9 +813,18 @@
             const query = locationSearchInput.value;
             if (!query) return;
             stopAnimation();
-            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
+            
+            // Corregido: Añadimos un email de contacto a la URL para cumplir la política de Nominatim
+            const contactEmail = 'simulador.sombras@example.com'; // Email de ejemplo
+            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&email=${contactEmail}`;
+            
             try {
-                const response = await fetch(url);
+                const response = await fetch(url, {
+                    headers: { 'User-Agent': 'SolarShadowSimulator/1.0' }
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status} ${response.statusText}`);
+                }
                 const data = await response.json();
                 if (data && data.length > 0) {
                     map.setView([data[0].lat, data[0].lon], 18);
@@ -822,7 +833,8 @@
                     alert("Ubicación no encontrada.");
                 }
             } catch (error) {
-                alert("Error en la búsqueda de ubicación.");
+                console.error("Search error:", error);
+                alert("Error en la búsqueda de ubicación. El servicio puede estar temporalmente no disponible.");
             }
         }
 
