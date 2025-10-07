@@ -126,25 +126,6 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             transition: all 0.3s ease;
         }
-
-        .controls.collapsed {
-            width: auto;
-            height: auto;
-            padding: 5px;
-            overflow: hidden;
-            border-radius: 20px;
-            border: none;
-            background: rgba(13, 27, 42, 0.95);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        }
-
-        .controls.collapsed #collapsible-content {
-            display: none;
-        }
-
-        .controls.collapsed .title {
-             display: none;
-        }
         
         #toggleControlsBtn {
             position: absolute;
@@ -161,25 +142,33 @@
             z-index: 1001;
         }
 
-        .controls:not(.collapsed) .toggle-display-btn{
+        .controls.collapsed {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            overflow: hidden;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .controls.collapsed #collapsible-content {
+            display: none;
+        }
+
+        .controls.collapsed .title {
              display: none;
         }
 
-        .toggle-display-btn {
-             display: none; /* Hidden by default */
-             background: #ff9e00;
-             color: #0d1b2a;
-             border: none;
-             border-radius: 50%;
-             width: 30px;
-             height: 30px;
-             font-weight: bold;
-             cursor: pointer;
-             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-        }
-
-        .controls.collapsed .toggle-display-btn {
-            display: block; /* Shown only when collapsed */
+        .controls.collapsed #toggleControlsBtn {
+            position: static;
+            display: block;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            font-size: 14px;
+            padding: 0;
         }
 
         .control-group { margin-bottom: 12px; }
@@ -358,10 +347,10 @@
         }
 
         @media (max-width: 768px) {
-            .controls {
+            .controls:not(.collapsed) {
                 width: 90vw;
-                right: 5px;
-                top: 5px;
+                right: 5vw;
+                top: 10px;
             }
         }
     </style>
@@ -386,11 +375,10 @@
     </div>
 
     <div class="controls" id="controlsPanel">
-         <button class="toggle-display-btn" id="toggleDisplayBtn">▶</button>
         <div class="title" id="panelTitle">
             <span>Simulador de Sombras</span>
-            <button id="toggleControlsBtn">Esconder</button>
         </div>
+        <button id="toggleControlsBtn">Esconder</button>
 
         <div id="collapsible-content">
             <div class="control-group">
@@ -460,24 +448,22 @@
         const solarTimeDisplay = document.getElementById('solarTime');
         const shadowOverlay = document.getElementById('shadowOverlay');
         const sunPath = document.getElementById('sunPath');
-        const sunPathOverlay = document.getElementById('sunPathOverlay');
         const objectHeightSlider = document.getElementById('objectHeightSlider');
         const objectWidthSlider = document.getElementById('objectWidthSlider');
         const objectHeightValue = document.getElementById('objectHeightValue');
         const objectWidthValue = document.getElementById('objectWidthValue');
         const toggleControlsBtn = document.getElementById('toggleControlsBtn');
-        const toggleDisplayBtn = document.getElementById('toggleDisplayBtn');
         const locationSearchInput = document.getElementById('locationSearchInput');
         const locationSearchBtn = document.getElementById('locationSearchBtn');
         const currentLocationBtn = document.getElementById('currentLocationBtn');
         const animationBtn = document.getElementById('animationBtn');
-        const compassNeedle = document.querySelector('.compass-needle');
+        
         let metersPerPixel = 1;
         let animationFrameId = null;
         let isPlaying = false;
         let isDragging = false;
         let dragOffset = { x: 0, y: 0 };
-        let animationDirection = 1; // 1 for forward, -1 for backward
+        let animationDirection = 1;
 
         function initPanelDrag() {
             panelTitle.addEventListener('mousedown', startDrag);
@@ -509,18 +495,20 @@
         }
 
         function drag(e) {
-            if (!isDragging) return;
+            if (!isDragging || controlsPanel.classList.contains('collapsed')) return;
             const x = e.clientX - dragOffset.x;
             const y = e.clientY - dragOffset.y;
+            controlsPanel.style.right = 'auto'; // Disable right positioning while dragging
             controlsPanel.style.left = `${x}px`;
             controlsPanel.style.top = `${y}px`;
             e.preventDefault();
         }
 
         function dragTouch(e) {
-            if (!isDragging || e.touches.length !== 1) return;
+            if (!isDragging || e.touches.length !== 1 || controlsPanel.classList.contains('collapsed')) return;
             const x = e.touches[0].clientX - dragOffset.x;
             const y = e.touches[0].clientY - dragOffset.y;
+            controlsPanel.style.right = 'auto'; // Disable right positioning while dragging
             controlsPanel.style.left = `${x}px`;
             controlsPanel.style.top = `${y}px`;
             e.preventDefault();
@@ -558,7 +546,7 @@
             objectWidthValue.textContent = widthInMeters;
         }
 
-        function dayOfYearToDate(dayOfYear, year = 2025) {
+        function dayOfYearToDate(dayOfYear, year = new Date().getFullYear()) {
             return new Date(new Date(year, 0).setDate(dayOfYear));
         }
 
@@ -589,8 +577,8 @@
         function getSunScreenPos(altitude, azimuth) {
             const altRad = altitude * Math.PI / 180;
             const azRad = azimuth * Math.PI / 180;
-            const x = 50 + 45 * Math.sin(azRad) * Math.cos(altRad);
-            const y = 95 - 90 * Math.sin(altRad); // Adjusted y calculation for better arc
+            const x = 50 + 48 * Math.sin(azRad) * Math.cos(altRad);
+            const y = 95 - 90 * Math.sin(altRad);
             return { x, y };
         }
 
@@ -642,53 +630,63 @@
         }
 
         function drawCurrentSunPosition(altitude, azimuth) {
-            const oldMarker = document.getElementById('currentSun');
-            if (oldMarker) oldMarker.remove();
+            let marker = document.getElementById('currentSun');
+            if (!marker) {
+                marker = document.createElement('div');
+                marker.id = 'currentSun';
+                marker.className = 'sun-marker';
+                marker.textContent = '☀️';
+                sunPath.appendChild(marker);
+            }
 
             if (altitude > 0) {
                 const pos = getSunScreenPos(altitude, azimuth);
-                const marker = document.createElement('div');
-                marker.className = 'sun-marker' + (isPlaying ? ' animated' : '');
-                marker.id = 'currentSun';
-                marker.textContent = '☀️';
                 marker.style.left = `${pos.x}%`;
                 marker.style.top = `${pos.y}%`;
-                sunPath.appendChild(marker);
+                marker.style.display = 'block';
+                marker.classList.toggle('animated', isPlaying);
+            } else {
+                 marker.style.display = 'none';
             }
         }
 
         function updateShadow(date, hour, lat, lng) {
-            const oldShadow = document.getElementById('objectShadow');
-            if (oldShadow) oldShadow.remove();
+            let shadow = document.getElementById('objectShadow');
+             if (!shadow) {
+                shadow = document.createElement('div');
+                shadow.id = 'objectShadow';
+                shadow.className = 'shadow';
+                shadowOverlay.appendChild(shadow);
+            }
+
             const solarPos = calculateSolarPosition(date, hour, lat, lng);
             if (solarPos.altitude > 0) {
                 const objectHeightMeters = parseFloat(objectHeightSlider.value);
                 const objectWidthMeters = parseFloat(objectWidthSlider.value);
                 const shadowRatio = 1 / Math.tan(solarPos.altitude * Math.PI / 180);
                 const shadowLengthMeters = objectHeightMeters * shadowRatio;
-                const shadow = document.createElement('div');
-                shadow.className = 'shadow';
-                shadow.id = 'objectShadow';
+                
                 shadow.style.width = `${objectWidthMeters / metersPerPixel}px`;
                 shadow.style.height = `${shadowLengthMeters / metersPerPixel}px`;
                 shadow.style.left = '50%';
                 shadow.style.top = '50%';
                 const shadowDirection = solarPos.azimuth;
                 shadow.style.transform = `translateX(-50%) rotate(${shadowDirection}deg)`;
-                shadowOverlay.appendChild(shadow);
+                shadow.style.display = 'block';
+
                 solarAltitudeDisplay.textContent = `${solarPos.altitude.toFixed(1)}°`;
                 solarAzimuthDisplay.textContent = `${solarPos.azimuth.toFixed(1)}°`;
-                shadowLengthDisplay.textContent = `${shadowLengthMeters.toFixed(1)} m (1:${shadowRatio.toFixed(2)})`;
-                drawCurrentSunPosition(solarPos.altitude, solarPos.azimuth);
+                shadowLengthDisplay.textContent = `${shadowLengthMeters.toFixed(1)} m`;
             } else {
+                shadow.style.display = 'none';
                 solarAltitudeDisplay.textContent = 'Bajo el horizonte';
                 solarAzimuthDisplay.textContent = '-';
                 shadowLengthDisplay.textContent = '-';
-                drawCurrentSunPosition(-1, 0);
             }
+            drawCurrentSunPosition(solarPos.altitude, solarPos.azimuth);
         }
 
-        function updateDisplay() {
+        function updateDisplay(forceSunPathRedraw = false) {
             updateScale();
             updateObjectAppearance();
             const dayOfYear = parseInt(dateSlider.value);
@@ -702,7 +700,7 @@
             currentDate.textContent = date.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
             const center = map.getCenter();
             
-            if (sunPath.dataset.day !== dayOfYear.toString() || sunPath.dataset.lat !== center.lat.toString()) {
+            if (forceSunPathRedraw || sunPath.dataset.day !== dayOfYear.toString() || sunPath.dataset.lat !== center.lat.toString()) {
                  drawSunPath(date, center.lat, center.lng);
                  sunPath.dataset.day = dayOfYear;
                  sunPath.dataset.lat = center.lat;
@@ -715,8 +713,7 @@
                 cancelAnimationFrame(animationFrameId);
                 isPlaying = false;
                 animationBtn.textContent = '▶ Animar';
-                const sunMarker = document.getElementById('currentSun');
-                if (sunMarker) sunMarker.classList.remove('animated');
+                drawCurrentSunPosition(0,-1); // Updates animation class on sun
             }
         }
 
@@ -749,51 +746,29 @@
         }
 
         function getCurrentLocation() {
-            if (!navigator.geolocation) {
-                alert('La geolocalización no es soportada por tu navegador');
-                return;
-            }
-            currentLocationBtn.textContent = 'Buscando...';
-            currentLocationBtn.disabled = true;
-            navigator.geolocation.getCurrentPosition(
-                function(position) {
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-                    map.setView([lat, lng], 18);
-                    currentLocationBtn.textContent = '📍 Mi Ubicación';
-                    currentLocationBtn.disabled = false;
-                },
-                function(error) {
-                    alert('No se pudo obtener tu ubicación: ' + error.message);
-                    currentLocationBtn.textContent = '📍 Mi Ubicación';
-                    currentLocationBtn.disabled = false;
-                }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+            navigator.geolocation?.getCurrentPosition(
+                (position) => map.setView([position.coords.latitude, position.coords.longitude], 18),
+                (error) => alert('No se pudo obtener tu ubicación: ' + error.message), 
+                { enableHighAccuracy: true }
             );
         }
 
         function togglePanel() {
              controlsPanel.classList.toggle('collapsed');
-             toggleControlsBtn.textContent = controlsPanel.classList.contains('collapsed') ? 'Mostrar' : 'Esconder';
+             if (controlsPanel.classList.contains('collapsed')) {
+                 controlsPanel.style.left = '';
+                 controlsPanel.style.top = '';
+                 controlsPanel.style.right = '10px';
+                 toggleControlsBtn.textContent = '▶';
+             } else {
+                 toggleControlsBtn.textContent = 'Esconder';
+             }
         }
-
-        animationBtn.addEventListener('click', toggleAnimation);
-        dateSlider.addEventListener('input', () => { stopAnimation(); updateDisplay(); });
-        timeSlider.addEventListener('input', () => { stopAnimation(); updateDisplay(); });
-        objectHeightSlider.addEventListener('input', () => { stopAnimation(); updateDisplay(); });
-        objectWidthSlider.addEventListener('input', () => { stopAnimation(); updateDisplay(); });
-        map.on('movestart', stopAnimation);
-        map.on('moveend', updateDisplay);
-        map.on('zoomend', updateDisplay);
-        currentLocationBtn.addEventListener('click', getCurrentLocation);
-        toggleControlsBtn.addEventListener('click', togglePanel);
-        toggleDisplayBtn.addEventListener('click', togglePanel);
-
-
+        
         async function searchLocation() {
             const query = locationSearchInput.value;
             if (!query) return;
             stopAnimation();
-            locationSearchInput.placeholder = "Buscando...";
             const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
             try {
                 const response = await fetch(url);
@@ -802,36 +777,43 @@
                     map.setView([data[0].lat, data[0].lon], 18);
                     locationSearchInput.value = '';
                 } else {
-                    locationSearchInput.placeholder = "No encontrado.";
+                    alert("Ubicación no encontrada.");
                 }
             } catch (error) {
-                locationSearchInput.placeholder = "Error de búsqueda.";
-            } finally {
-                if (locationSearchInput.placeholder !== 'Buscar ciudad...') setTimeout(() => {
-                    locationSearchInput.placeholder = 'Buscar ciudad...'
-                }, 2000)
+                alert("Error en la búsqueda de ubicación.");
             }
         }
 
+        // Event Listeners
+        animationBtn.addEventListener('click', toggleAnimation);
+        dateSlider.addEventListener('input', () => { stopAnimation(); updateDisplay(); });
+        timeSlider.addEventListener('input', () => { stopAnimation(); updateDisplay(); });
+        objectHeightSlider.addEventListener('input', () => { stopAnimation(); updateDisplay(); });
+        objectWidthSlider.addEventListener('input', () => { stopAnimation(); updateDisplay(); });
+        map.on('movestart', stopAnimation);
+        map.on('moveend', () => updateDisplay(true));
+        map.on('zoomend', () => updateDisplay());
+        currentLocationBtn.addEventListener('click', getCurrentLocation);
+        toggleControlsBtn.addEventListener('click', togglePanel);
         locationSearchBtn.addEventListener('click', searchLocation);
-        locationSearchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') searchLocation();
-        });
-
+        locationSearchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') searchLocation(); });
         document.querySelectorAll('.capital-buttons button').forEach(button => {
             button.addEventListener('click', (e) => {
                 stopAnimation();
-                map.setView([e.target.dataset.lat, e.target.dataset.lng], 18)
+                map.setView([e.target.dataset.lat, e.target.dataset.lng], 18);
             });
         });
 
         function initialize() {
             const initialDate = new Date();
             dateSlider.value = dateToDayOfYear(initialDate);
-            timeSlider.value = initialDate.getHours() + initialDate.getMinutes() / 60;
+            const currentHour = initialDate.getHours() + initialDate.getMinutes() / 60;
+            if (currentHour >= timeSlider.min && currentHour <= timeSlider.max) {
+                 timeSlider.value = currentHour;
+            }
             createObject();
             initPanelDrag();
-            updateDisplay();
+            updateDisplay(true);
         }
 
         initialize();
