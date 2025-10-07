@@ -129,46 +129,21 @@
         
         #toggleControlsBtn {
             position: absolute;
-            top: 4px;
-            right: 4px;
+            top: 19px;
+            right: 15px;
             background: rgba(255, 158, 0, 0.8);
             color: #0d1b2a;
             border: none;
             border-radius: 4px;
-            padding: 2px 6px;
+            padding: 2px 8px;
             font-size: 11px;
             font-weight: bold;
             cursor: pointer;
             z-index: 1001;
         }
 
-        .controls.collapsed {
-            width: 40px;
-            height: 40px;
-            padding: 0;
-            overflow: hidden;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .controls.collapsed #collapsible-content {
+        .controls.minimized #extra-controls {
             display: none;
-        }
-
-        .controls.collapsed .title {
-             display: none;
-        }
-
-        .controls.collapsed #toggleControlsBtn {
-            position: static;
-            display: block;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            font-size: 14px;
-            padding: 0;
         }
 
         .control-group { margin-bottom: 12px; }
@@ -290,7 +265,7 @@
         .title {
             font-size: 16px; font-weight: 700; margin-bottom: 12px; color: #ff9e00;
             text-align: center; cursor: grab; position: relative; user-select: none;
-            padding: 8px;
+            padding: 8px 0;
             border-radius: 6px;
             background: rgba(255, 158, 0, 0.1);
         }
@@ -347,10 +322,10 @@
         }
 
         @media (max-width: 768px) {
-            .controls:not(.collapsed) {
+            .controls {
                 width: 90vw;
                 right: 5vw;
-                top: 10px;
+                top: 110px; /* Corregido: Empuja el panel debajo de la brújula */
             }
         }
     </style>
@@ -378,53 +353,55 @@
         <div class="title" id="panelTitle">
             <span>Simulador de Sombras</span>
         </div>
-        <button id="toggleControlsBtn">Esconder</button>
+        <button id="toggleControlsBtn">Menos Opciones</button>
 
         <div id="collapsible-content">
-            <div class="control-group">
-                <label for="dateSlider">Día del año: <span id="currentDate"></span></label>
-                <div class="time-slider-container"><span>Ene</span><input type="range" id="dateSlider" min="1" max="365" value="280"><span>Dic</span></div>
-            </div>
+            <div id="essential-controls">
+                <div class="control-group">
+                    <label for="dateSlider">Día del año: <span id="currentDate"></span></label>
+                    <div class="time-slider-container"><span>Ene</span><input type="range" id="dateSlider" min="1" max="365" value="280"><span>Dic</span></div>
+                </div>
 
-            <div class="control-group">
-                <label for="timeSlider">Hora del día: <span id="currentTime">10:30</span></label>
-                <div class="time-slider-container">
-                    <button id="animationBtn">▶ Animar</button>
-                    <input type="range" id="timeSlider" min="5" max="21" step="0.1" value="10.5">
+                <div class="control-group">
+                    <label for="timeSlider">Hora del día: <span id="currentTime">10:30</span></label>
+                    <div class="time-slider-container">
+                        <button id="animationBtn">▶ Animar</button>
+                        <input type="range" id="timeSlider" min="5" max="21" step="0.1" value="10.5">
+                    </div>
                 </div>
             </div>
-
-            <div class="control-group">
-                <label for="objectHeightSlider">Altura Objeto: <span id="objectHeightValue">15</span> m</label>
-                <input type="range" id="objectHeightSlider" min="1" max="50" value="15">
-            </div>
-            <div class="control-group">
-                <label for="objectWidthSlider">Ancho Objeto: <span id="objectWidthValue">10</span> m</label>
-                <input type="range" id="objectWidthSlider" min="1" max="50" value="10">
-            </div>
-            <div class="control-group">
-                 <label>Ubicación</label>
-                 <div class="location-search">
-                     <input type="text" id="locationSearchInput" placeholder="Buscar ciudad...">
-                     <button id="locationSearchBtn">Buscar</button>
-                 </div>
-                 <div class="location-buttons">
-                     <button id="currentLocationBtn">📍 Mi Ubicación</button>
-                 </div>
-                 <div class="capital-buttons">
-                     <button data-lat="40.4168" data-lng="-3.7038">Madrid</button>
-                     <button data-lat="41.3851" data-lng="2.1734">Barcelona</button>
-                     <button data-lat="37.3891" data-lng="-5.9845">Sevilla</button>
-                     <button data-lat="43.2630" data-lng="-2.9350">Bilbao</button>
-                 </div>
-            </div>
-
-            <div class="info-panel">
-                <div class="solar-data">
-                    <div class="data-item"><span class="data-label">Altura solar</span><span class="data-value" id="solarAltitude">-</span></div>
-                    <div class="data-item"><span class="data-label">Acimut</span><span class="data-value" id="solarAzimuth">-</span></div>
-                    <div class="data-item"><span class="data-label">Longitud sombra</span><span class="data-value" id="shadowLength">-</span></div>
-                    <div class="data-item"><span class="data-label">Hora solar</span><span class="data-value" id="solarTime">-</span></div>
+            <div id="extra-controls">
+                <div class="control-group">
+                    <label for="objectHeightSlider">Altura Objeto: <span id="objectHeightValue">15</span> m</label>
+                    <input type="range" id="objectHeightSlider" min="1" max="50" value="15">
+                </div>
+                <div class="control-group">
+                    <label for="objectWidthSlider">Ancho Objeto: <span id="objectWidthValue">10</span> m</label>
+                    <input type="range" id="objectWidthSlider" min="1" max="50" value="10">
+                </div>
+                <div class="control-group">
+                     <label>Ubicación</label>
+                     <div class="location-search">
+                         <input type="text" id="locationSearchInput" placeholder="Buscar ciudad...">
+                         <button id="locationSearchBtn">Buscar</button>
+                     </div>
+                     <div class="location-buttons">
+                         <button id="currentLocationBtn">📍 Mi Ubicación</button>
+                     </div>
+                     <div class="capital-buttons">
+                         <button data-lat="40.4168" data-lng="-3.7038">Madrid</button>
+                         <button data-lat="41.3851" data-lng="2.1734">Barcelona</button>
+                         <button data-lat="37.3891" data-lng="-5.9845">Sevilla</button>
+                         <button data-lat="43.2630" data-lng="-2.9350">Bilbao</button>
+                     </div>
+                </div>
+                <div class="info-panel">
+                    <div class="solar-data">
+                        <div class="data-item"><span class="data-label">Altura solar</span><span class="data-value" id="solarAltitude">-</span></div>
+                        <div class="data-item"><span class="data-label">Acimut</span><span class="data-value" id="solarAzimuth">-</span></div>
+                        <div class="data-item"><span class="data-label">Longitud sombra</span><span class="data-value" id="shadowLength">-</span></div>
+                        <div class="data-item"><span class="data-label">Hora solar</span><span class="data-value" id="solarTime">-</span></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -458,12 +435,16 @@
         const currentLocationBtn = document.getElementById('currentLocationBtn');
         const animationBtn = document.getElementById('animationBtn');
         
+        L.DomEvent.disableClickPropagation(controlsPanel);
+        L.DomEvent.disableScrollPropagation(controlsPanel);
+
         let metersPerPixel = 1;
         let animationFrameId = null;
         let isPlaying = false;
         let isDragging = false;
         let dragOffset = { x: 0, y: 0 };
-        let animationDirection = 1;
+        let animationStartTime = null;
+        const ANIMATION_DURATION = 15000; // 15 segundos
 
         function initPanelDrag() {
             panelTitle.addEventListener('mousedown', startDrag);
@@ -475,6 +456,7 @@
         }
 
         function startDrag(e) {
+            if (e.target === toggleControlsBtn) return;
             isDragging = true;
             const rect = controlsPanel.getBoundingClientRect();
             dragOffset.x = e.clientX - rect.left;
@@ -484,6 +466,7 @@
         }
 
         function startDragTouch(e) {
+            if (e.target === toggleControlsBtn) return;
             if (e.touches.length === 1) {
                 isDragging = true;
                 const rect = controlsPanel.getBoundingClientRect();
@@ -495,20 +478,20 @@
         }
 
         function drag(e) {
-            if (!isDragging || controlsPanel.classList.contains('collapsed')) return;
+            if (!isDragging) return;
             const x = e.clientX - dragOffset.x;
             const y = e.clientY - dragOffset.y;
-            controlsPanel.style.right = 'auto'; // Disable right positioning while dragging
+            controlsPanel.style.right = 'auto';
             controlsPanel.style.left = `${x}px`;
             controlsPanel.style.top = `${y}px`;
             e.preventDefault();
         }
 
         function dragTouch(e) {
-            if (!isDragging || e.touches.length !== 1 || controlsPanel.classList.contains('collapsed')) return;
+            if (!isDragging || e.touches.length !== 1) return;
             const x = e.touches[0].clientX - dragOffset.x;
             const y = e.touches[0].clientY - dragOffset.y;
-            controlsPanel.style.right = 'auto'; // Disable right positioning while dragging
+            controlsPanel.style.right = 'auto';
             controlsPanel.style.left = `${x}px`;
             controlsPanel.style.top = `${y}px`;
             e.preventDefault();
@@ -711,21 +694,31 @@
         function stopAnimation() {
             if (isPlaying) {
                 cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
                 isPlaying = false;
+                animationStartTime = null;
                 animationBtn.textContent = '▶ Animar';
-                drawCurrentSunPosition(0,-1); // Updates animation class on sun
+                drawCurrentSunPosition(0,-1);
             }
         }
 
-        function animateSun() {
-            let currentHour = parseFloat(timeSlider.value);
-            if (currentHour >= parseFloat(timeSlider.max) && animationDirection === 1) {
-                animationDirection = -1;
-            } else if (currentHour <= parseFloat(timeSlider.min) && animationDirection === -1) {
-                animationDirection = 1;
+        function animateSun(currentTime) {
+            if (!isPlaying) return;
+            if (!animationStartTime) animationStartTime = currentTime;
+
+            let elapsed = currentTime - animationStartTime;
+            if (elapsed >= ANIMATION_DURATION) {
+                elapsed = 0;
+                animationStartTime = currentTime;
             }
-            currentHour += 0.02 * animationDirection;
-            timeSlider.value = currentHour;
+            
+            const progress = elapsed / ANIMATION_DURATION;
+            const minHour = parseFloat(timeSlider.min);
+            const maxHour = parseFloat(timeSlider.max);
+            const hourSpan = maxHour - minHour;
+            
+            timeSlider.value = minHour + (progress * hourSpan);
+
             updateDisplay();
             animationFrameId = requestAnimationFrame(animateSun);
         }
@@ -735,13 +728,8 @@
                 stopAnimation();
             } else {
                 isPlaying = true;
-                if (parseFloat(timeSlider.value) >= parseFloat(timeSlider.max)) {
-                    animationDirection = -1;
-                } else if (parseFloat(timeSlider.value) <= parseFloat(timeSlider.min)) {
-                    animationDirection = 1;
-                }
                 animationBtn.textContent = '❚❚ Pausa';
-                animateSun();
+                animationFrameId = requestAnimationFrame(animateSun);
             }
         }
 
@@ -754,14 +742,11 @@
         }
 
         function togglePanel() {
-             controlsPanel.classList.toggle('collapsed');
-             if (controlsPanel.classList.contains('collapsed')) {
-                 controlsPanel.style.left = '';
-                 controlsPanel.style.top = '';
-                 controlsPanel.style.right = '10px';
-                 toggleControlsBtn.textContent = '▶';
+             controlsPanel.classList.toggle('minimized');
+             if (controlsPanel.classList.contains('minimized')) {
+                 toggleControlsBtn.textContent = 'Más Opciones';
              } else {
-                 toggleControlsBtn.textContent = 'Esconder';
+                 toggleControlsBtn.textContent = 'Menos Opciones';
              }
         }
         
@@ -784,7 +769,6 @@
             }
         }
 
-        // Event Listeners
         animationBtn.addEventListener('click', toggleAnimation);
         dateSlider.addEventListener('input', () => { stopAnimation(); updateDisplay(); });
         timeSlider.addEventListener('input', () => { stopAnimation(); updateDisplay(); });
