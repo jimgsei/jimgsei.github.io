@@ -452,7 +452,7 @@
         // --- State Variables ---
         let metersPerPixel = 1, animationFrameId = null, isPlaying = false, isDragging = false;
         let dragOffset = { x: 0, y: 0 }, animationStartTime = null, isMapLocked = false, isRealCompassActive = false;
-        let currentHeading = 0, targetHeading = 0;
+        let currentHeading = 0, targetHeading = 0, isCompassLoopRunning = false;
         const ANIMATION_DURATION = 15000;
         
         // --- UI & Panel Functions ---
@@ -804,28 +804,34 @@
         }
         
         function animateCompass() {
+            if (!isRealCompassActive && Math.abs(currentHeading - targetHeading) < 0.1) {
+                isCompassLoopRunning = false;
+                // Asegurar estado final limpio
+                compassInner.style.transform = `rotate(0deg)`;
+                sunPathContainer.style.transform = `translate(-50%, -50%) rotate(0deg)`;
+                compassNeedle.style.transform = `translate(-50%, -100%) rotate(0deg)`;
+                return;
+            }
+
             const diff = targetHeading - currentHeading;
             if (Math.abs(diff) > 180) {
                 currentHeading += diff > 0 ? -360 : 360;
             }
             
             currentHeading += (targetHeading - currentHeading) * 0.1;
-            
-            if (Math.abs(targetHeading - currentHeading) < 0.1) {
-                currentHeading = targetHeading;
-            } else {
-                requestAnimationFrame(animateCompass);
-            }
-            
+
             if (isRealCompassActive) {
                 compassInner.style.transform = `rotate(${-currentHeading}deg)`;
                 sunPathContainer.style.transform = `translate(-50%, -50%) rotate(${-currentHeading}deg)`;
                 compassNeedle.style.transform = `translate(-50%, -100%) rotate(0deg)`;
             } else {
-                compassInner.style.transform = `rotate(0deg)`;
-                sunPathContainer.style.transform = `translate(-50%, -50%) rotate(0deg)`;
+                // Animar de vuelta a la posición 0 al desactivar
+                compassInner.style.transform = `rotate(${-currentHeading}deg)`;
+                sunPathContainer.style.transform = `translate(-50%, -50%) rotate(${-currentHeading}deg)`;
                 compassNeedle.style.transform = `translate(-50%, -100%) rotate(${-currentHeading}deg)`;
             }
+
+            requestAnimationFrame(animateCompass);
         }
 
         function toggleRealCompass() {
@@ -837,30 +843,31 @@
                 realCompassBtn.textContent = '🛰️ Brújula Real';
                 realCompassBtn.classList.remove('active');
                 targetHeading = 0;
-                if (!animationFrameId) {
-                    requestAnimationFrame(animateCompass);
-                }
-                map.getPanes().mapPane.style.transform = 'rotate(0deg)';
             } else {
                 if (window.DeviceOrientationEvent) {
+                    const startCompass = () => {
+                        window.addEventListener('deviceorientation', handleOrientation);
+                        isRealCompassActive = true;
+                        realCompassBtn.textContent = '🛰️ Brújula Activa';
+                        realCompassBtn.classList.add('active');
+                        if (!isCompassLoopRunning) {
+                            isCompassLoopRunning = true;
+                            requestAnimationFrame(animateCompass);
+                        }
+                    };
+
                     if (typeof DeviceOrientationEvent.requestPermission === 'function') {
                         DeviceOrientationEvent.requestPermission()
                             .then(permissionState => {
                                 if (permissionState === 'granted') {
-                                    window.addEventListener('deviceorientation', handleOrientation);
-                                    isRealCompassActive = true;
-                                    realCompassBtn.textContent = '🛰️ Brújula Activa';
-                                    realCompassBtn.classList.add('active');
+                                    startCompass();
                                 } else {
                                     alert('Se necesita permiso para usar la brújula del dispositivo.');
                                 }
                             })
                             .catch(console.error);
                     } else {
-                        window.addEventListener('deviceorientation', handleOrientation);
-                        isRealCompassActive = true;
-                        realCompassBtn.textContent = '🛰️ Brújula Activa';
-                        realCompassBtn.classList.add('active');
+                        startCompass();
                     }
                 } else {
                     alert('Tu dispositivo no soporta la brújula o estás en un entorno sin sensores.');
@@ -871,9 +878,6 @@
         function handleOrientation(event) {
             if (event.alpha !== null) {
                 targetHeading = event.alpha;
-                if (!animationFrameId) {
-                    requestAnimationFrame(animateCompass);
-                }
             }
         }
 
