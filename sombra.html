@@ -248,6 +248,7 @@
             transform: translate(-50%, -50%);
             z-index: 300;
             pointer-events: none;
+            transition: transform 0.3s ease-out;
         }
         .sun-path { position: relative; width: 100%; height: 100%; }
         .sun-path svg { width: 100%; height: 100%; overflow: visible; }
@@ -435,6 +436,7 @@
               solarAltitudeDisplay = document.getElementById('solarAltitude'), solarAzimuthDisplay = document.getElementById('solarAzimuth'),
               shadowLengthDisplay = document.getElementById('shadowLength'), activeCelestialDisplay = document.getElementById('activeCelestial'),
               shadowOverlay = document.getElementById('shadowOverlay'), sunPath = document.getElementById('sunPath'),
+              sunPathContainer = document.getElementById('sunPathContainer'),
               objectHeightSlider = document.getElementById('objectHeightSlider'), objectWidthSlider = document.getElementById('objectWidthSlider'),
               objectHeightValue = document.getElementById('objectHeightValue'), objectWidthValue = document.getElementById('objectWidthValue'),
               toggleControlsBtn = document.getElementById('toggleControlsBtn'), hidePanelBtn = document.getElementById('hidePanelBtn'),
@@ -472,26 +474,16 @@
         function dateToDayOfYear(date) { return (Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) - Date.UTC(date.getFullYear(), 0, 0)) / 86400000; }
         
         function getScreenPosFromAzAlt(azimuth, altitude, radius) {
-            // Corrección para hemisferio norte: el sol se mueve de este a oeste pasando por el sur
             const azRad = (azimuth) * Math.PI / 180;
             const altRad = altitude * Math.PI / 180;
-            
-            // Proyectar en 2D con perspectiva (simulando una esfera)
             const r = radius * Math.cos(altRad);
             const x = (r * Math.sin(azRad));
             const y = -(r * Math.cos(azRad));
-            
             return { x, y };
         }
 
         function getMoonPhase(date) {
-            // Calcular fase lunar (0 = luna nueva, 0.5 = luna llena)
-            const LUNAR_CYCLE = 29.53; // días
-            const knownNewMoon = new Date('2024-01-11'); // Luna nueva conocida
-            const diffTime = Math.abs(date - knownNewMoon);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            const phase = (diffDays % LUNAR_CYCLE) / LUNAR_CYCLE;
-            return phase;
+            return SunCalc.getMoonIllumination(date).phase;
         }
 
         function drawPaths(date, lat, lng) {
@@ -503,7 +495,6 @@
             const center = { x: w / 2, y: h / 2 };
             const radius = Math.min(w, h) / 2 * 0.85;
 
-            // Dibujar círculo base y ejes cardinales
             svg.innerHTML = `
                 <circle cx="${center.x}" cy="${center.y}" r="${radius}" fill="rgba(0,0,0,0.2)" stroke="black" stroke-width="2"></circle>
                 <line x1="${center.x}" y1="${center.y - radius}" x2="${center.x}" y2="${center.y + radius}" stroke="white" stroke-width="1" stroke-dasharray="2,3"></line>
@@ -516,32 +507,27 @@
 
             const sunPathPoints = [], moonPathPoints = [];
 
-            // Dibujar trayectoria del sol
             for (let i = 0; i < 24; i += 0.25) {
                 const hourDate = new Date(date.getTime() + i * 3600 * 1000);
                 const sunPos = SunCalc.getPosition(hourDate, lat, lng);
                 const sunAzimuth = (sunPos.azimuth * 180 / Math.PI) + 180;
-                const sunAltitude = sunPos.altitude * 180 / Math.PI;
                 
                 if (sunPos.altitude > 0) {
-                    const screenPos = getScreenPosFromAzAlt(sunAzimuth, sunAltitude, radius);
+                    const screenPos = getScreenPosFromAzAlt(sunAzimuth, sunPos.altitude * 180 / Math.PI, radius);
                     sunPathPoints.push(`${center.x + screenPos.x},${center.y + screenPos.y}`);
                 }
             }
             
-            // Dibujar trayectoria de la luna (solo puntos consecutivos)
             if (moonToggle.checked) {
                 let previousPoint = null;
                 for (let i = 0; i < 24; i += 0.25) {
                     const hourDate = new Date(date.getTime() + i * 3600 * 1000);
                     const moonPos = SunCalc.getMoonPosition(hourDate, lat, lng);
-                    const moonAltitude = moonPos.altitude * 180 / Math.PI;
                     
                     if (moonPos.altitude > 0) {
                         const moonAzimuth = (moonPos.azimuth * 180 / Math.PI) + 180;
-                        const screenPos = getScreenPosFromAzAlt(moonAzimuth, moonAltitude, radius);
+                        const screenPos = getScreenPosFromAzAlt(moonAzimuth, moonPos.altitude * 180 / Math.PI, radius);
                         
-                        // Solo añadir puntos consecutivos para evitar líneas rectas
                         if (previousPoint) {
                             moonPathPoints.push(`${center.x + screenPos.x},${center.y + screenPos.y}`);
                         } else {
@@ -549,7 +535,7 @@
                         }
                         previousPoint = screenPos;
                     } else {
-                        previousPoint = null; // Reiniciar cuando la luna se pone
+                        previousPoint = null;
                     }
                 }
             }
@@ -574,14 +560,12 @@
             
             sunPath.appendChild(svg);
             
-            // Añadir etiquetas de horas para el sol
             for (let hour of [6, 8, 10, 12, 14, 16, 18]) {
                 const hourDate = new Date(date.getTime() + hour * 3600 * 1000);
                 const sunPos = SunCalc.getPosition(hourDate, lat, lng);
                  if (sunPos.altitude > 0) {
                     const sunAzimuth = (sunPos.azimuth * 180 / Math.PI) + 180;
-                    const sunAltitude = sunPos.altitude * 180 / Math.PI;
-                    const screenPos = getScreenPosFromAzAlt(sunAzimuth, sunAltitude, radius);
+                    const screenPos = getScreenPosFromAzAlt(sunAzimuth, sunPos.altitude * 180 / Math.PI, radius);
                     const label = document.createElement('div');
                     label.className = 'hour-label';
                     label.textContent = `${hour}h`;
@@ -591,15 +575,13 @@
                 }
             }
             
-            // Añadir etiquetas de horas para la luna
             if (moonToggle.checked) {
                 for (let hour of [18, 20, 22, 0, 2, 4, 6]) {
                     const hourDate = new Date(date.getTime() + hour * 3600 * 1000);
                     const moonPos = SunCalc.getMoonPosition(hourDate, lat, lng);
                     if (moonPos.altitude > 0) {
                         const moonAzimuth = (moonPos.azimuth * 180 / Math.PI) + 180;
-                        const moonAltitude = moonPos.altitude * 180 / Math.PI;
-                        const screenPos = getScreenPosFromAzAlt(moonAzimuth, moonAltitude, radius);
+                        const screenPos = getScreenPosFromAzAlt(moonAzimuth, moonPos.altitude * 180 / Math.PI, radius);
                         const label = document.createElement('div');
                         label.className = 'hour-label moon-hour-label';
                         label.textContent = `${hour}h`;
@@ -612,11 +594,9 @@
         }
 
         function updateShadowAndMarkers(date, hour, lat, lng) {
-            // Eliminar sombra anterior si existe
             let shadow = document.getElementById('objectShadow');
             if (shadow) shadow.remove();
             
-            // Crear nueva sombra
             shadow = document.createElement('div');
             shadow.id = 'objectShadow';
             shadow.className = 'shadow';
@@ -627,16 +607,14 @@
             const moonPos = SunCalc.getMoonPosition(fullDate, lat, lng);
             const sunAltitude = sunPos.altitude * 180 / Math.PI, sunAzimuth = (sunPos.azimuth * 180 / Math.PI) + 180;
             const moonAltitude = moonPos.altitude * 180 / Math.PI, moonAzimuth = (moonPos.azimuth * 180 / Math.PI) + 180;
-            let activeCelestialName = null, celestialForShadow = null;
+            let celestialForShadow = null;
             
             if (sunPos.altitude > 0) { 
-                activeCelestialName = 'sol'; 
                 celestialForShadow = {altitude: sunPos.altitude, azimuth: sunAzimuth}; 
                 shadow.classList.add('sun-shadow');
                 activeCelestialDisplay.textContent = 'Sol'; 
             }
             else if (moonPos.altitude > 0 && moonToggle.checked) { 
-                activeCelestialName = 'luna'; 
                 celestialForShadow = {altitude: moonPos.altitude, azimuth: moonAzimuth}; 
                 shadow.classList.add('moon-shadow');
                 activeCelestialDisplay.textContent = 'Luna'; 
@@ -646,10 +624,8 @@
             const center = { x: w / 2, y: h / 2 };
             const radius = Math.min(w, h) / 2 * 0.85;
 
-            // Limpiar marcadores anteriores
             sunPath.querySelectorAll('.celestial-marker, .axis-line, .moon-phase').forEach(el => el.remove());
 
-            // Marcador y línea para el sol
             if (sunPos.altitude > 0) {
                 const screenPos = getScreenPosFromAzAlt(sunAzimuth, sunAltitude, radius);
                 const marker = document.createElement('div');
@@ -666,11 +642,9 @@
                 sunPath.querySelector('svg').appendChild(axis);
             }
 
-            // Marcador y línea para la luna
             if (moonToggle.checked && moonPos.altitude > 0) {
                 const screenPos = getScreenPosFromAzAlt(moonAzimuth, moonAltitude, radius);
                 
-                // Crear marcador de fase lunar
                 const moonPhase = document.createElement('div');
                 moonPhase.className = 'moon-phase';
                 moonPhase.style.left = `${center.x + screenPos.x}px`;
@@ -680,18 +654,13 @@
                 const mask = document.createElement('div');
                 mask.className = 'moon-phase-mask';
                 
-                // Aplicar fase lunar correcta (nunca un círculo completo en diagonal)
                 if (phase < 0.25) {
-                    // Luna creciente
                     mask.style.clipPath = `inset(0 ${50 - phase * 200}% 0 0)`;
                 } else if (phase < 0.5) {
-                    // Cuarto creciente a llena
                     mask.style.clipPath = `inset(0 0 0 ${(phase - 0.25) * 200}%)`;
                 } else if (phase < 0.75) {
-                    // Luna menguante
                     mask.style.clipPath = `inset(0 0 0 ${50 - (phase - 0.5) * 200}%)`;
                 } else {
-                    // Cuarto menguante a nueva
                     mask.style.clipPath = `inset(0 ${(phase - 0.75) * 200}% 0 0)`;
                 }
                 
@@ -705,14 +674,12 @@
                 sunPath.querySelector('svg').appendChild(axis);
             }
 
-            // Actualizar sombra si hay un astro activo
             if (celestialForShadow) {
                 const shadowLengthMeters = objectHeightSlider.value / Math.tan(celestialForShadow.altitude);
                 const objectWidthPx = objectWidthSlider.value / metersPerPixel;
                 const objectHeightPx = objectHeightSlider.value / metersPerPixel;
                 const shadowLengthPx = shadowLengthMeters / metersPerPixel;
                 
-                // Posicionar la sombra desde la base del objeto
                 shadow.style.width = `${objectWidthPx}px`;
                 shadow.style.height = `${shadowLengthPx}px`;
                 shadow.style.left = '50%';
@@ -720,7 +687,6 @@
                 shadow.style.transform = `translateX(-50%) rotate(${celestialForShadow.azimuth}deg)`;
                 shadow.style.display = 'block';
                 
-                // Actualizar datos de visualización
                 solarAltitudeDisplay.textContent = `${(celestialForShadow.altitude * 180 / Math.PI).toFixed(1)}°`;
                 solarAzimuthDisplay.textContent = `${celestialForShadow.azimuth.toFixed(1)}°`;
                 shadowLengthDisplay.textContent = `${shadowLengthMeters.toFixed(1)} m`;
@@ -837,7 +803,6 @@
             }
         }
         
-        // --- Brújula Real Mejorada ---
         function animateCompass() {
             const diff = targetHeading - currentHeading;
             if (Math.abs(diff) > 180) {
@@ -852,17 +817,19 @@
                 requestAnimationFrame(animateCompass);
             }
             
-            compassNeedle.style.transform = `translate(-50%, -100%) rotate(${-currentHeading}deg)`;
-            
-            // Rotar el mapa si está activa la brújula real - solo rotación, sin perder el centro
             if (isRealCompassActive) {
-                map.getPanes().mapPane.style.transform = `rotate(${currentHeading}deg)`;
+                compassInner.style.transform = `rotate(${-currentHeading}deg)`;
+                sunPathContainer.style.transform = `translate(-50%, -50%) rotate(${-currentHeading}deg)`;
+                compassNeedle.style.transform = `translate(-50%, -100%) rotate(0deg)`;
+            } else {
+                compassInner.style.transform = `rotate(0deg)`;
+                sunPathContainer.style.transform = `translate(-50%, -50%) rotate(0deg)`;
+                compassNeedle.style.transform = `translate(-50%, -100%) rotate(${-currentHeading}deg)`;
             }
         }
 
         function toggleRealCompass() {
             if (isRealCompassActive) {
-                // Desactivar brújula
                 if (window.DeviceOrientationEvent) {
                     window.removeEventListener('deviceorientation', handleOrientation);
                 }
@@ -870,13 +837,12 @@
                 realCompassBtn.textContent = '🛰️ Brújula Real';
                 realCompassBtn.classList.remove('active');
                 targetHeading = 0;
-                animateCompass();
-                // Restaurar rotación del mapa
+                if (!animationFrameId) {
+                    requestAnimationFrame(animateCompass);
+                }
                 map.getPanes().mapPane.style.transform = 'rotate(0deg)';
             } else {
-                // Activar brújula
                 if (window.DeviceOrientationEvent) {
-                    // Solicitar permiso para orientación en iOS
                     if (typeof DeviceOrientationEvent.requestPermission === 'function') {
                         DeviceOrientationEvent.requestPermission()
                             .then(permissionState => {
@@ -891,7 +857,6 @@
                             })
                             .catch(console.error);
                     } else {
-                        // Para navegadores que no requieren permiso
                         window.addEventListener('deviceorientation', handleOrientation);
                         isRealCompassActive = true;
                         realCompassBtn.textContent = '🛰️ Brújula Activa';
@@ -905,7 +870,6 @@
 
         function handleOrientation(event) {
             if (event.alpha !== null) {
-                // alpha: rotación alrededor del eje z (0-360)
                 targetHeading = event.alpha;
                 if (!animationFrameId) {
                     requestAnimationFrame(animateCompass);
