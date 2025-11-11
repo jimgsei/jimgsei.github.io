@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Registro de Etapas</title>
+  <title>Registro de Etapa</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { font-family: 'Inter', sans-serif; }
@@ -25,12 +25,12 @@
             <input type="number" id="dorsal" v-model="dorsal" class="w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm text-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
           </div>
           
-          <p v="if="submitError" class="text-sm text-red-600 mb-4">{{ submitError }}</p>
+          <p v-if="submitError" class="text-sm text-red-600 mb-4">{{ submitError }}</p>
           
           <button type="submit" :disabled="isLoading" class="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out text-lg font-medium"
                   :class="{ 'opacity-50 cursor-not-allowed': isLoading }">
-            <span v="if="!isLoading">Registrar Paso</span>
-            <span v="else" class="flex items-center justify-center">
+            <span v-if="!isLoading">Registrar Paso</span>
+            <span v-else class="flex items-center justify-center">
               <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -95,7 +95,6 @@
           }
         })
         
-        // --- ESTA ES LA NUEVA FUNCIÓN DE ENVÍO (JSONP) ---
         const submitDorsal = () => {
           if (APPS_SCRIPT_URL.includes("PEGA_AQUI")) {
              submitError.value = "Error: La URL de Apps Script no está configurada."
@@ -108,12 +107,9 @@
           isLoading.value = true
           submitError.value = ''
 
-          // 1. Crear un nombre de función callback único
           const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
 
-          // 2. Definir esa función en la ventana global
           window[callbackName] = (data) => {
-            // 5. Esta función será llamada por el script de Google
             if (data.success) {
               message.value = data.message
               status.value = data.status
@@ -124,12 +120,10 @@
             
             isLoading.value = false
             
-            // 6. Limpiar (borrar el script y la función global)
             document.head.removeChild(script);
             delete window[callbackName];
           };
 
-          // 3. Crear la URL con todos los parámetros
           const params = new URLSearchParams({
             action: 'register',
             dorsal: dorsal.value,
@@ -137,11 +131,9 @@
             callback: callbackName
           });
 
-          // 4. Crear y añadir el tag <script> a la página
           const script = document.createElement('script');
           script.src = `${APPS_SCRIPT_URL}?${params.toString()}`;
           script.onerror = () => {
-             // Manejar error si el script no carga
              submitError.value = "Error fatal de conexión. ¿Está la URL de Apps Script bien implementada?";
              isLoading.value = false;
           };
