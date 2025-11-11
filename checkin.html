@@ -4,134 +4,139 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Registro de Etapas</title>
+  <!-- Tailwind CSS (CDN para desarrollo, reemplazar en producción) -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Vue.js (versión de producción) -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
   <style>
     body { font-family: 'Inter', sans-serif; }
     [v-cloak] { display: none; }
   </style>
-  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
   <script>
-    const { createApp, ref, onMounted } = Vue;
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz8QTNI-9S8SJ6k0HS98g24ATJ8XAhWqUcNIZ2veaprAY-nxJSXKwsGuljWL5lYiOo1/exec";
+    // Esperar a que el DOM esté cargado
+    document.addEventListener('DOMContentLoaded', () => {
+      const { createApp, ref, onMounted } = Vue;
+      const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz8QTNI-9S8SJ6k0HS98g24ATJ8XAhWqUcNIZ2veaprAY-nxJSXKwsGuljWL5lYiOo1/exec";
 
-    createApp({
-      setup() {
-        const dorsal = ref('');
-        const isLoading = ref(false);
-        const submitError = ref('');
-        const submitted = ref(false);
-        const message = ref('');
-        const status = ref({ completedCount: 0, totalCount: 0, nextStage: '---', raceStartTime: null, completedStages: [] });
+      createApp({
+        setup() {
+          const dorsal = ref('');
+          const isLoading = ref(false);
+          const submitError = ref('');
+          const submitted = ref(false);
+          const message = ref('');
+          const status = ref({ completedCount: 0, totalCount: 0, nextStage: '---', raceStartTime: null, completedStages: [] });
 
-        const stageId = ref('');
-        const stageName = ref('Cargando etapa...');
-        const stageInfo = ref('');
+          const stageId = ref('');
+          const stageName = ref('Cargando etapa...');
+          const stageInfo = ref('');
 
-        const formatTimestamp = (date) => {
-          if (!date) return '---';
-          const d = new Date(date);
-          return d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        };
+          const formatTimestamp = (date) => {
+            if (!date) return '---';
+            const d = new Date(date);
+            return d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+          };
 
-        const formatDuration = (startTime, endTime) => {
-          if (!startTime || !endTime) return '---';
-          const start = new Date(startTime);
-          const end = new Date(endTime);
-          let diff = Math.abs(end - start) / 1000;
+          const formatDuration = (startTime, endTime) => {
+            if (!startTime || !endTime) return '---';
+            const start = new Date(startTime);
+            const end = new Date(endTime);
+            let diff = Math.abs(end - start) / 1000;
 
-          const h = Math.floor(diff / 3600);
-          diff %= 3600;
-          const m = Math.floor(diff / 60);
-          const s = Math.floor(diff % 60);
+            const h = Math.floor(diff / 3600);
+            diff %= 3600;
+            const m = Math.floor(diff / 60);
+            const s = Math.floor(diff % 60);
 
-          const pad = (num) => String(num).padStart(2, '0');
+            const pad = (num) => String(num).padStart(2, '0');
 
-          return `${pad(h)}:${pad(m)}:${pad(s)}`;
-        };
+            return `${pad(h)}:${pad(m)}:${pad(s)}`;
+          };
 
-        onMounted(() => {
-          const urlParams = new URLSearchParams(window.location.search);
-          stageId.value = urlParams.get('stage') || '';
-          stageName.value = urlParams.get('name') || 'Etapa Desconocida';
-          stageInfo.value = urlParams.get('info') || '';
+          onMounted(() => {
+            const urlParams = new URLSearchParams(window.location.search);
+            stageId.value = urlParams.get('stage') || '';
+            stageName.value = urlParams.get('name') || 'Etapa Desconocida';
+            stageInfo.value = urlParams.get('info') || '';
 
-          if (!stageId.value) {
-            submitError.value = "Error: No se ha especificado una etapa.";
-          }
-        });
-
-        const submitDorsal = () => {
-          if (APPS_SCRIPT_URL.includes("PEGA_AQUI")) {
-             submitError.value = "Error: La URL de Apps Script no está configurada.";
-             return;
-          }
-          if (!dorsal.value) {
-            submitError.value = "Por favor, introduce un dorsal.";
-            return;
-          }
-          isLoading.value = true;
-          submitError.value = '';
-          const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
-          window[callbackName] = (data) => {
-            if (data.success) {
-              message.value = data.message;
-              status.value = data.status;
-              submitted.value = true;
-            } else {
-              submitError.value = data.message;
+            if (!stageId.value) {
+              submitError.value = "Error: No se ha especificado una etapa.";
             }
-
-            isLoading.value = false;
-
-            document.head.removeChild(script);
-            delete window[callbackName];
-          };
-          const params = new URLSearchParams({
-            action: 'register',
-            dorsal: dorsal.value,
-            stageId: stageId.value,
-            callback: callbackName
           });
-          const script = document.createElement('script');
-          script.src = `${APPS_SCRIPT_URL}?${params.toString()}`;
-          script.onerror = () => {
-             submitError.value = "Error fatal de conexión. ¿Está la URL de Apps Script bien implementada?";
-             isLoading.value = false;
+
+          const submitDorsal = () => {
+            if (APPS_SCRIPT_URL.includes("PEGA_AQUI")) {
+               submitError.value = "Error: La URL de Apps Script no está configurada.";
+               return;
+            }
+            if (!dorsal.value) {
+              submitError.value = "Por favor, introduce un dorsal.";
+              return;
+            }
+            isLoading.value = true;
+            submitError.value = '';
+            const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
+            window[callbackName] = (data) => {
+              if (data.success) {
+                message.value = data.message;
+                status.value = data.status;
+                submitted.value = true;
+              } else {
+                submitError.value = data.message;
+              }
+
+              isLoading.value = false;
+
+              document.head.removeChild(script);
+              delete window[callbackName];
+            };
+            const params = new URLSearchParams({
+              action: 'register',
+              dorsal: dorsal.value,
+              stageId: stageId.value,
+              callback: callbackName
+            });
+            const script = document.createElement('script');
+            script.src = `${APPS_SCRIPT_URL}?${params.toString()}`;
+            script.onerror = () => {
+               submitError.value = "Error fatal de conexión. ¿Está la URL de Apps Script bien implementada?";
+               isLoading.value = false;
+            };
+            document.head.appendChild(script);
           };
-          document.head.appendChild(script);
-        };
 
-        const resetForm = () => {
-          submitted.value = false;
-          dorsal.value = '';
-          submitError.value = '';
-          message.value = '';
-          status.value = { completedCount: 0, totalCount: 0, nextStage: '---', raceStartTime: null, completedStages: [] };
-        };
+          const resetForm = () => {
+            submitted.value = false;
+            dorsal.value = '';
+            submitError.value = '';
+            message.value = '';
+            status.value = { completedCount: 0, totalCount: 0, nextStage: '---', raceStartTime: null, completedStages: [] };
+          };
 
-        return {
-          dorsal,
-          isLoading,
-          submitError,
-          submitted,
-          message,
-          status,
-          stageName,
-          stageInfo,
-          submitDorsal,
-          resetForm,
-          formatTimestamp,
-          formatDuration
-        };
-      }
-    }).mount('#app');
+          return {
+            dorsal,
+            isLoading,
+            submitError,
+            submitted,
+            message,
+            status,
+            stageName,
+            stageInfo,
+            submitDorsal,
+            resetForm,
+            formatTimestamp,
+            formatDuration
+          };
+        }
+      }).mount('#app');
+    });
   </script>
 </head>
 <body class="bg-gray-100 min-h-screen" v-cloak id="app">
   <div class="container mx-auto max-w-lg p-5 pt-10">
     <div class="bg-white p-8 rounded-lg shadow-xl w-full">
       <div v-if="!submitted">
-        <h1 class="text-2xl font-bold text-center text-gray-800 mb-2">Registro de Etapas</h1>
+        <h1 class="text-2xl font-bold text-center text-gray-800 mb-2">Registro de Etapa</h1>
         <h2 class="text-xl font-semibold text-center text-blue-700 mb-6">{{ stageName }}</h2>
         <p class="text-gray-600 mb-4 text-center">{{ stageInfo }}</p>
 
@@ -186,4 +191,10 @@
           </div>
         </div>
         <button @click="resetForm" class="w-full bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700 mt-6 transition">
-    
+          Registrar otro dorsal
+        </button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
