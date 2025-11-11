@@ -14,9 +14,8 @@
 <body class="bg-gray-100 min-h-screen" v-cloak id="app">
   <div class="container mx-auto max-w-lg p-5 pt-10">
     <div class="bg-white p-8 rounded-lg shadow-xl w-full">
-      <div v-if="!submitted">
+      <div v="if="!submitted">
         <h1 class="text-2xl font-bold text-center text-gray-800 mb-2">Registro de Etapa</h1>
-        <!-- Los datos ahora vienen de Vue, que los lee de la URL -->
         <h2 class="text-xl font-semibold text-center text-blue-700 mb-6">{{ stageName }}</h2>
         <p class="text-gray-600 mb-4 text-center">{{ stageInfo }}</p>
         
@@ -26,12 +25,12 @@
             <input type="number" id="dorsal" v-model="dorsal" class="w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm text-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
           </div>
           
-          <p v-if="submitError" class="text-sm text-red-600 mb-4">{{ submitError }}</p>
+          <p v="if="submitError" class="text-sm text-red-600 mb-4">{{ submitError }}</p>
           
           <button type="submit" :disabled="isLoading" class="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out text-lg font-medium"
                   :class="{ 'opacity-50 cursor-not-allowed': isLoading }">
-            <span v-if="!isLoading">Registrar Paso</span>
-            <span v-else class="flex items-center justify-center">
+            <span v="if="!isLoading">Registrar Paso</span>
+            <span v="else" class="flex items-center justify-center">
               <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -42,7 +41,7 @@
         </form>
       </div>
 
-      <div v-if="submitted">
+      <div v="if="submitted">
         <h2 class="text-2xl font-bold text-center text-green-600 mb-4">¡Registro Exitoso!</h2>
         <p class="text-lg text-gray-700 text-center mb-6">{{ message }}</p>
         
@@ -69,7 +68,8 @@
 
   <script>
     const { createApp, ref, onMounted } = Vue
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyjRRvHNzHchUB-Uhz0QcB40BYrcl8sH3m_XnoOqyAV2D5pcctMRLKIHhEN0Cd0l0VF/exec";
+
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzeyhPze8vJKaP5Qq6FAHCrM0RnOyKJ-u9qAxHzJ4xmj9SjlTfmXzK99OCk-lh6mAS-/exec";
     
     createApp({
       setup() {
@@ -80,12 +80,10 @@
         const message = ref('')
         const status = ref({ completedCount: 0, totalCount: 0, nextStage: '---' })
         
-        // Nuevas variables para leer de la URL
         const stageId = ref('')
         const stageName = ref('Cargando etapa...')
         const stageInfo = ref('')
 
-        // Esta función se ejecuta cuando la página carga
         onMounted(() => {
           const urlParams = new URLSearchParams(window.location.search)
           stageId.value = urlParams.get('stage') || ''
@@ -97,6 +95,7 @@
           }
         })
         
+        // --- ESTA ES LA NUEVA FUNCIÓN DE ENVÍO (JSONP) ---
         const submitDorsal = () => {
           if (APPS_SCRIPT_URL.includes("PEGA_AQUI")) {
              submitError.value = "Error: La URL de Apps Script no está configurada."
@@ -109,19 +108,12 @@
           isLoading.value = true
           submitError.value = ''
 
-          // Usamos la URL de Apps Script que definimos arriba
-          fetch(APPS_SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify({ dorsal: dorsal.value, stageId: stageId.value }),
-            headers: { 'Content-Type': 'application/json' }
-          })
-          .then(response => {
-            if (!response.ok) {
-              throw new Error(`Error en el servidor: ${response.statusText}`)
-            }
-            return response.json()
-          })
-          .then(data => {
+          // 1. Crear un nombre de función callback único
+          const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
+
+          // 2. Definir esa función en la ventana global
+          window[callbackName] = (data) => {
+            // 5. Esta función será llamada por el script de Google
             if (data.success) {
               message.value = data.message
               status.value = data.status
@@ -129,13 +121,31 @@
             } else {
               submitError.value = data.message
             }
-          })
-          .catch(err => {
-            submitError.value = "Error de conexión. Inténtalo de nuevo. " + err.message
-          })
-          .finally(() => {
+            
             isLoading.value = false
-          })
+            
+            // 6. Limpiar (borrar el script y la función global)
+            document.head.removeChild(script);
+            delete window[callbackName];
+          };
+
+          // 3. Crear la URL con todos los parámetros
+          const params = new URLSearchParams({
+            action: 'register',
+            dorsal: dorsal.value,
+            stageId: stageId.value,
+            callback: callbackName
+          });
+
+          // 4. Crear y añadir el tag <script> a la página
+          const script = document.createElement('script');
+          script.src = `${APPS_SCRIPT_URL}?${params.toString()}`;
+          script.onerror = () => {
+             // Manejar error si el script no carga
+             submitError.value = "Error fatal de conexión. ¿Está la URL de Apps Script bien implementada?";
+             isLoading.value = false;
+          };
+          document.head.appendChild(script);
         }
         
         const resetForm = () => {
