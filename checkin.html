@@ -10,161 +10,88 @@
     [v-cloak] { display: none; }
   </style>
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-</head>
-<body class="bg-gray-100 min-h-screen" v-cloak id="app">
-  <div class="container mx-auto max-w-lg p-5 pt-10">
-    <div class="bg-white p-8 rounded-lg shadow-xl w-full">
-      <div v-if="!submitted">
-        <h1 class="text-2xl font-bold text-center text-gray-800 mb-2">Registro de Etapa</h1>
-        <h2 class="text-xl font-semibold text-center text-blue-700 mb-6">{{ stageName }}</h2>
-        <p class="text-gray-600 mb-4 text-center">{{ stageInfo }}</p>
-        
-        <form @submit.prevent="submitDorsal">
-          <div class="mb-4">
-            <label for="dorsal" class="block text-sm font-medium text-gray-700 mb-1">Tu Nº de Dorsal</label>
-            <input type="number" id="dorsal" v-model="dorsal" class="w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm text-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
-          </div>
-          
-          <p v-if="submitError" class="text-sm text-red-600 mb-4">{{ submitError }}</p>
-          
-          <button type="submit" :disabled="isLoading" class="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out text-lg font-medium"
-                  :class="{ 'opacity-50 cursor-not-allowed': isLoading }">
-            <span v-if="!isLoading">Registrar Paso</span>
-            <span v-else class="flex items-center justify-center">
-              <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              Registrando...
-            </span>
-          </button>
-        </form>
-      </div>
-
-      <div v-if="submitted">
-        <h2 class="text-2xl font-bold text-center text-green-600 mb-4">¡Registro Exitoso!</h2>
-        <p class="text-lg text-gray-700 text-center mb-6">{{ message }}</p>
-        
-        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-          <h3 class="text-lg font-semibold text-gray-800 mb-3">Tu Progreso</h3>
-          <div class="space-y-2">
-            
-            <div v-for="stage in status.completedStages" :key="stage.name" class="p-2 border-b last:border-b-0">
-              <div class="flex justify-between items-center">
-                <span class="text-gray-700 font-medium">{{ stage.name }}</span>
-                <span class="font-bold text-gray-900">{{ formatTimestamp(stage.timestamp) }}</span>
-              </div>
-              <div class="flex justify-between items-center text-sm">
-                 <span class="text-gray-500">Tiempo de Carrera:</span>
-                 <span class="font-medium text-blue-700">{{ formatDuration(status.raceStartTime, stage.timestamp) }}</span>
-              </div>
-            </div>
-            
-            <div class="pt-2 border-t mt-2 flex justify-between">
-              <span class="text-gray-600">Etapas Completadas:</span>
-              <span class="font-bold text-gray-900">{{ status.completedCount }} / {{ status.totalCount }}</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-gray-600">Próxima Etapa:</span>
-              <span class="font-bold text-blue-700">{{ status.nextStage }}</span>
-            </div>
-          </div>
-        </div>
-
-        <button @click="resetForm" class="w-full bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700 mt-6 transition">
-          Registrar otro dorsal
-        </button>
-      </div>
-    </div>
-  </div>
-
   <script>
-    const { createApp, ref, onMounted } = Vue
-
+    const { createApp, ref, onMounted } = Vue;
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz8QTNI-9S8SJ6k0HS98g24ATJ8XAhWqUcNIZ2veaprAY-nxJSXKwsGuljWL5lYiOo1/exec";
-    
+
     createApp({
       setup() {
-        const dorsal = ref('')
-        const isLoading = ref(false)
-        const submitError = ref('')
-        const submitted = ref(false)
-        const message = ref('')
-        const status = ref({ completedCount: 0, totalCount: 0, nextStage: '---', raceStartTime: null, completedStages: [] })
-        
-        const stageId = ref('')
-        const stageName = ref('Cargando etapa...')
-        const stageInfo = ref('')
+        const dorsal = ref('');
+        const isLoading = ref(false);
+        const submitError = ref('');
+        const submitted = ref(false);
+        const message = ref('');
+        const status = ref({ completedCount: 0, totalCount: 0, nextStage: '---', raceStartTime: null, completedStages: [] });
+
+        const stageId = ref('');
+        const stageName = ref('Cargando etapa...');
+        const stageInfo = ref('');
 
         const formatTimestamp = (date) => {
-          if (!date) return '---'
-          const d = new Date(date)
-          return d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-        }
-        
+          if (!date) return '---';
+          const d = new Date(date);
+          return d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        };
+
         const formatDuration = (startTime, endTime) => {
-          if (!startTime || !endTime) return '---'
-          const start = new Date(startTime)
-          const end = new Date(endTime)
-          let diff = Math.abs(end - start) / 1000
-          
-          const h = Math.floor(diff / 3600)
-          diff %= 3600
-          const m = Math.floor(diff / 60)
-          const s = Math.floor(diff % 60)
-          
-          const pad = (num) => String(num).padStart(2, '0')
-          
-          return `${pad(h)}:${pad(m)}:${pad(s)}`
-        }
+          if (!startTime || !endTime) return '---';
+          const start = new Date(startTime);
+          const end = new Date(endTime);
+          let diff = Math.abs(end - start) / 1000;
+
+          const h = Math.floor(diff / 3600);
+          diff %= 3600;
+          const m = Math.floor(diff / 60);
+          const s = Math.floor(diff % 60);
+
+          const pad = (num) => String(num).padStart(2, '0');
+
+          return `${pad(h)}:${pad(m)}:${pad(s)}`;
+        };
 
         onMounted(() => {
-          const urlParams = new URLSearchParams(window.location.search)
-          stageId.value = urlParams.get('stage') || ''
-          stageName.value = urlParams.get('name') || 'Etapa Desconocida'
-          stageInfo.value = urlParams.get('info') || ''
-          
+          const urlParams = new URLSearchParams(window.location.search);
+          stageId.value = urlParams.get('stage') || '';
+          stageName.value = urlParams.get('name') || 'Etapa Desconocida';
+          stageInfo.value = urlParams.get('info') || '';
+
           if (!stageId.value) {
-            submitError.value = "Error: No se ha especificado una etapa."
+            submitError.value = "Error: No se ha especificado una etapa.";
           }
-        })
-        
+        });
+
         const submitDorsal = () => {
           if (APPS_SCRIPT_URL.includes("PEGA_AQUI")) {
-             submitError.value = "Error: La URL de Apps Script no está configurada."
-             return
+             submitError.value = "Error: La URL de Apps Script no está configurada.";
+             return;
           }
           if (!dorsal.value) {
-            submitError.value = "Por favor, introduce un dorsal."
-            return
+            submitError.value = "Por favor, introduce un dorsal.";
+            return;
           }
-          isLoading.value = true
-          submitError.value = ''
-
+          isLoading.value = true;
+          submitError.value = '';
           const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
-
           window[callbackName] = (data) => {
             if (data.success) {
-              message.value = data.message
-              status.value = data.status
-              submitted.value = true
+              message.value = data.message;
+              status.value = data.status;
+              submitted.value = true;
             } else {
-              submitError.value = data.message
+              submitError.value = data.message;
             }
-            
-            isLoading.value = false
-            
+
+            isLoading.value = false;
+
             document.head.removeChild(script);
             delete window[callbackName];
           };
-
           const params = new URLSearchParams({
             action: 'register',
             dorsal: dorsal.value,
             stageId: stageId.value,
             callback: callbackName
           });
-
           const script = document.createElement('script');
           script.src = `${APPS_SCRIPT_URL}?${params.toString()}`;
           script.onerror = () => {
@@ -172,15 +99,15 @@
              isLoading.value = false;
           };
           document.head.appendChild(script);
-        }
-        
+        };
+
         const resetForm = () => {
-          submitted.value = false
-          dorsal.value = ''
-          submitError.value = ''
-          message.value = ''
-          status.value = { completedCount: 0, totalCount: 0, nextStage: '---', raceStartTime: null, completedStages: [] }
-        }
+          submitted.value = false;
+          dorsal.value = '';
+          submitError.value = '';
+          message.value = '';
+          status.value = { completedCount: 0, totalCount: 0, nextStage: '---', raceStartTime: null, completedStages: [] };
+        };
 
         return {
           dorsal,
@@ -195,9 +122,68 @@
           resetForm,
           formatTimestamp,
           formatDuration
-        }
+        };
       }
-    }).mount('#app')
+    }).mount('#app');
   </script>
-</body>
-</html>
+</head>
+<body class="bg-gray-100 min-h-screen" v-cloak id="app">
+  <div class="container mx-auto max-w-lg p-5 pt-10">
+    <div class="bg-white p-8 rounded-lg shadow-xl w-full">
+      <div v-if="!submitted">
+        <h1 class="text-2xl font-bold text-center text-gray-800 mb-2">Registro de Etapas</h1>
+        <h2 class="text-xl font-semibold text-center text-blue-700 mb-6">{{ stageName }}</h2>
+        <p class="text-gray-600 mb-4 text-center">{{ stageInfo }}</p>
+
+        <form @submit.prevent="submitDorsal">
+          <div class="mb-4">
+            <label for="dorsal" class="block text-sm font-medium text-gray-700 mb-1">Tu Nº de Dorsal</label>
+            <input type="number" id="dorsal" v-model="dorsal" class="w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm text-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
+          </div>
+
+          <p v-if="submitError" class="text-sm text-red-600 mb-4">{{ submitError }}</p>
+
+          <button type="submit" :disabled="isLoading" class="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out text-lg font-medium"
+                  :class="{ 'opacity-50 cursor-not-allowed': isLoading }">
+            <span v-if="!isLoading">Registrar Paso</span>
+            <span v-else class="flex items-center justify-center">
+              <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Registrando...
+            </span>
+          </button>
+        </form>
+      </div>
+      <div v-if="submitted">
+        <h2 class="text-2xl font-bold text-center text-green-600 mb-4">¡Registro Exitoso!</h2>
+        <p class="text-lg text-gray-700 text-center mb-6">{{ message }}</p>
+
+        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+          <h3 class="text-lg font-semibold text-gray-800 mb-3">Tu Progreso</h3>
+          <div class="space-y-2">
+
+            <div v-for="stage in status.completedStages" :key="stage.name" class="p-2 border-b last:border-b-0">
+              <div class="flex justify-between items-center">
+                <span class="text-gray-700 font-medium">{{ stage.name }}</span>
+                <span class="font-bold text-gray-900">{{ formatTimestamp(stage.timestamp) }}</span>
+              </div>
+              <div class="flex justify-between items-center text-sm">
+                 <span class="text-gray-500">Tiempo de Carrera:</span>
+                 <span class="font-medium text-blue-700">{{ formatDuration(status.raceStartTime, stage.timestamp) }}</span>
+              </div>
+            </div>
+
+            <div class="pt-2 border-t mt-2 flex justify-between">
+              <span class="text-gray-600">Etapas Completadas:</span>
+              <span class="font-bold text-gray-900">{{ status.completedCount }} / {{ status.totalCount }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600">Próxima Etapa:</span>
+              <span class="font-bold text-blue-700">{{ status.nextStage }}</span>
+            </div>
+          </div>
+        </div>
+        <button @click="resetForm" class="w-full bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700 mt-6 transition">
+    
