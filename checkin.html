@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Registro de Etapas</title>
+  <title>Registro de Etapa</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { font-family: 'Inter', sans-serif; }
@@ -14,7 +14,7 @@
 <body class="bg-gray-100 min-h-screen" v-cloak id="app">
   <div class="container mx-auto max-w-lg p-5 pt-10">
     <div class="bg-white p-8 rounded-lg shadow-xl w-full">
-      <div v="if="!submitted">
+      <div v-if="!submitted">
         <h1 class="text-2xl font-bold text-center text-gray-800 mb-2">Registro de Etapa</h1>
         <h2 class="text-xl font-semibold text-center text-blue-700 mb-6">{{ stageName }}</h2>
         <p class="text-gray-600 mb-4 text-center">{{ stageInfo }}</p>
@@ -41,7 +41,7 @@
         </form>
       </div>
 
-      <div v="if="submitted">
+      <div v-if="submitted">
         <h2 class="text-2xl font-bold text-center text-green-600 mb-4">¡Registro Exitoso!</h2>
         <p class="text-lg text-gray-700 text-center mb-6">{{ message }}</p>
         
