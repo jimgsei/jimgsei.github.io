@@ -31,17 +31,17 @@
           const stageName = ref('Cargando etapa...');
           const stageInfo = ref('');
 
-          const formatTimestamp = (date) => {
-            if (!date) return '---';
-            const d = new Date(date);
-            return d.toLocaleString('es-ES', { 
-              day: '2-digit', 
-              month: '2-digit', 
-              hour: '2-digit', 
-              minute: '2-digit', 
-              second: '2-digit' 
-            });
-          };
+          const formatDatePart = (date) => {
+            if (!date) return '---';
+            const d = new Date(date);
+            return d.toLocaleString('es-ES', { day: '2-digit', month: '2-digit' });
+          };
+
+          const formatTimePart = (date) => {
+            if (!date) return '---';
+            const d = new Date(date);
+            return d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+          };
 
           const formatDuration = (startTime, endTime) => {
             if (!startTime || !endTime) return '---';
@@ -121,7 +121,8 @@
             stageName,
             stageInfo,
             submitDorsal,
-            formatTimestamp,
+            formatDatePart,
+            formatTimePart,
             formatDuration
           };
         }
@@ -167,15 +168,15 @@
           <div class="space-y-2">
 
             <div v-for="stage in status.completedStages" :key="stage.name" class="p-2 border-b last:border-b-0">
-              <div class="flex justify-between items-center">
-                <span class="text-gray-700 font-medium">{{ stage.name }}</span>
-                <span class="font-bold text-gray-900">{{ formatTimestamp(stage.timestamp) }}</span>
-              </div>
-              <div class="flex justify-between items-center text-sm">
-                 <span class="text-gray-500">Tiempo de Carrera:</span>
-                 <span class="font-medium text-blue-700">{{ formatDuration(status.raceStartTime, stage.timestamp) }}</span>
-              </div>
-            </div>
+              <div class="flex justify-between items-center">
+                <span class="text-gray-700 font-medium">{{ stage.name }}</span>
+                <div class="text-right">
+                  <div class="font-bold text-gray-900 leading-snug">{{ formatDatePart(stage.timestamp) }}</div>
+                  <div class="font-bold text-blue-700 leading-snug">{{ formatTimePart(stage.timestamp) }}</div>
+                 <div class="font-medium text-green-700 text-sm leading-snug">{{ formatDuration(status.raceStartTime, stage.timestamp) }}</div>
+                </div>
+              </div>
+            </div>
 
             <div class="pt-2 border-t mt-2 flex justify-between">
               <span class="text-gray-600">Etapas Completadas:</span>
