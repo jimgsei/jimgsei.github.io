@@ -170,13 +170,18 @@
           <div class="space-y-2">
 
             <div v-for="stage in status.completedStages" :key="stage.name" class="p-2 border-b last:border-b-0">
-                            <div class="flex justify-between items-center">
-                <span class="text-gray-700 font-medium">{{ stage.name }}</span>
-                <span class="font-bold text-blue-700">{{ formatDateTime(stage.timestamp) }}</span>
-              </div>
-                            <div class="flex justify-between items-center text-sm mt-1">
-              <span class="text-gray-500">Tiempo de Carrera:</span>
-                <span class="font-medium text-green-700">{{ formatDuration(status.raceStartTime, stage.timestamp) }}</span>
+                            <div class="flex justify-between items-start">
+                
+                                <div>
+                  <div class="text-gray-700 font-medium">{{ stage.name }}</div>
+                  <div class="text-gray-500 text-sm mt-1">Tiempo de Carrera:</div>
+                </div>
+                
+                                <div class="text-right flex-shrink-0 ml-4">
+                  <div class="font-bold text-blue-700 whitespace-nowrap">{{ formatDateTime(stage.timestamp) }}</div>
+                  <div class="font-medium text-green-700 text-sm mt-1 whitespace-nowrap">{{ formatDuration(status.raceStartTime, stage.timestamp) }}</div>
+                </div>
+
               </div>
             </div>
 
