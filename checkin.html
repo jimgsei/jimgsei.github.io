@@ -4,16 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Registro de Etapas</title>
-  <!-- Tailwind CSS (CDN para desarrollo, reemplazar en producción) -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Vue.js (versión de producción) -->
   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     body { font-family: 'Inter', sans-serif; }
     [v-cloak] { display: none; }
   </style>
   <script>
-    // Esperar a que el DOM esté cargado
     document.addEventListener('DOMContentLoaded', () => {
       const { createApp, ref, onMounted, computed } = Vue;
       const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz8QTNI-9S8SJ6k0HS98g24ATJ8XAhWqUcNIZ2veaprAY-nxJSXKwsGuljWL5lYiOo1/exec";
@@ -35,7 +33,7 @@
             if (!date) return '---';
             const d = new Date(date);
             return d.toLocaleString('es-ES', { 
-             day: '2-digit', 
+              day: '2-digit', 
               month: '2-digit', 
               hour: '2-digit', 
               minute: '2-digit', 
@@ -72,8 +70,8 @@
 
           const submitDorsal = () => {
             if (APPS_SCRIPT_URL.includes("PEGA_AQUI")) {
-               submitError.value = "Error: La URL de Apps Script no está configurada.";
-               return;
+              submitError.value = "Error: La URL de Apps Script no está configurada.";
+              return;
             }
             if (!dorsal.value) {
               submitError.value = "Por favor, introduce un dorsal.";
@@ -90,9 +88,7 @@
               } else {
                 submitError.value = data.message;
               }
-
               isLoading.value = false;
-
               document.head.removeChild(script);
               delete window[callbackName];
             };
@@ -105,21 +101,52 @@
             const script = document.createElement('script');
             script.src = `${APPS_SCRIPT_URL}?${params.toString()}`;
             script.onerror = () => {
-               submitError.value = "Error fatal de conexión. ¿Está la URL de Apps Script bien implementada?";
-               isLoading.value = false;
+              submitError.value = "Error fatal de conexión. ¿Está la URL de Apps Script bien implementada?";
+              isLoading.value = false;
             };
             document.head.appendChild(script);
-         };
+          };
 
-          const totalRaceTime = computed(() => {
-            if (status.value.nextStage === '¡Carrera Completada!' && status.value.completedStages.length > 0) {
-              const lastStage = status.value.completedStages[status.value.completedStages.length - 1];
-              if (lastStage) {
-                return formatDuration(status.value.raceStartTime, lastStage.timestamp);
-              }
-            }
-            return null;
-          });
+          const totalRaceTime = computed(() => {
+            if (status.value.nextStage === '¡Carrera Completada!' && status.value.completedStages.length > 0) {
+              const lastStage = status.value.completedStages[status.value.completedStages.length - 1];
+              if (lastStage) {
+                return formatDuration(status.value.raceStartTime, lastStage.timestamp);
+              }
+            }
+            return null;
+          });
+
+          const downloadPDF = () => {
+            isLoading.value = true;
+            const element = document.getElementById('certificate-area');
+            const downloadBtn = document.getElementById('download-btn');
+            
+            if(downloadBtn) {
+              downloadBtn.style.display = 'none';
+            }
+
+            const opt = {
+              margin:       0.5,
+              filename:     `certificado_al-andalus_dorsal_${dorsal.value}.pdf`,
+              image:        { type: 'jpeg', quality: 0.98 },
+              html2canvas:  { scale: 2, useCORS: true },
+              jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().from(element).set(opt).save().then(() => {
+              if(downloadBtn) {
+                downloadBtn.style.display = 'block';
+              }
+              isLoading.value = false;
+            }).catch((err) => {
+              if(downloadBtn) {
+                downloadBtn.style.display = 'block';
+              }
+              isLoading.value = false;
+              submitError.value = 'Error al generar el PDF: ' + err.message;
+            });
+          };
 
           return {
             dorsal,
@@ -133,7 +160,8 @@
             submitDorsal,
             formatDateTime,
             formatDuration,
-            totalRaceTime
+            totalRaceTime,
+            downloadPDF
           };
         }
       }).mount('#app');
@@ -143,8 +171,8 @@
 <body class="bg-gray-100 min-h-screen" v-cloak id="app">
   <div class="container mx-auto max-w-lg p-5 pt-10">
     <div class="mb-8 text-center p-1 bg-white rounded-lg shadow-sm">
-		<img src="logos/ini.png" alt="Logo Al-Andalus" class="mx-auto h-16 sm:h-24 md:h-28 object-contain">
-	</div>
+      <img src="logos/ini.png" alt="Logo Al-Andalus" class="mx-auto h-16 sm:h-24 md:h-28 object-contain">
+    </div>
     <div class="bg-white p-8 rounded-lg shadow-xl w-full">
       <div v-if="!submitted">
         <h1 class="text-2xl font-bold text-center text-gray-800 mb-2">Registro de Etapa</h1>
@@ -172,7 +200,7 @@
           </button>
         </form>
       </div>
-      <div v-if="submitted">
+      <div v-if="submitted" id="certificate-area">
         <h2 class="text-2xl font-bold text-center text-green-600 mb-4">¡Registro Exitoso!</h2>
         <p class="text-lg text-gray-700 text-center mb-6">{{ message }}</p>
 
@@ -181,46 +209,51 @@
           <div class="space-y-2">
 
             <div v-for="stage in status.completedStages" :key="stage.name" class="p-2 border-b last:border-b-0">
-             <div class="text-center font-medium text-gray-800 mb-1">{{ stage.name }}</div>
-             <div class="flex justify-between items-start">
-               <div>
-                 <div class="text-gray-500 text-sm">Llegada</div>
-                 <div class="text-gray-500 text-sm mt-2">Tiempo Carrera:</div>
-               </div>
-               <div class="text-right">
-                 <div class="font-bold text-blue-700 whitespace-nowrap">{{ formatDateTime(stage.timestamp) }}</div>
-                 <div class="font-medium text-green-700 text-sm mt-1 whitespace-nowrap">
-                   {{ formatDuration(status.raceStartTime, stage.timestamp) }}
-                 </div>
-               </div>
-             </div>
-           </div>
-
+              <div class="text-center font-medium text-gray-800 mb-1">{{ stage.name }}</div>
+              <div class="flex justify-between items-start">
+                <div>
+                  <div class="text-gray-500 text-sm">Llegada</div>
+                  <div class="text-gray-500 text-sm mt-2">Tiempo Carrera:</div>
+                </div>
+                <div class="text-right">
+                  <div class="font-bold text-blue-700 whitespace-nowrap">{{ formatDateTime(stage.timestamp) }}</div>
+                  <div class="font-medium text-green-700 text-sm mt-1 whitespace-nowrap">
+                    {{ formatDuration(status.raceStartTime, stage.timestamp) }}
+                  </div>
+                </div>
+              </div>
+            </div>
 
             <div class="pt-2 border-t mt-2 flex justify-between items-center">
               <span class="text-gray-600">Etapas Completadas:</span>
               <span class="font-bold text-gray-900">{{ status.completedCount }} / {{ status.totalCount }}</span>
             </div>
+            
+            <div v-if="!totalRaceTime" class="flex justify-between items-center mt-2">
+              <span class="text-gray-600">Próxima Etapa:</span>
+              <span class="font-bold text-blue-700">{{ status.nextStage }}</span>
+            </div>
+
             <div v-if="totalRaceTime" class="pt-4 text-center">
               <div class="text-lg font-bold text-green-600">¡Carrera Completada!</div>
               <div class="text-sm text-gray-600 mt-1">Tiempo Total de Carrera:</div>
               <div class="text-2xl font-bold text-gray-900 mt-1">{{ totalRaceTime }}</div>
             </div>
-            <div v-else class="flex justify-between items-center mt-2">
-              <span class="text-gray-600">Próxima Etapa:</span>
-              <span class="font-bold text-blue-700">{{ status.nextStage }}</span>
-            </div>
 
-                      </div>
-        </div>
           </div>
         </div>
+        
+        <button @click="downloadPDF" :disabled="isLoading" class="w-full bg-green-600 text-white py-3 px-4 rounded-md hover:bg-green-700 mt-6 transition text-lg font-medium" id="download-btn">
+          <span v-if="!isLoading">Descargar Certificado (PDF)</span>
+          <span v-else>Generando PDF...</span>
+        </button>
+
       </div>
     </div>
     <div class="mt-8 text-center p-4 bg-white rounded-lg shadow-xl">
       <h3 class="text-sm font-semibold text-gray-600 mb-4">Organizan:</h3>
-    <img src="logos/cierre.png" alt="Logos Organizadores" class="mx-auto w-full max-w-sm">
-</div>
+      <img src="logos/cierre.png" alt="Logos Organizadores" class="mx-auto w-full max-w-sm">
+    </div>
   </div>
 </body>
 </html>
