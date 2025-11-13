@@ -173,7 +173,7 @@
     <div class="mb-8 text-center p-1 bg-white rounded-lg shadow-sm">
       <img src="logos/ini.png" alt="Logo Al-Andalus" class="mx-auto h-16 sm:h-24 md:h-28 object-contain">
     </div>
-    <div class="bg-white p-8 rounded-lg shadow-xl w-full">
+    <div class="bg-white p-8 rounded-lg shadow-xl w-full" id="certificate-area">
       <div v-if="!submitted">
         <h1 class="text-2xl font-bold text-center text-gray-800 mb-2">Registro de Etapa</h1>
         <h2 class="text-xl font-semibold text-center text-blue-700 mb-6">{{ stageName }}</h2>
@@ -200,7 +200,7 @@
           </button>
         </form>
       </div>
-      <div v-if="submitted" id="certificate-area">
+      <div v-if="submitted">
         <h2 class="text-2xl font-bold text-center text-green-600 mb-4">¡Registro Exitoso!</h2>
         <p class="text-lg text-gray-700 text-center mb-6">{{ message }}</p>
 
