@@ -32,37 +32,56 @@
         <p class="text-gray-700 mt-2">{{ error }}</p>
       </div>
 
-      <div v-if="!isLoading && !error" class="overflow-x-auto rounded-lg border">
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
-            <tr>
-              <th class="sticky left-0 z-20 bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dorsal</th>
-              <th v-for="stage in raceData.stages" :key="stage.id" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+      <div v-if="!isLoading && !error">
+        
+        <div class="my-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="searchDorsal" class="block text-sm font-medium text-gray-700">Buscar por Dorsal</label>
+            <input type="text" id="searchDorsal" v-model="dorsalSearch" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" placeholder="Introduce un dorsal...">
+          </div>
+          <div>
+            <label for="filterStage" class="block text-sm font-medium text-gray-700">Filtrar por Etapa</label>
+            <select id="filterStage" v-model="selectedStage" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+              <option value="all">-- Todas las Etapas --</option>
+              <option v-for="stage in raceData.stages" :key="stage.id" :value="stage.id">
                 {{ stage.name }}
-              </th>
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
-            <tr v-if="raceData.raceData.length === 0">
-              <td :colspan="1 + raceData.stages.length" class="px-6 py-4 text-center text-sm text-gray-500">
-                Aún no hay tiempos registrados.
-              </td>
-            </tr>
-            <tr v-for="data in raceData.raceData" :key="data.dorsal" class="hover:bg-gray-50">
-              <td class="sticky left-0 z-10 bg-white px-4 py-2 whitespace-nowrap text-sm font-bold text-gray-900 shadow-sm">
-                {{ data.dorsal }}
-              </td>
-              <td v-for="stage in raceData.stages" :key="stage.id" class="px-4 py-2 whitespace-nowrap text-sm">
-                <div v-if="data.stages[stage.id]" class="text-left">
-                  <div class="font-bold text-gray-900 leading-snug">{{ formatDatePart(data.stages[stage.id].timestamp) }}</div>
-                  <div class="font-bold text-blue-700 leading-snug">{{ formatTimePart(data.stages[stage.id].timestamp) }}</div>
-                  <div class="text-xs text-green-800 font-medium leading-snug">{{ formatDuration(raceData.raceStartTime, data.stages[stage.id].timestamp) }}</div>
-                </div>
-                <span v-else class="text-gray-400">---</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto rounded-lg border">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="sticky left-0 z-20 bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dorsal</th>
+                <th v-for="stage in filteredStages" :key="stage.id" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {{ stage.name }}
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr v-if="filteredRaceData.length === 0">
+                <td :colspan="1 + filteredStages.length" class="px-6 py-4 text-center text-sm text-gray-500">
+                  No se han encontrado resultados.
+                </td>
+              </tr>
+              <tr v-for="data in filteredRaceData" :key="data.dorsal" class="hover:bg-gray-50">
+                <td class="sticky left-0 z-10 bg-white px-4 py-2 whitespace-nowrap text-sm font-bold text-gray-900 shadow-sm">
+                  {{ data.dorsal }}
+                </td>
+                <td v-for="stage in filteredStages" :key="stage.id" class="px-4 py-2 whitespace-nowrap text-sm">
+                  <div v-if="data.stages[stage.id]" class="text-left">
+                    <div class="font-bold text-gray-900 leading-snug">{{ formatDatePart(data.stages[stage.id].timestamp) }}</div>
+                    <div class="font-bold text-blue-700 leading-snug">{{ formatTimePart(data.stages[stage.id].timestamp) }}</div>
+                    <div class="text-xs text-green-800 font-medium leading-snug">{{ formatDuration(raceData.raceStartTime, data.stages[stage.id].timestamp) }}</div>
+                  </div>
+                  <span v-else class="text-gray-400">---</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
       
       <div class="text-center text-xs text-gray-500 mt-4">
@@ -78,7 +97,7 @@
   </div>
 
   <script>
-    const { createApp, ref, onMounted } = Vue;
+    const { createApp, ref, onMounted, computed } = Vue;
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz8QTNI-9S8SJ6k0HS98g24ATJ8XAhWqUcNIZ2veaprAY-nxJSXKwsGuljWL5lYiOo1/exec";
 
     createApp({
@@ -86,6 +105,8 @@
         const isLoading = ref(true);
         const error = ref(null);
         const raceData = ref({ stages: [], raceData: [], raceStartTime: null });
+        const dorsalSearch = ref('');
+        const selectedStage = ref('all');
 
         const formatDatePart = (date) => {
           if (!date) return '---'
@@ -115,7 +136,26 @@
           return `${pad(h)}:${pad(m)}:${pad(s)}`
         }
 
-const loadResults = async () => {
+        const filteredStages = computed(() => {
+          let stages = raceData.value.stages || [];
+          if (selectedStage.value !== 'all') {
+            stages = stages.filter(stage => stage.id === selectedStage.value);
+          }
+          return stages;
+        });
+
+        const filteredRaceData = computed(() => {
+          let data = raceData.value.raceData || [];
+          if (dorsalSearch.value) {
+            const search = dorsalSearch.value.toLowerCase();
+            data = data.filter(item => 
+              String(item.dorsal).toLowerCase().includes(search)
+            );
+          }
+          return data;
+        });
+
+        const loadResults = async () => {
           isLoading.value = true;
           error.value = null;
           
@@ -164,6 +204,10 @@ const loadResults = async () => {
           isLoading,
           error,
           raceData,
+          dorsalSearch,
+          selectedStage,
+          filteredStages,
+          filteredRaceData,
           formatDatePart,
           formatTimePart,
           formatDuration
