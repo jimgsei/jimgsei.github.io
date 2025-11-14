@@ -79,7 +79,7 @@
 
   <script>
     const { createApp, ref, onMounted } = Vue;
-    const NPOINT_URL = "https://api.npoint.io/012d7b66046ffcbb9d39";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz8QTNI-9S8SJ6k0HS98g24ATJ8XAhWqUcNIZ2veaprAY-nxJSXKwsGuljWL5lYiOo1/exec";
 
     createApp({
       setup() {
@@ -115,26 +115,44 @@
           return `${pad(h)}:${pad(m)}:${pad(s)}`
         }
 
-        const loadResults = async () => {
+const loadResults = async () => {
           isLoading.value = true;
           error.value = null;
-          try {
-            const response = await fetch(NPOINT_URL, { cache: "no-store" });
-            if (!response.ok) {
-              throw new Error('No se pudieron cargar los datos. El bin de npoint podría estar vacío.');
+          
+          const callbackName = 'jsonp_callback_results_' + Math.round(100000 * Math.random());
+          window[callbackName] = (data) => {
+            try {
+              if (!data.stages || !data.raceData) {
+                throw new Error('Los datos recibidos no tienen el formato correcto o el caché está vacío.');
+              }
+              raceData.value = data;
+            } catch (err) {
+              error.value = err.message;
+            } finally {
+              isLoading.value = false;
+              if (document.head.contains(script)) {
+                document.head.removeChild(script);
+              }
+              delete window[callbackName];
             }
-            const data = await response.json();
-            
-            if (!data.stages || !data.raceData) {
-              throw new Error('Los datos recibidos no tienen el formato correcto.');
-            }
-            
-            raceData.value = data;
-          } catch (err) {
-            error.value = err.message;
-          } finally {
+          };
+
+          const params = new URLSearchParams({
+            action: 'getResults',
+            callback: callbackName
+          });
+          
+          const script = document.createElement('script');
+          script.src = `${APPS_SCRIPT_URL}?${params.toString()}`;
+          script.onerror = () => {
+            error.value = "Error fatal de conexión con el script de Google.";
             isLoading.value = false;
-          }
+            if (document.head.contains(script)) {
+              document.head.removeChild(script);
+            }
+            delete window[callbackName];
+          };
+          document.head.appendChild(script);
         };
         
         onMounted(() => {
