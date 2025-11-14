@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resultados de Carrera</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    [v-cloak] { display: none; }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen" v-cloak id="app">
+
+  <div class="container mx-auto max-w-5xl p-4">
+    
+    <div class="mb-8 text-center p-1 bg-white rounded-lg shadow-sm">
+      <img src="logos/ini.png" alt="Logo Al-Andalus" class="mx-auto h-16 sm:h-24 md:h-28 object-contain">
+    </div>
+
+    <div class="bg-white p-4 sm:p-6 rounded-lg shadow-xl w-full">
+      <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Resultados en Vivo</h1>
+
+      <div v-if="isLoading" class="text-center py-10">
+        <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-blue-600 mx-auto"></div>
+        <p class="mt-4 text-gray-600">Cargando últimos resultados...</p>
+      </div>
+      
+      <div v-if="error" class="text-center py-10">
+        <p class="text-red-600 font-semibold">Error al cargar los datos:</p>
+        <p class="text-gray-700 mt-2">{{ error }}</p>
+      </div>
+
+      <div v-if="!isLoading && !error" class="overflow-x-auto rounded-lg border">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="sticky left-0 z-20 bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dorsal</th>
+              <th v-for="stage in raceData.stages" :key="stage.id" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {{ stage.name }}
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr v-if="raceData.raceData.length === 0">
+              <td :colspan="1 + raceData.stages.length" class="px-6 py-4 text-center text-sm text-gray-500">
+                Aún no hay tiempos registrados.
+              </td>
+            </tr>
+            <tr v-for="data in raceData.raceData" :key="data.dorsal" class="hover:bg-gray-50">
+              <td class="sticky left-0 z-10 bg-white px-4 py-2 whitespace-nowrap text-sm font-bold text-gray-900 shadow-sm">
+                {{ data.dorsal }}
+              </td>
+              <td v-for="stage in raceData.stages" :key="stage.id" class="px-4 py-2 whitespace-nowrap text-sm">
+                <div v-if="data.stages[stage.id]" class="text-left">
+                  <div class="font-bold text-gray-900 leading-snug">{{ formatDatePart(data.stages[stage.id].timestamp) }}</div>
+                  <div class="font-bold text-blue-700 leading-snug">{{ formatTimePart(data.stages[stage.id].timestamp) }}</div>
+                  <div class="text-xs text-green-800 font-medium leading-snug">{{ formatDuration(raceData.raceStartTime, data.stages[stage.id].timestamp) }}</div>
+                </div>
+                <span v-else class="text-gray-400">---</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <div class="text-center text-xs text-gray-500 mt-4">
+        Los tiempos se actualizan automáticamente cada 5 minutos.
+      </div>
+
+    </div>
+
+    <div class="mt-8 text-center p-4 bg-white rounded-lg shadow-xl">
+      <h3 class="text-sm font-semibold text-gray-600 mb-4">Organizan:</h3>
+      <img src="logos/cierre.png" alt="Logos Organizadores" class="mx-auto w-full max-w-sm">
+    </div>
+  </div>
+
+  <script>
+    const { createApp, ref, onMounted } = Vue;
+    const NPOINT_URL = "https://api.npoint.io/012d7b66046ffcbb9d39";
+
+    createApp({
+      setup() {
+        const isLoading = ref(true);
+        const error = ref(null);
+        const raceData = ref({ stages: [], raceData: [], raceStartTime: null });
+
+        const formatDatePart = (date) => {
+          if (!date) return '---'
+          const d = new Date(date)
+          return d.toLocaleString('es-ES', { day: '2-digit', month: '2-digit' })
+        }
+
+        const formatTimePart = (date) => {
+          if (!date) return '---'
+          const d = new Date(date)
+          return d.toLocaleString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+        }
+        
+        const formatDuration = (startTime, endTime) => {
+          if (!startTime || !endTime) return '---'
+          const start = new Date(startTime)
+          const end = new Date(endTime)
+          let diff = Math.abs(end - start) / 1000
+          
+          const h = Math.floor(diff / 3600)
+          diff %= 3600
+          const m = Math.floor(diff / 60)
+          const s = Math.floor(diff % 60)
+          
+          const pad = (num) => String(num).padStart(2, '0')
+          
+          return `${pad(h)}:${pad(m)}:${pad(s)}`
+        }
+
+        const loadResults = async () => {
+          isLoading.value = true;
+          error.value = null;
+          try {
+            const response = await fetch(NPOINT_URL, { cache: "no-store" });
+            if (!response.ok) {
+              throw new Error('No se pudieron cargar los datos. El bin de npoint podría estar vacío.');
+            }
+            const data = await response.json();
+            
+            if (!data.stages || !data.raceData) {
+              throw new Error('Los datos recibidos no tienen el formato correcto.');
+            }
+            
+            raceData.value = data;
+          } catch (err) {
+            error.value = err.message;
+          } finally {
+            isLoading.value = false;
+          }
+        };
+        
+        onMounted(() => {
+          loadResults();
+          setInterval(loadResults, 300000);
+        });
+
+        return {
+          isLoading,
+          error,
+          raceData,
+          formatDatePart,
+          formatTimePart,
+          formatDuration
+        };
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
