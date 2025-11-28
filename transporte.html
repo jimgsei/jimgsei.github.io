@@ -3,203 +3,241 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Andalucía Transport</title>
+    <title>Transporte Andalucía Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Outfit', sans-serif; background-color: #f8fafc; -webkit-tap-highlight-color: transparent; }
         
-        /* Animaciones */
-        .slide-in-left { animation: slideInLeft 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .slide-out-left { animation: slideOutLeft 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
-        .slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-
-        @keyframes slideInLeft { from { transform: translateX(-100%); } to { transform: translateX(0); } }
-        @keyframes slideOutLeft { from { transform: translateX(0); } to { transform: translateX(-100%); } }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-        /* Estilos personalizados */
-        .glass-nav {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-top: 1px solid rgba(0,0,0,0.05);
+        /* Utilidades UI */
+        .glass-header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
         }
-
-        .metro-card-gradient { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
-        .bus-card-gradient { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
-        .train-card-gradient { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); }
-        .boat-card-gradient { background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); }
-
-        .loader {
-            width: 20px; height: 20px;
-            border: 2px solid #e2e8f0;
-            border-top-color: #3b82f6;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* Ocultar scrollbar pero permitir scroll */
+        
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Tabla de Horarios Estilizada */
+        .schedule-wrapper {
+            overflow-x: auto;
+            border-radius: 16px;
+            background: white;
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+        
+        table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        
+        th {
+            background: #f1f5f9;
+            color: #475569;
+            font-weight: 700;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 16px 12px;
+            text-align: center;
+            white-space: nowrap;
+            border-bottom: 2px solid #e2e8f0;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #f1f5f9;
+            color: #334155;
+            font-size: 0.85rem;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:nth-child(even) { background-color: #fafafa; }
+        tr:hover td { background-color: #f0f9ff; color: #0284c7; font-weight: 600; }
+
+        /* Animaciones */
+        .slide-in { animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
-<body class="h-screen flex flex-col overflow-hidden text-slate-800">
+<body class="h-screen flex flex-col text-slate-800 overflow-hidden">
 
-    <!-- OVERLAY SIDEBAR -->
-    <div id="sidebarOverlay" onclick="app.toggleSidebar()" class="fixed inset-0 bg-black/40 z-40 hidden transition-opacity opacity-0 backdrop-blur-sm"></div>
-
-    <!-- SIDEBAR (Menú de Consorcios) -->
-    <aside id="sidebar" class="fixed inset-y-0 left-0 w-72 bg-white z-50 transform -translate-x-full transition-transform duration-300 shadow-2xl flex flex-col">
-        <div class="p-6 bg-slate-900 text-white">
-            <h2 class="text-xl font-bold tracking-tight">Selecciona Área</h2>
-            <p class="text-xs text-slate-400 mt-1">Red de Consorcios de Andalucía</p>
+    <!-- SIDEBAR (MENÚ LATERAL) -->
+    <div id="sidebarOverlay" onclick="app.toggleSidebar()" class="fixed inset-0 bg-black/40 z-50 hidden transition-opacity opacity-0 backdrop-blur-sm"></div>
+    <aside id="sidebar" class="fixed inset-y-0 left-0 w-72 bg-white z-[60] transform -translate-x-full transition-transform duration-300 shadow-2xl flex flex-col">
+        <div class="h-48 bg-slate-900 text-white p-6 flex flex-col justify-end relative overflow-hidden">
+            <!-- Decoración -->
+            <div class="absolute -right-4 -top-4 text-slate-800 text-9xl opacity-50"><i class="fas fa-map"></i></div>
+            
+            <h2 class="text-2xl font-bold tracking-tight relative z-10">Andalucía</h2>
+            <p class="text-slate-400 text-sm relative z-10">Red de Consorcios</p>
         </div>
         <div class="flex-1 overflow-y-auto py-2" id="consorciosList">
-            <!-- Se llena con JS -->
+            <!-- Lista JS -->
         </div>
-        <div class="p-4 border-t border-gray-100 text-center text-xs text-gray-400">
-            v2.5 • API CTAN
+        <div class="p-4 border-t text-[10px] text-center text-gray-400 bg-slate-50">
+            API Oficial CTAN v1
         </div>
     </aside>
 
-    <!-- HEADER SUPERIOR -->
-    <header class="bg-white z-30 px-4 pt-4 pb-2 shadow-sm shrink-0">
-        <div class="flex justify-between items-center mb-4">
-            <button onclick="app.toggleSidebar()" class="w-10 h-10 rounded-full hover:bg-gray-100 flex items-center justify-center transition text-slate-700">
-                <i class="fas fa-bars text-lg"></i>
-            </button>
-            
-            <div class="text-center">
-                <h1 id="headerTitle" class="font-bold text-lg leading-tight">Cargando...</h1>
-                <span class="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Online</span>
+    <!-- HEADER -->
+    <header class="glass-header z-30 shrink-0">
+        <div class="px-4 pt-4 pb-2">
+            <div class="flex justify-between items-center mb-4">
+                <button onclick="app.toggleSidebar()" class="w-10 h-10 rounded-xl bg-white border border-gray-100 shadow-sm flex items-center justify-center text-slate-700 hover:bg-slate-50 transition">
+                    <i class="fas fa-bars"></i>
+                </button>
+                
+                <div class="text-center" onclick="app.toggleSidebar()">
+                    <h1 id="headerTitle" class="font-bold text-lg leading-none tracking-tight">Granada</h1>
+                    <span class="text-[10px] text-green-600 font-bold uppercase tracking-wider">Consorcio Activo</span>
+                </div>
+
+                <button onclick="app.loadLines()" class="w-10 h-10 rounded-xl bg-white border border-gray-100 shadow-sm flex items-center justify-center text-slate-700 hover:bg-slate-50 transition">
+                    <i class="fas fa-sync-alt text-sm"></i>
+                </button>
             </div>
 
-            <button onclick="app.reload()" class="w-10 h-10 rounded-full hover:bg-gray-100 flex items-center justify-center transition text-slate-700">
-                <i class="fas fa-sync-alt text-sm"></i>
-            </button>
-        </div>
-
-        <!-- Barra de búsqueda -->
-        <div class="relative group" id="searchContainer">
-            <i class="fas fa-search absolute left-3 top-3.5 text-gray-400 group-focus-within:text-blue-500 transition-colors"></i>
-            <input type="text" id="searchInput" placeholder="Buscar línea o destino..." 
-                class="w-full bg-slate-100 border-none rounded-2xl py-3 pl-10 pr-4 text-sm font-medium text-slate-700 focus:ring-2 focus:ring-blue-500/20 focus:bg-white transition-all outline-none"
-                onkeyup="app.filterLines()">
+            <!-- Buscador -->
+            <div class="relative group">
+                <i class="fas fa-search absolute left-3.5 top-3 text-gray-400 group-focus-within:text-blue-500 transition-colors"></i>
+                <input type="text" id="searchInput" placeholder="Buscar línea (ej. 170A, Metro)..." 
+                    class="w-full bg-slate-100 border-none rounded-xl py-2.5 pl-10 pr-4 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all outline-none"
+                    onkeyup="app.filterLines()">
+            </div>
         </div>
     </header>
 
-    <!-- CONTENIDO PRINCIPAL -->
-    <main class="flex-1 overflow-hidden relative bg-slate-50 w-full">
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 relative bg-slate-50 w-full overflow-hidden">
         
         <!-- VISTA: LISTA DE LÍNEAS -->
-        <div id="view-lines" class="h-full overflow-y-auto px-4 pt-4 pb-24 scroll-smooth no-scrollbar">
-            <div id="lines-loader" class="flex flex-col items-center justify-center py-20 text-gray-400">
-                <div class="loader mb-4 w-8 h-8 border-4 border-slate-200 border-t-blue-500"></div>
-                <p class="text-xs font-semibold tracking-wide uppercase">Conectando...</p>
+        <div id="view-lines" class="h-full overflow-y-auto p-4 pb-24 scroll-smooth">
+            <div id="loader" class="flex flex-col items-center justify-center py-20 text-gray-400">
+                <div class="animate-spin rounded-full h-8 w-8 border-2 border-slate-200 border-t-blue-600 mb-3"></div>
+                <p class="text-xs font-bold uppercase tracking-widest opacity-60">Cargando Red...</p>
             </div>
-            <div id="lines-list" class="space-y-3 pb-20 hidden"></div>
             
-            <!-- Estado vacío -->
-            <div id="empty-lines" class="hidden flex flex-col items-center justify-center py-20 text-center">
-                <div class="bg-white p-4 rounded-full shadow-sm mb-3">
-                    <i class="fas fa-search text-gray-300 text-2xl"></i>
-                </div>
-                <p class="text-sm text-gray-500 font-medium">No se encontraron líneas</p>
+            <div id="lines-list" class="space-y-3 hidden"></div>
+            
+            <div id="empty-state" class="hidden flex flex-col items-center justify-center py-20 text-center opacity-50">
+                <i class="fas fa-route text-4xl mb-2 text-gray-300"></i>
+                <p class="text-sm font-medium text-gray-500">No se encontraron líneas</p>
             </div>
         </div>
 
-        <!-- VISTA: DETALLE DE PARADAS (Slide Over) -->
-        <div id="view-stops" class="absolute inset-0 bg-white z-20 transform translate-x-full transition-transform duration-300 flex flex-col">
+        <!-- VISTA: DETALLE (SLIDE OVER) -->
+        <div id="view-detail" class="absolute inset-0 bg-white z-40 transform translate-x-full transition-transform duration-300 flex flex-col">
             
-            <!-- Header Paradas -->
-            <div class="px-4 py-3 border-b border-gray-100 flex items-center gap-3 bg-white/80 backdrop-blur-md z-10">
-                <button onclick="app.closeStops()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition">
-                    <i class="fas fa-arrow-left"></i>
-                </button>
-                <div class="flex-1 min-w-0">
-                    <h2 id="stopLineCode" class="font-bold text-slate-800 leading-none truncate">Línea</h2>
-                    <p id="stopLineName" class="text-xs text-slate-500 truncate">Destino</p>
+            <!-- Detalle Header -->
+            <div class="bg-white border-b border-gray-100 shadow-sm z-20">
+                <div class="flex items-center gap-3 p-3">
+                    <button onclick="app.closeDetail()" class="w-8 h-8 rounded-full bg-slate-50 hover:bg-slate-100 flex items-center justify-center transition text-slate-600">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-2">
+                            <span id="detailCode" class="font-black text-slate-800 text-xl tracking-tight"></span>
+                            <span class="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded font-bold uppercase" id="detailType">BUS</span>
+                        </div>
+                        <p id="detailName" class="text-xs text-slate-500 truncate font-medium"></p>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="flex px-4 gap-8">
+                    <button onclick="app.switchTab('SCHEDULE')" id="tab-schedule" class="pb-3 text-sm font-bold border-b-2 border-blue-600 text-blue-600 transition-colors">
+                        Horarios Planificados
+                    </button>
+                    <button onclick="app.switchTab('REALTIME')" id="tab-realtime" class="pb-3 text-sm font-bold border-b-2 border-transparent text-gray-400 hover:text-gray-600 transition-colors">
+                        Tiempo Real (GPS)
+                    </button>
                 </div>
             </div>
 
-            <!-- Tabs Sentido -->
-            <div class="flex p-1 mx-4 mt-2 bg-slate-100 rounded-xl">
-                <button onclick="app.switchDirection(1)" id="btn-dir-1" class="flex-1 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm bg-white text-slate-800">Ida</button>
-                <button onclick="app.switchDirection(2)" id="btn-dir-2" class="flex-1 py-1.5 rounded-lg text-xs font-bold text-slate-500 transition-all hover:text-slate-700">Vuelta</button>
-            </div>
+            <!-- Contenido Scrollable -->
+            <div class="flex-1 overflow-hidden relative bg-slate-50">
+                
+                <!-- PESTAÑA 1: HORARIOS -->
+                <div id="panel-schedule" class="absolute inset-0 overflow-y-auto p-4">
+                    
+                    <!-- Botones Ida/Vuelta -->
+                    <div class="flex bg-white p-1 rounded-xl shadow-sm border border-gray-100 mb-4 sticky top-0 z-20">
+                        <button onclick="app.renderSchedule(1)" id="btn-ida" class="flex-1 py-2 rounded-lg text-xs font-bold transition-all bg-slate-800 text-white shadow">
+                            IDA
+                        </button>
+                        <button onclick="app.renderSchedule(2)" id="btn-vuelta" class="flex-1 py-2 rounded-lg text-xs font-bold transition-all text-slate-500 hover:bg-slate-50">
+                            VUELTA
+                        </button>
+                    </div>
 
-            <!-- Lista Paradas -->
-            <div class="flex-1 overflow-y-auto p-4 relative">
-                <div class="absolute left-6 top-4 bottom-4 w-0.5 bg-slate-200"></div>
-                <div id="stops-list" class="space-y-0 relative z-10 pb-20"></div>
+                    <div id="schedule-content">
+                        <!-- Aquí va la tabla -->
+                        <div class="text-center py-12 opacity-60">
+                            <i class="far fa-calendar-alt text-3xl mb-2 text-gray-300"></i>
+                            <p class="text-xs">Selecciona un sentido arriba</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PESTAÑA 2: REALTIME -->
+                <div id="panel-realtime" class="absolute inset-0 overflow-y-auto hidden p-4">
+                    <div class="bg-blue-50 text-blue-700 p-3 rounded-xl text-xs mb-4 flex gap-3 border border-blue-100">
+                        <i class="fas fa-satellite-dish mt-0.5"></i>
+                        <p>Toca una parada para ver cuánto le falta al próximo vehículo.</p>
+                    </div>
+                    <div id="stops-list" class="space-y-2 pb-10"></div>
+                </div>
+
             </div>
         </div>
     </main>
 
-    <!-- BARRA NAVEGACIÓN INFERIOR (FILTROS) -->
-    <nav class="glass-nav fixed bottom-0 w-full z-40 pb-safe">
-        <div class="flex justify-around items-center h-16 max-w-lg mx-auto px-2">
-            
-            <button onclick="app.setMode('ALL')" class="nav-btn flex-1 flex flex-col items-center justify-center gap-1 text-blue-600 group" data-mode="ALL">
-                <div class="w-12 h-8 rounded-xl bg-blue-50 group-hover:bg-blue-100 flex items-center justify-center transition-colors">
-                    <i class="fas fa-th-large text-lg transition-transform group-active:scale-90"></i>
-                </div>
+    <!-- BOTTOM NAVIGATION -->
+    <nav class="bg-white border-t border-gray-100 fixed bottom-0 w-full z-30 pb-safe">
+        <div class="flex justify-around items-center h-16 max-w-lg mx-auto">
+            <button onclick="app.setFilter('ALL')" class="nav-btn text-blue-600 flex flex-col items-center w-16 group" data-mode="ALL">
+                <i class="fas fa-th-large text-lg mb-1 group-active:scale-90 transition-transform"></i>
                 <span class="text-[10px] font-bold">Todo</span>
             </button>
-
-            <button onclick="app.setMode('AUTOBUS')" class="nav-btn flex-1 flex flex-col items-center justify-center gap-1 text-gray-400 hover:text-gray-600 group" data-mode="AUTOBUS">
-                <i class="fas fa-bus text-lg mb-0.5 transition-transform group-active:scale-90"></i>
+            <button onclick="app.setFilter('AUTOBUS')" class="nav-btn text-gray-400 flex flex-col items-center w-16 group" data-mode="AUTOBUS">
+                <i class="fas fa-bus text-lg mb-1 group-active:scale-90 transition-transform"></i>
                 <span class="text-[10px] font-medium">Bus</span>
             </button>
-
-            <button onclick="app.setMode('METRO')" class="nav-btn flex-1 flex flex-col items-center justify-center gap-1 text-gray-400 hover:text-gray-600 group" data-mode="METRO">
-                <i class="fas fa-subway text-lg mb-0.5 transition-transform group-active:scale-90"></i>
+            <button onclick="app.setFilter('METRO')" class="nav-btn text-gray-400 flex flex-col items-center w-16 group" data-mode="METRO">
+                <i class="fas fa-subway text-lg mb-1 group-active:scale-90 transition-transform"></i>
                 <span class="text-[10px] font-medium">Metro</span>
             </button>
-
-            <button onclick="app.setMode('OTROS')" class="nav-btn flex-1 flex flex-col items-center justify-center gap-1 text-gray-400 hover:text-gray-600 group" data-mode="OTROS">
-                <i class="fas fa-ship text-lg mb-0.5 transition-transform group-active:scale-90"></i>
+            <button onclick="app.setFilter('OTROS')" class="nav-btn text-gray-400 flex flex-col items-center w-16 group" data-mode="OTROS">
+                <i class="fas fa-ship text-lg mb-1 group-active:scale-90 transition-transform"></i>
                 <span class="text-[10px] font-medium">Otros</span>
             </button>
-
         </div>
     </nav>
 
-    <!-- MODAL TIEMPOS -->
-    <div id="timesModal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
-        <!-- Backdrop -->
-        <div class="absolute inset-0 bg-black/30 backdrop-blur-sm transition-opacity opacity-0" id="modalBackdrop" onclick="app.closeTimes()"></div>
-        
-        <!-- Panel -->
-        <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl transform translate-y-full transition-transform duration-300 max-h-[85vh] flex flex-col" id="modalPanel">
-            
-            <div class="w-full flex justify-center pt-3 pb-2" onclick="app.closeTimes()">
-                <div class="w-12 h-1.5 bg-gray-200 rounded-full"></div>
+    <!-- MODAL GPS -->
+    <div id="gpsModal" class="fixed inset-0 z-[60] hidden flex items-end sm:items-center justify-center">
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity opacity-0" id="gpsBackdrop" onclick="app.closeGps()"></div>
+        <div class="bg-white w-full sm:max-w-md rounded-t-3xl shadow-2xl z-10 transform translate-y-full transition-transform duration-300 max-h-[60vh] flex flex-col" id="gpsPanel">
+            <div class="p-5 border-b flex justify-between items-center">
+                <h3 class="font-bold text-lg text-slate-800" id="gpsTitle">Parada</h3>
+                <button onclick="app.closeGps()" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center"><i class="fas fa-times text-slate-500"></i></button>
             </div>
-
-            <div class="px-6 pb-4 border-b border-gray-50">
-                <h3 id="modalStopTitle" class="text-xl font-bold text-slate-800">Parada</h3>
-                <p class="text-xs text-gray-400 flex items-center gap-1 mt-1">
-                    <i class="far fa-clock"></i> Tiempo real
-                </p>
-            </div>
-
-            <div id="modalContent" class="p-4 overflow-y-auto bg-slate-50 min-h-[200px] flex-1">
-                <!-- Inyección JS -->
-            </div>
+            <div id="gpsContent" class="p-4 overflow-y-auto bg-slate-50 min-h-[150px]"></div>
         </div>
     </div>
 
     <script>
-        /**
-         * APP CONFIG & DATA
-         */
         const app = {
             config: {
                 proxy: 'https://corsproxy.io/?',
@@ -207,46 +245,43 @@
             },
             
             consorcios: [
-                { id: 1, name: 'Sevilla', color: 'from-orange-500 to-red-500' },
-                { id: 2, name: 'Bahía de Cádiz', color: 'from-blue-400 to-blue-600' },
-                { id: 3, name: 'Área de Granada', color: 'from-green-500 to-emerald-600' },
-                { id: 4, name: 'Área de Málaga', color: 'from-blue-500 to-indigo-600' },
-                { id: 5, name: 'Campo de Gibraltar', color: 'from-teal-400 to-teal-600' },
-                { id: 6, name: 'Almería', color: 'from-red-400 to-pink-500' },
-                { id: 7, name: 'Jaén', color: 'from-purple-500 to-violet-600' },
-                { id: 8, name: 'Córdoba', color: 'from-yellow-500 to-orange-500' },
-                { id: 9, name: 'Costa de Huelva', color: 'from-cyan-500 to-blue-500' }
+                { id: 1, name: 'Sevilla' }, { id: 2, name: 'Bahía de Cádiz' }, { id: 3, name: 'Granada' },
+                { id: 4, name: 'Málaga' }, { id: 5, name: 'Campo de Gibraltar' }, { id: 6, name: 'Almería' },
+                { id: 7, name: 'Jaén' }, { id: 8, name: 'Córdoba' }, { id: 9, name: 'Costa de Huelva' }
             ],
 
             state: {
-                currentConsorcio: 3, // Default: Granada
-                currentMode: 'ALL', // ALL, AUTOBUS, METRO, OTROS
+                consId: 3, // Granada por defecto
+                mode: 'ALL',
                 lines: [],
-                stops: [],
-                direction: 1
+                scheduleData: null,
+                currentLine: null
             },
 
-            // --- INICIALIZACIÓN ---
             init: function() {
                 this.renderSidebar();
-                this.loadConsorcio(this.state.currentConsorcio);
+                this.loadLines(); // Carga inicial
             },
 
+            // --- BARRA LATERAL ---
             renderSidebar: function() {
                 const list = document.getElementById('consorciosList');
                 list.innerHTML = '';
                 this.consorcios.forEach(c => {
                     const btn = document.createElement('button');
-                    btn.className = 'w-full text-left px-6 py-4 hover:bg-slate-50 flex items-center gap-4 transition border-b border-gray-50';
+                    btn.className = 'w-full text-left px-6 py-4 hover:bg-slate-50 border-b border-gray-100 flex items-center justify-between group transition-colors';
                     btn.onclick = () => {
-                        this.loadConsorcio(c.id);
+                        this.state.consId = c.id;
+                        document.getElementById('headerTitle').innerText = c.name;
+                        this.loadLines();
                         this.toggleSidebar();
                     };
                     btn.innerHTML = `
-                        <div class="w-8 h-8 rounded-full bg-gradient-to-br ${c.color} text-white flex items-center justify-center font-bold text-xs shadow-sm">
-                            ${c.name.substring(0,1)}
+                        <div class="flex items-center gap-3">
+                            <span class="w-6 h-6 rounded bg-slate-100 text-slate-500 flex items-center justify-center text-xs font-bold">${c.id}</span>
+                            <span class="font-medium text-slate-700 group-hover:text-blue-600">${c.name}</span>
                         </div>
-                        <span class="font-medium text-slate-700 text-sm">${c.name}</span>
+                        <i class="fas fa-chevron-right text-gray-300 text-xs"></i>
                     `;
                     list.appendChild(btn);
                 });
@@ -254,354 +289,340 @@
 
             toggleSidebar: function() {
                 const sb = document.getElementById('sidebar');
-                const overlay = document.getElementById('sidebarOverlay');
-                const isOpen = !sb.classList.contains('-translate-x-full');
-
-                if (isOpen) {
-                    sb.classList.add('-translate-x-full');
-                    overlay.classList.remove('opacity-100');
-                    setTimeout(() => overlay.classList.add('hidden'), 300);
-                } else {
-                    overlay.classList.remove('hidden');
-                    // Force reflow
-                    void overlay.offsetWidth; 
-                    overlay.classList.add('opacity-100');
+                const ov = document.getElementById('sidebarOverlay');
+                const closed = sb.classList.contains('-translate-x-full');
+                
+                if(closed) {
+                    ov.classList.remove('hidden');
+                    requestAnimationFrame(() => ov.classList.remove('opacity-0'));
                     sb.classList.remove('-translate-x-full');
+                } else {
+                    sb.classList.add('-translate-x-full');
+                    ov.classList.add('opacity-0');
+                    setTimeout(() => ov.classList.add('hidden'), 300);
                 }
             },
 
-            // --- CARGA DE DATOS ---
-            loadConsorcio: async function(id) {
-                this.state.currentConsorcio = id;
-                const info = this.consorcios.find(c => c.id === id);
-                document.getElementById('headerTitle').innerText = info.name;
-
-                // Reset UI
+            // --- CARGA DE LÍNEAS ---
+            loadLines: async function() {
                 document.getElementById('lines-list').classList.add('hidden');
-                document.getElementById('lines-loader').classList.remove('hidden');
-                document.getElementById('empty-lines').classList.add('hidden');
+                document.getElementById('loader').classList.remove('hidden');
+                document.getElementById('empty-state').classList.add('hidden');
 
                 try {
-                    const url = `${this.config.proxy}${encodeURIComponent(`${this.config.apiBase}/Consorcios/${id}/lineas`)}`;
+                    const url = `${this.config.proxy}${encodeURIComponent(`${this.config.apiBase}/Consorcios/${this.state.consId}/lineas`)}`;
                     const res = await fetch(url);
                     const data = await res.json();
                     
-                    // Normalizar API
-                    let rawLines = data.lineas || data || [];
+                    let lines = data.lineas || data || [];
                     
-                    // Mapeo inteligente de tipos para iconos
-                    this.state.lines = rawLines.map(l => {
+                    // Procesar Tipos
+                    this.state.lines = lines.map(l => {
                         let type = 'AUTOBUS';
-                        if (l.nombre.toLowerCase().includes('metro') || l.modo === 'METRO') type = 'METRO';
+                        const n = l.nombre.toLowerCase();
+                        if (n.includes('metro') || l.modo === 'METRO') type = 'METRO';
                         else if (l.modo === 'TREN' || l.modo === 'CERCANIAS') type = 'TREN';
-                        else if (l.modo === 'BARCO' || l.nombre.toLowerCase().includes('catamaran')) type = 'BARCO';
-                        
+                        else if (l.modo === 'BARCO' || n.includes('catamaran')) type = 'BARCO';
                         return { ...l, type };
                     });
 
-                    // Ordenar: Metro primero, luego código
+                    // Ordenar (Metro primero)
                     this.state.lines.sort((a,b) => {
-                        if (a.type === 'METRO' && b.type !== 'METRO') return -1;
-                        if (a.type !== 'METRO' && b.type === 'METRO') return 1;
+                        if(a.type === 'METRO' && b.type !== 'METRO') return -1;
+                        if(a.type !== 'METRO' && b.type === 'METRO') return 1;
                         return a.codigo.localeCompare(b.codigo);
                     });
 
-                    this.applyFilter();
+                    this.renderLines();
 
                 } catch (e) {
                     console.error(e);
-                    document.getElementById('lines-list').innerHTML = `<div class="text-center text-red-500 py-10">Error cargando datos.<br>${e.message}</div>`;
+                    alert("Error conectando con la API.");
                 } finally {
-                    document.getElementById('lines-loader').classList.add('hidden');
+                    document.getElementById('loader').classList.add('hidden');
                     document.getElementById('lines-list').classList.remove('hidden');
                 }
             },
 
-            // --- FILTROS Y MODOS ---
-            setMode: function(mode) {
-                this.state.currentMode = mode;
-                
-                // Actualizar UI Botones
-                document.querySelectorAll('.nav-btn').forEach(btn => {
-                    const isActive = btn.dataset.mode === mode;
-                    const iconBox = btn.querySelector('div'); // Si tiene caja (solo el primero)
-                    
-                    if (isActive) {
-                        btn.classList.remove('text-gray-400');
-                        btn.classList.add('text-blue-600');
-                        if(iconBox) iconBox.classList.replace('bg-transparent', 'bg-blue-50');
-                    } else {
-                        btn.classList.add('text-gray-400');
-                        btn.classList.remove('text-blue-600');
-                        if(iconBox) iconBox.classList.replace('bg-blue-50', 'bg-transparent');
-                    }
+            setFilter: function(mode) {
+                this.state.mode = mode;
+                document.querySelectorAll('.nav-btn').forEach(b => {
+                    const active = b.dataset.mode === mode;
+                    b.className = active ? 'nav-btn text-blue-600 flex flex-col items-center w-16 group transition-colors' : 'nav-btn text-gray-400 flex flex-col items-center w-16 group transition-colors';
                 });
-
-                this.applyFilter();
+                this.renderLines();
             },
 
             filterLines: function() {
-                this.applyFilter();
+                this.renderLines();
             },
 
-            applyFilter: function() {
+            renderLines: function() {
                 const term = document.getElementById('searchInput').value.toLowerCase();
-                const mode = this.state.currentMode;
-
+                const mode = this.state.mode;
+                const container = document.getElementById('lines-list');
+                
                 const filtered = this.state.lines.filter(l => {
-                    // Filtro Texto
                     const matchText = l.nombre.toLowerCase().includes(term) || l.codigo.toLowerCase().includes(term);
-                    
-                    // Filtro Modo
                     let matchMode = true;
-                    if (mode === 'AUTOBUS') matchMode = l.type === 'AUTOBUS';
-                    if (mode === 'METRO') matchMode = l.type === 'METRO';
-                    if (mode === 'OTROS') matchMode = l.type === 'TREN' || l.type === 'BARCO';
-
+                    if(mode === 'AUTOBUS') matchMode = l.type === 'AUTOBUS';
+                    if(mode === 'METRO') matchMode = l.type === 'METRO';
+                    if(mode === 'OTROS') matchMode = l.type === 'TREN' || l.type === 'BARCO';
                     return matchText && matchMode;
                 });
 
-                this.renderLines(filtered);
-            },
-
-            renderLines: function(lines) {
-                const container = document.getElementById('lines-list');
                 container.innerHTML = '';
-
-                if (lines.length === 0) {
-                    document.getElementById('empty-lines').classList.remove('hidden');
+                
+                if(filtered.length === 0) {
+                    document.getElementById('empty-state').classList.remove('hidden');
                     return;
                 } else {
-                    document.getElementById('empty-lines').classList.add('hidden');
+                    document.getElementById('empty-state').classList.add('hidden');
                 }
 
-                lines.forEach(line => {
-                    // Estilos según tipo
-                    let gradient = 'bus-card-gradient';
+                filtered.forEach(line => {
+                    let color = 'bg-blue-600';
                     let icon = 'fa-bus';
-                    let label = 'Bus';
+                    let typeLabel = 'BUS';
                     
-                    if (line.type === 'METRO') { gradient = 'metro-card-gradient'; icon = 'fa-subway'; label='Metro'; }
-                    if (line.type === 'TREN') { gradient = 'train-card-gradient'; icon = 'fa-train'; label='Tren'; }
-                    if (line.type === 'BARCO') { gradient = 'boat-card-gradient'; icon = 'fa-ship'; label='Barco'; }
+                    if(line.type === 'METRO') { color = 'bg-emerald-500'; icon = 'fa-subway'; typeLabel='METRO'; }
+                    if(line.type === 'TREN') { color = 'bg-purple-600'; icon = 'fa-train'; typeLabel='TREN'; }
+                    if(line.type === 'BARCO') { color = 'bg-cyan-600'; icon = 'fa-ship'; typeLabel='BARCO'; }
 
                     const el = document.createElement('div');
-                    el.className = 'bg-white rounded-2xl p-4 shadow-sm border border-slate-100 relative overflow-hidden flex items-center gap-4 cursor-pointer hover:shadow-md transition group active:scale-[0.98]';
-                    el.onclick = () => this.openLine(line);
+                    el.className = 'bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 cursor-pointer active:scale-[0.98] transition-transform';
+                    el.onclick = () => this.openDetail(line);
 
                     el.innerHTML = `
-                        <!-- Icono Tipo -->
-                        <div class="w-12 h-12 rounded-xl ${gradient} flex items-center justify-center text-white shadow-md shrink-0 z-10">
+                        <div class="w-12 h-12 rounded-xl ${color} flex items-center justify-center text-white shadow-lg shadow-${color}/20 shrink-0">
                             <i class="fas ${icon} text-lg"></i>
                         </div>
-
-                        <!-- Info -->
-                        <div class="flex-1 min-w-0 z-10">
-                            <div class="flex items-center gap-2 mb-0.5">
-                                <span class="font-black text-slate-800 text-lg">${line.codigo}</span>
-                                <span class="bg-slate-100 text-slate-500 text-[10px] px-2 py-0.5 rounded font-bold uppercase">${label}</span>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex justify-between items-center">
+                                <h3 class="font-black text-slate-800 text-lg leading-none">${line.codigo}</h3>
+                                <span class="text-[9px] bg-slate-100 text-slate-500 font-bold px-1.5 py-0.5 rounded uppercase tracking-wide">${typeLabel}</span>
                             </div>
-                            <h3 class="text-sm font-medium text-slate-600 truncate leading-tight">${line.nombre}</h3>
+                            <p class="text-xs text-slate-500 font-medium truncate mt-1">${line.nombre}</p>
                         </div>
-
-                        <!-- Flecha -->
-                        <div class="text-slate-300 group-hover:text-blue-500 transition-colors z-10">
-                            <i class="fas fa-chevron-right"></i>
-                        </div>
-
-                        <!-- Decoración Fondo -->
-                        <div class="absolute -right-6 -bottom-6 text-8xl text-slate-50 opacity-50 transform rotate-12 pointer-events-none">
-                            <i class="fas ${icon}"></i>
-                        </div>
+                        <i class="fas fa-chevron-right text-gray-200"></i>
                     `;
                     container.appendChild(el);
                 });
             },
 
-            // --- DETALLE LÍNEA (PARADAS) ---
-            openLine: async function(line) {
-                document.getElementById('view-stops').classList.remove('translate-x-full');
-                document.getElementById('stopLineCode').innerText = line.codigo;
-                document.getElementById('stopLineName').innerText = line.nombre;
-                document.getElementById('stops-list').innerHTML = '<div class="flex justify-center py-10"><div class="loader border-t-slate-500"></div></div>';
+            // --- DETALLE Y HORARIOS (CORE FEATURE) ---
+            openDetail: function(line) {
+                this.state.currentLine = line;
+                document.getElementById('detailCode').innerText = line.codigo;
+                document.getElementById('detailName').innerText = line.nombre;
+                document.getElementById('detailType').innerText = line.type;
+                
+                document.getElementById('view-detail').classList.remove('translate-x-full');
+                
+                // Carga paralela
+                this.loadSchedule(line);
+                this.loadStops(line);
+            },
+
+            closeDetail: function() {
+                document.getElementById('view-detail').classList.add('translate-x-full');
+            },
+
+            // 1. CARGA DE HORARIOS (TABLAS)
+            loadSchedule: async function(line) {
+                const container = document.getElementById('schedule-content');
+                container.innerHTML = '<div class="flex justify-center py-12"><div class="animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent"></div></div>';
+                
+                const d = new Date();
+                // Endpoint Crítico: Se pasa dia y mes para obtener el "Planificador" correcto
+                const url = `${this.config.proxy}${encodeURIComponent(`${this.config.apiBase}/Consorcios/${this.state.consId}/horarios_lineas?linea=${line.idLinea}&dia=${d.getDate()}&mes=${d.getMonth()+1}&lang=ES`)}`;
 
                 try {
-                    const url = `${this.config.proxy}${encodeURIComponent(`${this.config.apiBase}/Consorcios/${this.state.currentConsorcio}/lineas/${line.idLinea}/paradas`)}`;
                     const res = await fetch(url);
                     const data = await res.json();
                     
-                    const rawStops = data.paradas || data || [];
-                    this.state.stops = rawStops.map(s => ({
-                        ...s, 
-                        sentido: parseInt(s.sentido),
-                        orden: parseInt(s.orden)
-                    }));
-
-                    // Detectar sentido inicial
-                    const hasDir1 = this.state.stops.some(s => s.sentido === 1);
-                    this.switchDirection(hasDir1 ? 1 : 2);
-
-                } catch (e) {
-                    document.getElementById('stops-list').innerHTML = `<p class="text-center text-red-500 p-4">Error cargando paradas</p>`;
+                    if(data.planificadores && data.planificadores.length > 0) {
+                        this.state.scheduleData = data.planificadores[0];
+                        this.renderSchedule(1); // Render Ida por defecto
+                    } else {
+                        container.innerHTML = '<div class="text-center py-10 text-gray-400">No hay horarios disponibles para hoy.</div>';
+                    }
+                } catch(e) {
+                    console.error(e);
+                    container.innerHTML = '<div class="text-center py-10 text-red-400">Error cargando tabla de horarios.</div>';
                 }
             },
 
-            closeStops: function() {
-                document.getElementById('view-stops').classList.add('translate-x-full');
-            },
+            renderSchedule: function(sentido) {
+                const data = this.state.scheduleData;
+                if(!data) return;
 
-            switchDirection: function(dir) {
-                this.state.direction = dir;
-                
-                // Toggle Buttons
-                const b1 = document.getElementById('btn-dir-1');
-                const b2 = document.getElementById('btn-dir-2');
-                
-                const activeClasses = ['bg-white', 'text-slate-800', 'shadow-sm'];
-                const inactiveClasses = ['text-slate-500', 'hover:text-slate-700', 'bg-transparent', 'shadow-none'];
-
-                if(dir === 1) {
-                    b1.classList.add(...activeClasses); b1.classList.remove(...inactiveClasses);
-                    b2.classList.remove(...activeClasses); b2.classList.add(...inactiveClasses);
+                // UI Botones
+                const b1 = document.getElementById('btn-ida');
+                const b2 = document.getElementById('btn-vuelta');
+                if(sentido === 1) {
+                    b1.className = "flex-1 py-2 rounded-lg text-xs font-bold transition-all bg-slate-800 text-white shadow ring-2 ring-slate-800 ring-offset-1";
+                    b2.className = "flex-1 py-2 rounded-lg text-xs font-bold transition-all text-slate-500 hover:bg-slate-50";
                 } else {
-                    b2.classList.add(...activeClasses); b2.classList.remove(...inactiveClasses);
-                    b1.classList.remove(...activeClasses); b1.classList.add(...inactiveClasses);
+                    b2.className = "flex-1 py-2 rounded-lg text-xs font-bold transition-all bg-slate-800 text-white shadow ring-2 ring-slate-800 ring-offset-1";
+                    b1.className = "flex-1 py-2 rounded-lg text-xs font-bold transition-all text-slate-500 hover:bg-slate-50";
                 }
 
-                // Render stops
-                const filtered = this.state.stops
-                    .filter(s => s.sentido === dir)
-                    .sort((a,b) => a.orden - b.orden);
+                // Selección de datos
+                const bloques = sentido === 1 ? data.bloquesIda : data.bloquesVuelta;
+                const horarios = sentido === 1 ? data.horarioIda : data.horarioVuelta;
 
-                const container = document.getElementById('stops-list');
-                container.innerHTML = '';
-
-                if(filtered.length === 0) {
-                    container.innerHTML = `<div class="text-center py-10 text-gray-400 text-sm">Sin paradas en este sentido</div>`;
+                if(!horarios || horarios.length === 0) {
+                    document.getElementById('schedule-content').innerHTML = '<div class="text-center py-12 text-gray-400">Sin servicio en este sentido.</div>';
                     return;
                 }
 
-                filtered.forEach((stop, idx) => {
-                    const isLast = idx === filtered.length - 1;
-                    const el = document.createElement('div');
-                    el.className = 'flex gap-4 relative pl-8 pr-4 py-3 cursor-pointer group active:bg-gray-50 rounded-lg transition';
-                    el.onclick = () => this.showTimes(stop);
-
-                    el.innerHTML = `
-                        <!-- Timeline Dot -->
-                        <div class="absolute left-6 top-1/2 -mt-1.5 -ml-1.5 w-3 h-3 bg-white border-2 border-slate-300 rounded-full z-10 group-hover:border-blue-500 group-hover:scale-125 transition-all"></div>
-                        
-                        <div class="flex-1 border-b border-gray-100 pb-3 group-last:border-0">
-                            <h4 class="font-bold text-sm text-slate-700 group-hover:text-blue-600 transition-colors">${stop.nombre}</h4>
-                            <div class="flex justify-between items-center mt-1">
-                                <span class="text-[10px] text-gray-400 bg-gray-100 px-1.5 rounded">Zona ${stop.idZona || '?'}</span>
-                                <i class="fas fa-clock text-gray-300 group-hover:text-blue-400 text-xs"></i>
-                            </div>
-                        </div>
-                    `;
-                    container.appendChild(el);
+                // CONSTRUCCIÓN DE LA TABLA
+                let html = `<div class="schedule-wrapper fade-in"><table><thead><tr>`;
+                
+                // Cabeceras (Pueblos/Paradas principales)
+                bloques.forEach(b => {
+                    html += `<th>${b.nombre}</th>`;
                 });
+                html += `</tr></thead><tbody>`;
+
+                // Filas (Horas)
+                horarios.forEach(h => {
+                    html += `<tr>`;
+                    // La API a veces usa 'horas' y a veces 'horasString'. Prevenimos errores.
+                    const times = h.horas || h.horasString || [];
+                    
+                    times.forEach(t => {
+                        let display = t;
+                        // Si es nulo o guión, lo mostramos más suave
+                        if(!t || t === '-') display = '<span class="text-gray-200 text-xs">—</span>';
+                        else display = t.substring(0, 5); // Recortar segundos si vienen
+                        
+                        html += `<td>${display}</td>`;
+                    });
+                    html += `</tr>`;
+                });
+
+                html += `</tbody></table></div>`;
+                html += `<p class="text-[10px] text-gray-400 text-center px-4 italic">* Desliza horizontalmente para ver todas las paradas.</p>`;
+
+                document.getElementById('schedule-content').innerHTML = html;
             },
 
-            // --- TIEMPOS REALES ---
-            showTimes: async function(stop) {
-                const modal = document.getElementById('timesModal');
-                const backdrop = document.getElementById('modalBackdrop');
-                const panel = document.getElementById('modalPanel');
-                const content = document.getElementById('modalContent');
+            // 2. TIEMPO REAL (PARADAS)
+            loadStops: async function(line) {
+                const container = document.getElementById('stops-list');
+                container.innerHTML = '';
                 
-                document.getElementById('modalStopTitle').innerText = stop.nombre;
-                
-                modal.classList.remove('hidden');
-                // Animation Next Frame
-                requestAnimationFrame(() => {
-                    backdrop.classList.remove('opacity-0');
-                    panel.classList.remove('translate-y-full');
-                });
-
-                content.innerHTML = '<div class="flex justify-center py-8"><div class="loader border-t-slate-500"></div></div>';
-
                 try {
-                    const url = `${this.config.proxy}${encodeURIComponent(`${this.config.apiBase}/Consorcios/${this.state.currentConsorcio}/paradas/${stop.idParada}/servicios`)}`;
+                    const url = `${this.config.proxy}${encodeURIComponent(`${this.config.apiBase}/Consorcios/${this.state.consId}/lineas/${line.idLinea}/paradas`)}`;
                     const res = await fetch(url);
                     const data = await res.json();
+                    let stops = data.paradas || data || [];
                     
-                    const servicios = data.servicios || data || [];
-                    
-                    if(servicios.length === 0) {
-                        content.innerHTML = `
-                            <div class="flex flex-col items-center justify-center py-8 text-center">
-                                <div class="bg-gray-100 rounded-full w-16 h-16 flex items-center justify-center mb-3">
-                                    <i class="fas fa-bed text-2xl text-gray-400"></i>
+                    stops.sort((a,b) => parseInt(a.orden) - parseInt(b.orden));
+
+                    stops.forEach(s => {
+                        const el = document.createElement('div');
+                        el.className = 'bg-white p-3 rounded-xl border border-gray-100 shadow-sm flex justify-between items-center cursor-pointer active:bg-blue-50';
+                        el.onclick = () => this.showGps(s);
+                        el.innerHTML = `
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center font-bold text-xs shadow-sm">${s.orden}</div>
+                                <div>
+                                    <h4 class="font-bold text-sm text-slate-700">${s.nombre}</h4>
+                                    <p class="text-[10px] text-gray-400">Zona ${s.idZona}</p>
                                 </div>
-                                <h4 class="font-bold text-gray-700">Sin servicio próximo</h4>
-                                <p class="text-xs text-gray-400 mt-1">No hay estimaciones disponibles en este momento.</p>
                             </div>
+                            <i class="fas fa-wifi text-gray-300 text-xs"></i>
                         `;
+                        container.appendChild(el);
+                    });
+                } catch(e) { console.error(e); }
+            },
+
+            showGps: async function(stop) {
+                const modal = document.getElementById('gpsModal');
+                const backdrop = document.getElementById('gpsBackdrop');
+                const panel = document.getElementById('gpsPanel');
+                const content = document.getElementById('gpsContent');
+
+                document.getElementById('gpsTitle').innerText = stop.nombre;
+                
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    backdrop.classList.remove('opacity-0');
+                    panel.classList.remove('translate-y-full');
+                }, 10);
+
+                content.innerHTML = '<div class="text-center py-6"><div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto"></div></div>';
+
+                try {
+                    const url = `${this.config.proxy}${encodeURIComponent(`${this.config.apiBase}/Consorcios/${this.state.consId}/paradas/${stop.idParada}/servicios`)}`;
+                    const res = await fetch(url);
+                    const data = await res.json();
+                    const serv = data.servicios || data || [];
+
+                    if(serv.length === 0) {
+                        content.innerHTML = `<div class="text-center py-8 text-gray-400"><i class="fas fa-moon text-2xl mb-2"></i><p>Sin vehículos detectados.</p></div>`;
                         return;
                     }
 
                     let html = '<div class="space-y-3">';
-                    servicios.forEach(s => {
-                        let mins = 0;
-                        if(s.tiempo !== undefined) mins = Math.floor(s.tiempo/60);
-                        else if(s.minutos !== undefined) mins = parseInt(s.minutos);
+                    serv.forEach(s => {
+                        let min = 0;
+                        if(s.tiempo) min = Math.floor(s.tiempo/60);
+                        else if(s.minutos) min = parseInt(s.minutos);
 
-                        let timeHTML = '';
-                        if(mins <= 0) timeHTML = '<span class="text-emerald-500 font-black text-xl animate-pulse">Llegando</span>';
-                        else timeHTML = `<span class="text-2xl font-black text-slate-800">${mins}</span><span class="text-xs font-bold text-gray-400 ml-1">min</span>`;
-
-                        // Icono dinámico para lista
-                        let iconClass = 'fa-bus';
-                        let colorClass = 'text-blue-500 bg-blue-50';
-                        if(s.idLinea && s.idLinea.toString() === '118') { iconClass = 'fa-subway'; colorClass = 'text-green-500 bg-green-50'; } // ID Metro Granada
+                        const timeBadge = min <= 0 
+                            ? `<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold animate-pulse">LLEGANDO</span>`
+                            : `<span class="font-black text-xl text-slate-800">${min}<span class="text-xs font-normal text-gray-400 ml-0.5">min</span></span>`;
 
                         html += `
-                            <div class="bg-white border border-gray-100 rounded-xl p-4 shadow-sm flex items-center justify-between">
-                                <div class="flex items-center gap-3 overflow-hidden">
-                                    <div class="w-10 h-10 rounded-lg ${colorClass} flex items-center justify-center shrink-0">
-                                        <i class="fas ${iconClass}"></i>
-                                    </div>
-                                    <div class="min-w-0">
-                                        <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Destino</p>
-                                        <h4 class="font-bold text-slate-700 truncate w-full leading-tight">${s.destino || 'Desconocido'}</h4>
-                                        <p class="text-[10px] text-gray-400 mt-0.5">Línea ${s.idLinea || '?'}</p>
-                                    </div>
+                            <div class="bg-white border border-gray-100 p-4 rounded-xl flex justify-between items-center shadow-sm">
+                                <div>
+                                    <div class="text-[10px] uppercase font-bold text-gray-400">Destino</div>
+                                    <div class="font-bold text-slate-800">${s.destino}</div>
                                 </div>
-                                <div class="text-right shrink-0 pl-2">
-                                    ${timeHTML}
-                                </div>
+                                <div>${timeBadge}</div>
                             </div>
                         `;
                     });
                     html += '</div>';
                     content.innerHTML = html;
 
-                } catch (e) {
-                    content.innerHTML = '<p class="text-red-500 text-center text-sm">Error cargando tiempos</p>';
+                } catch(e) {
+                    content.innerHTML = '<p class="text-red-400 text-center">Error de conexión GPS.</p>';
                 }
             },
 
-            closeTimes: function() {
-                const modal = document.getElementById('timesModal');
-                const backdrop = document.getElementById('modalBackdrop');
-                const panel = document.getElementById('modalPanel');
-
-                backdrop.classList.add('opacity-0');
-                panel.classList.add('translate-y-full');
-                
+            closeGps: function() {
+                const modal = document.getElementById('gpsModal');
+                document.getElementById('gpsBackdrop').classList.add('opacity-0');
+                document.getElementById('gpsPanel').classList.add('translate-y-full');
                 setTimeout(() => modal.classList.add('hidden'), 300);
             },
-            
-            reload: function() {
-                this.loadConsorcio(this.state.currentConsorcio);
+
+            switchTab: function(tab) {
+                const t1 = document.getElementById('tab-schedule');
+                const t2 = document.getElementById('tab-realtime');
+                const p1 = document.getElementById('panel-schedule');
+                const p2 = document.getElementById('panel-realtime');
+
+                if(tab === 'SCHEDULE') {
+                    t1.classList.replace('border-transparent','border-blue-600'); t1.classList.replace('text-gray-400','text-blue-600');
+                    t2.classList.replace('border-blue-600','border-transparent'); t2.classList.replace('text-blue-600','text-gray-400');
+                    p1.classList.remove('hidden'); p2.classList.add('hidden');
+                } else {
+                    t2.classList.replace('border-transparent','border-blue-600'); t2.classList.replace('text-gray-400','text-blue-600');
+                    t1.classList.replace('border-blue-600','border-transparent'); t1.classList.replace('text-blue-600','text-gray-400');
+                    p2.classList.remove('hidden'); p1.classList.add('hidden');
+                }
             }
         };
 
-        // Init
-        window.addEventListener('load', () => app.init());
+        window.onload = () => app.init();
     </script>
 </body>
 </html>
-
 
