@@ -3,224 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Transporte Andalucía Pro</title>
+    <title>Transporte Andalucía v4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
-        body { font-family: 'Outfit', sans-serif; background-color: #f8fafc; -webkit-tap-highlight-color: transparent; }
-        
-        /* Utilidades UI */
-        .glass-header {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-        }
-        
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; -webkit-tap-highlight-color: transparent; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* Tabla de Horarios Estilizada */
-        .schedule-wrapper {
+        /* Estilos Tabla Horarios */
+        .schedule-container {
             overflow-x: auto;
-            border-radius: 16px;
             background: white;
-            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
-            margin-bottom: 20px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
-        
-        table { width: 100%; border-collapse: separate; border-spacing: 0; }
-        
+        table { width: 100%; border-collapse: collapse; white-space: nowrap; font-size: 0.85rem; }
         th {
-            background: #f1f5f9;
-            color: #475569;
-            font-weight: 700;
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            padding: 16px 12px;
-            text-align: center;
-            white-space: nowrap;
-            border-bottom: 2px solid #e2e8f0;
-            position: sticky;
-            top: 0;
-            z-index: 10;
+            background: #f1f5f9; color: #475569; font-weight: 700;
+            padding: 12px 16px; text-align: left; text-transform: uppercase; font-size: 0.7rem;
+            border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; z-index: 10;
         }
-
-        td {
-            padding: 12px;
-            text-align: center;
-            border-bottom: 1px solid #f1f5f9;
-            color: #334155;
-            font-size: 0.85rem;
-            font-variant-numeric: tabular-nums;
-            white-space: nowrap;
-        }
-
+        td { padding: 12px 16px; border-bottom: 1px solid #f1f5f9; color: #334155; }
         tr:last-child td { border-bottom: none; }
-        tr:nth-child(even) { background-color: #fafafa; }
-        tr:hover td { background-color: #f0f9ff; color: #0284c7; font-weight: 600; }
-
-        /* Animaciones */
-        .slide-in { animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        tr:hover td { background-color: #f8fafc; color: #2563eb; font-weight: 600; }
         
-        .fade-in { animation: fadeIn 0.4s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        /* Badges de Modo */
+        .badge-metro { background-color: #10b981; color: white; }
+        .badge-bus { background-color: #3b82f6; color: white; }
+        .badge-train { background-color: #8b5cf6; color: white; }
+        .badge-boat { background-color: #06b6d4; color: white; }
+        .badge-tram { background-color: #84cc16; color: white; }
     </style>
 </head>
 <body class="h-screen flex flex-col text-slate-800 overflow-hidden">
 
-    <!-- SIDEBAR (MENÚ LATERAL) -->
-    <div id="sidebarOverlay" onclick="app.toggleSidebar()" class="fixed inset-0 bg-black/40 z-50 hidden transition-opacity opacity-0 backdrop-blur-sm"></div>
+    <!-- SIDEBAR -->
+    <div id="sidebarOverlay" onclick="app.toggleSidebar()" class="fixed inset-0 bg-black/50 z-50 hidden opacity-0 transition-opacity backdrop-blur-sm"></div>
     <aside id="sidebar" class="fixed inset-y-0 left-0 w-72 bg-white z-[60] transform -translate-x-full transition-transform duration-300 shadow-2xl flex flex-col">
-        <div class="h-48 bg-slate-900 text-white p-6 flex flex-col justify-end relative overflow-hidden">
-            <!-- Decoración -->
-            <div class="absolute -right-4 -top-4 text-slate-800 text-9xl opacity-50"><i class="fas fa-map"></i></div>
-            
-            <h2 class="text-2xl font-bold tracking-tight relative z-10">Andalucía</h2>
-            <p class="text-slate-400 text-sm relative z-10">Red de Consorcios</p>
+        <div class="bg-slate-900 text-white p-6 pt-10">
+            <h2 class="text-2xl font-bold">Consorcios</h2>
+            <p class="text-slate-400 text-sm">Selecciona tu área</p>
         </div>
-        <div class="flex-1 overflow-y-auto py-2" id="consorciosList">
-            <!-- Lista JS -->
-        </div>
-        <div class="p-4 border-t text-[10px] text-center text-gray-400 bg-slate-50">
-            API Oficial CTAN v1
-        </div>
+        <div class="flex-1 overflow-y-auto" id="consorciosList"></div>
     </aside>
 
     <!-- HEADER -->
-    <header class="glass-header z-30 shrink-0">
-        <div class="px-4 pt-4 pb-2">
+    <header class="bg-white/90 backdrop-blur-md border-b border-gray-200 z-30 shrink-0">
+        <div class="px-4 pt-4 pb-3">
             <div class="flex justify-between items-center mb-4">
-                <button onclick="app.toggleSidebar()" class="w-10 h-10 rounded-xl bg-white border border-gray-100 shadow-sm flex items-center justify-center text-slate-700 hover:bg-slate-50 transition">
+                <button onclick="app.toggleSidebar()" class="w-10 h-10 rounded-xl bg-gray-50 hover:bg-gray-100 flex items-center justify-center transition text-slate-700">
                     <i class="fas fa-bars"></i>
                 </button>
-                
                 <div class="text-center" onclick="app.toggleSidebar()">
-                    <h1 id="headerTitle" class="font-bold text-lg leading-none tracking-tight">Granada</h1>
-                    <span class="text-[10px] text-green-600 font-bold uppercase tracking-wider">Consorcio Activo</span>
+                    <h1 id="headerTitle" class="font-bold text-lg leading-tight">Granada</h1>
+                    <span class="text-[10px] text-green-600 font-bold uppercase tracking-wider bg-green-50 px-2 py-0.5 rounded">ID: <span id="headerId">3</span></span>
                 </div>
-
-                <button onclick="app.loadLines()" class="w-10 h-10 rounded-xl bg-white border border-gray-100 shadow-sm flex items-center justify-center text-slate-700 hover:bg-slate-50 transition">
-                    <i class="fas fa-sync-alt text-sm"></i>
+                <button onclick="app.loadLines()" class="w-10 h-10 rounded-xl bg-gray-50 hover:bg-gray-100 flex items-center justify-center transition text-slate-700">
+                    <i class="fas fa-sync-alt"></i>
                 </button>
             </div>
-
-            <!-- Buscador -->
-            <div class="relative group">
-                <i class="fas fa-search absolute left-3.5 top-3 text-gray-400 group-focus-within:text-blue-500 transition-colors"></i>
-                <input type="text" id="searchInput" placeholder="Buscar línea (ej. 170A, Metro)..." 
-                    class="w-full bg-slate-100 border-none rounded-xl py-2.5 pl-10 pr-4 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all outline-none"
+            <div class="relative">
+                <i class="fas fa-search absolute left-3.5 top-3 text-gray-400"></i>
+                <input type="text" id="searchInput" placeholder="Buscar línea..." 
+                    class="w-full bg-slate-100 border-none rounded-xl py-2.5 pl-10 pr-4 text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                     onkeyup="app.filterLines()">
             </div>
         </div>
     </header>
 
-    <!-- MAIN CONTENT -->
+    <!-- MAIN -->
     <main class="flex-1 relative bg-slate-50 w-full overflow-hidden">
-        
-        <!-- VISTA: LISTA DE LÍNEAS -->
-        <div id="view-lines" class="h-full overflow-y-auto p-4 pb-24 scroll-smooth">
-            <div id="loader" class="flex flex-col items-center justify-center py-20 text-gray-400">
-                <div class="animate-spin rounded-full h-8 w-8 border-2 border-slate-200 border-t-blue-600 mb-3"></div>
-                <p class="text-xs font-bold uppercase tracking-widest opacity-60">Cargando Red...</p>
-            </div>
-            
+        <!-- LISTA LÍNEAS -->
+        <div id="view-lines" class="h-full overflow-y-auto p-4 pb-24">
+            <div id="loader" class="flex justify-center py-20"><div class="animate-spin rounded-full h-8 w-8 border-2 border-slate-300 border-t-blue-600"></div></div>
             <div id="lines-list" class="space-y-3 hidden"></div>
-            
-            <div id="empty-state" class="hidden flex flex-col items-center justify-center py-20 text-center opacity-50">
-                <i class="fas fa-route text-4xl mb-2 text-gray-300"></i>
-                <p class="text-sm font-medium text-gray-500">No se encontraron líneas</p>
-            </div>
+            <div id="empty-state" class="hidden text-center py-20 text-gray-400"><p>Sin resultados</p></div>
         </div>
 
-        <!-- VISTA: DETALLE (SLIDE OVER) -->
+        <!-- DETALLE (HORARIOS/PARADAS) -->
         <div id="view-detail" class="absolute inset-0 bg-white z-40 transform translate-x-full transition-transform duration-300 flex flex-col">
-            
-            <!-- Detalle Header -->
-            <div class="bg-white border-b border-gray-100 shadow-sm z-20">
+            <div class="bg-white border-b border-gray-100 z-20 shadow-sm shrink-0">
                 <div class="flex items-center gap-3 p-3">
-                    <button onclick="app.closeDetail()" class="w-8 h-8 rounded-full bg-slate-50 hover:bg-slate-100 flex items-center justify-center transition text-slate-600">
+                    <button onclick="app.closeDetail()" class="w-9 h-9 rounded-full bg-slate-50 flex items-center justify-center text-slate-700 hover:bg-slate-100">
                         <i class="fas fa-arrow-left"></i>
                     </button>
                     <div class="min-w-0 flex-1">
                         <div class="flex items-center gap-2">
                             <span id="detailCode" class="font-black text-slate-800 text-xl tracking-tight"></span>
-                            <span class="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded font-bold uppercase" id="detailType">BUS</span>
+                            <span id="detailBadge" class="text-[10px] px-2 py-0.5 rounded font-bold uppercase text-white bg-slate-500">BUS</span>
                         </div>
                         <p id="detailName" class="text-xs text-slate-500 truncate font-medium"></p>
                     </div>
+                    <!-- Selector Fecha Rápido -->
+                    <input type="date" id="datePicker" class="text-xs bg-slate-100 border-0 rounded p-1 text-slate-600 font-bold" onchange="app.refreshSchedule()">
                 </div>
-
-                <!-- Tabs -->
-                <div class="flex px-4 gap-8">
-                    <button onclick="app.switchTab('SCHEDULE')" id="tab-schedule" class="pb-3 text-sm font-bold border-b-2 border-blue-600 text-blue-600 transition-colors">
-                        Horarios Planificados
-                    </button>
-                    <button onclick="app.switchTab('REALTIME')" id="tab-realtime" class="pb-3 text-sm font-bold border-b-2 border-transparent text-gray-400 hover:text-gray-600 transition-colors">
-                        Tiempo Real (GPS)
-                    </button>
+                <div class="flex px-2">
+                    <button onclick="app.switchTab('SCHEDULE')" id="tab-schedule" class="flex-1 pb-3 pt-2 text-sm font-bold border-b-2 border-blue-600 text-blue-600">Horarios</button>
+                    <button onclick="app.switchTab('REALTIME')" id="tab-realtime" class="flex-1 pb-3 pt-2 text-sm font-bold border-b-2 border-transparent text-gray-400">Paradas & GPS</button>
                 </div>
             </div>
 
-            <!-- Contenido Scrollable -->
             <div class="flex-1 overflow-hidden relative bg-slate-50">
-                
-                <!-- PESTAÑA 1: HORARIOS -->
+                <!-- PANEL HORARIOS -->
                 <div id="panel-schedule" class="absolute inset-0 overflow-y-auto p-4">
-                    
-                    <!-- Botones Ida/Vuelta -->
-                    <div class="flex bg-white p-1 rounded-xl shadow-sm border border-gray-100 mb-4 sticky top-0 z-20">
-                        <button onclick="app.renderSchedule(1)" id="btn-ida" class="flex-1 py-2 rounded-lg text-xs font-bold transition-all bg-slate-800 text-white shadow">
-                            IDA
-                        </button>
-                        <button onclick="app.renderSchedule(2)" id="btn-vuelta" class="flex-1 py-2 rounded-lg text-xs font-bold transition-all text-slate-500 hover:bg-slate-50">
-                            VUELTA
-                        </button>
+                    <div class="flex bg-white p-1 rounded-lg shadow-sm border border-gray-200 mb-4 sticky top-0 z-20">
+                        <button onclick="app.renderSchedule(1)" id="btn-ida" class="flex-1 py-2 rounded text-xs font-bold transition-all bg-slate-800 text-white shadow">IDA</button>
+                        <button onclick="app.renderSchedule(2)" id="btn-vuelta" class="flex-1 py-2 rounded text-xs font-bold transition-all text-slate-400 hover:bg-slate-50">VUELTA</button>
                     </div>
-
-                    <div id="schedule-content">
-                        <!-- Aquí va la tabla -->
-                        <div class="text-center py-12 opacity-60">
-                            <i class="far fa-calendar-alt text-3xl mb-2 text-gray-300"></i>
-                            <p class="text-xs">Selecciona un sentido arriba</p>
-                        </div>
-                    </div>
+                    <div id="schedule-content"></div>
                 </div>
 
-                <!-- PESTAÑA 2: REALTIME -->
+                <!-- PANEL REALTIME -->
                 <div id="panel-realtime" class="absolute inset-0 overflow-y-auto hidden p-4">
-                    <div class="bg-blue-50 text-blue-700 p-3 rounded-xl text-xs mb-4 flex gap-3 border border-blue-100">
-                        <i class="fas fa-satellite-dish mt-0.5"></i>
-                        <p>Toca una parada para ver cuánto le falta al próximo vehículo.</p>
+                    <div class="bg-blue-50 text-blue-800 p-3 rounded-lg text-xs mb-4 flex gap-2 border border-blue-100">
+                        <i class="fas fa-info-circle mt-0.5"></i>
+                        <p>Las coordenadas y tiempos son en tiempo real (GPS) si están disponibles.</p>
                     </div>
-                    <div id="stops-list" class="space-y-2 pb-10"></div>
+                    <div id="stops-list" class="space-y-2 pb-12"></div>
                 </div>
-
             </div>
         </div>
     </main>
 
-    <!-- BOTTOM NAVIGATION -->
-    <nav class="bg-white border-t border-gray-100 fixed bottom-0 w-full z-30 pb-safe">
+    <!-- NAV INFERIOR -->
+    <nav class="bg-white border-t border-gray-200 fixed bottom-0 w-full z-30 pb-safe">
         <div class="flex justify-around items-center h-16 max-w-lg mx-auto">
-            <button onclick="app.setFilter('ALL')" class="nav-btn text-blue-600 flex flex-col items-center w-16 group" data-mode="ALL">
-                <i class="fas fa-th-large text-lg mb-1 group-active:scale-90 transition-transform"></i>
-                <span class="text-[10px] font-bold">Todo</span>
+            <button onclick="app.setFilter('ALL')" class="nav-btn text-blue-600 flex flex-col items-center w-14 group" data-mode="ALL">
+                <i class="fas fa-th-large text-lg mb-1 group-active:scale-90 transition"></i><span class="text-[9px] font-bold">Todo</span>
             </button>
-            <button onclick="app.setFilter('AUTOBUS')" class="nav-btn text-gray-400 flex flex-col items-center w-16 group" data-mode="AUTOBUS">
-                <i class="fas fa-bus text-lg mb-1 group-active:scale-90 transition-transform"></i>
-                <span class="text-[10px] font-medium">Bus</span>
+            <button onclick="app.setFilter('AUTOBUS')" class="nav-btn text-gray-400 flex flex-col items-center w-14 group" data-mode="AUTOBUS">
+                <i class="fas fa-bus text-lg mb-1 group-active:scale-90 transition"></i><span class="text-[9px] font-medium">Bus</span>
             </button>
-            <button onclick="app.setFilter('METRO')" class="nav-btn text-gray-400 flex flex-col items-center w-16 group" data-mode="METRO">
-                <i class="fas fa-subway text-lg mb-1 group-active:scale-90 transition-transform"></i>
-                <span class="text-[10px] font-medium">Metro</span>
+            <button onclick="app.setFilter('METRO')" class="nav-btn text-gray-400 flex flex-col items-center w-14 group" data-mode="METRO">
+                <i class="fas fa-subway text-lg mb-1 group-active:scale-90 transition"></i><span class="text-[9px] font-medium">Metro</span>
             </button>
-            <button onclick="app.setFilter('OTROS')" class="nav-btn text-gray-400 flex flex-col items-center w-16 group" data-mode="OTROS">
-                <i class="fas fa-ship text-lg mb-1 group-active:scale-90 transition-transform"></i>
-                <span class="text-[10px] font-medium">Otros</span>
+            <button onclick="app.setFilter('TREN')" class="nav-btn text-gray-400 flex flex-col items-center w-14 group" data-mode="TREN">
+                <i class="fas fa-train text-lg mb-1 group-active:scale-90 transition"></i><span class="text-[9px] font-medium">Tren</span>
+            </button>
+            <button onclick="app.setFilter('BARCO')" class="nav-btn text-gray-400 flex flex-col items-center w-14 group" data-mode="BARCO">
+                <i class="fas fa-ship text-lg mb-1 group-active:scale-90 transition"></i><span class="text-[9px] font-medium">Barco</span>
             </button>
         </div>
     </nav>
@@ -228,10 +152,10 @@
     <!-- MODAL GPS -->
     <div id="gpsModal" class="fixed inset-0 z-[60] hidden flex items-end sm:items-center justify-center">
         <div class="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity opacity-0" id="gpsBackdrop" onclick="app.closeGps()"></div>
-        <div class="bg-white w-full sm:max-w-md rounded-t-3xl shadow-2xl z-10 transform translate-y-full transition-transform duration-300 max-h-[60vh] flex flex-col" id="gpsPanel">
-            <div class="p-5 border-b flex justify-between items-center">
-                <h3 class="font-bold text-lg text-slate-800" id="gpsTitle">Parada</h3>
-                <button onclick="app.closeGps()" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center"><i class="fas fa-times text-slate-500"></i></button>
+        <div class="bg-white w-full sm:max-w-md rounded-t-2xl shadow-2xl z-10 transform translate-y-full transition-transform duration-300 max-h-[60vh] flex flex-col" id="gpsPanel">
+            <div class="p-4 border-b flex justify-between items-center">
+                <h3 class="font-bold text-slate-800" id="gpsTitle">Parada</h3>
+                <button onclick="app.closeGps()"><i class="fas fa-times text-slate-400"></i></button>
             </div>
             <div id="gpsContent" class="p-4 overflow-y-auto bg-slate-50 min-h-[150px]"></div>
         </div>
@@ -239,281 +163,205 @@
 
     <script>
         const app = {
-            config: {
-                proxy: 'https://corsproxy.io/?',
-                apiBase: 'https://api.ctan.es/v1',
-            },
-            
+            config: { proxy: 'https://corsproxy.io/?', apiBase: 'https://api.ctan.es/v1' },
             consorcios: [
                 { id: 1, name: 'Sevilla' }, { id: 2, name: 'Bahía de Cádiz' }, { id: 3, name: 'Granada' },
                 { id: 4, name: 'Málaga' }, { id: 5, name: 'Campo de Gibraltar' }, { id: 6, name: 'Almería' },
                 { id: 7, name: 'Jaén' }, { id: 8, name: 'Córdoba' }, { id: 9, name: 'Costa de Huelva' }
             ],
-
-            state: {
-                consId: 3, // Granada por defecto
-                mode: 'ALL',
-                lines: [],
-                scheduleData: null,
-                currentLine: null
-            },
+            state: { consId: 3, filter: 'ALL', lines: [], currentLine: null, scheduleData: null, direction: 1 },
 
             init: function() {
                 this.renderSidebar();
-                this.loadLines(); // Carga inicial
+                // Set fecha hoy en input
+                document.getElementById('datePicker').valueAsDate = new Date();
+                this.loadLines();
             },
 
-            // --- BARRA LATERAL ---
-            renderSidebar: function() {
-                const list = document.getElementById('consorciosList');
-                list.innerHTML = '';
-                this.consorcios.forEach(c => {
-                    const btn = document.createElement('button');
-                    btn.className = 'w-full text-left px-6 py-4 hover:bg-slate-50 border-b border-gray-100 flex items-center justify-between group transition-colors';
-                    btn.onclick = () => {
-                        this.state.consId = c.id;
-                        document.getElementById('headerTitle').innerText = c.name;
-                        this.loadLines();
-                        this.toggleSidebar();
-                    };
-                    btn.innerHTML = `
-                        <div class="flex items-center gap-3">
-                            <span class="w-6 h-6 rounded bg-slate-100 text-slate-500 flex items-center justify-center text-xs font-bold">${c.id}</span>
-                            <span class="font-medium text-slate-700 group-hover:text-blue-600">${c.name}</span>
-                        </div>
-                        <i class="fas fa-chevron-right text-gray-300 text-xs"></i>
-                    `;
-                    list.appendChild(btn);
-                });
-            },
-
-            toggleSidebar: function() {
-                const sb = document.getElementById('sidebar');
-                const ov = document.getElementById('sidebarOverlay');
-                const closed = sb.classList.contains('-translate-x-full');
-                
-                if(closed) {
-                    ov.classList.remove('hidden');
-                    requestAnimationFrame(() => ov.classList.remove('opacity-0'));
-                    sb.classList.remove('-translate-x-full');
-                } else {
-                    sb.classList.add('-translate-x-full');
-                    ov.classList.add('opacity-0');
-                    setTimeout(() => ov.classList.add('hidden'), 300);
-                }
+            // --- LÓGICA DE MODOS ---
+            getModeStyle: function(l) {
+                // Determinar modo basado en booleanos de la API o nombre
+                // autobusBoolean, barcoBoolean, trenBoolean, tranviaBoolean, metroBoolean
+                if(l.metroBoolean || l.nombre.toUpperCase().includes('METRO')) return { code:'METRO', label:'Metro', icon:'fa-subway', css:'badge-metro' };
+                if(l.tranviaBoolean || l.nombre.toUpperCase().includes('TRANVÍA')) return { code:'TRANVIA', label:'Tranvía', icon:'fa-train-tram', css:'badge-tram' };
+                if(l.trenBoolean || l.nombre.toUpperCase().includes('CERCANÍAS')) return { code:'TREN', label:'Tren', icon:'fa-train', css:'badge-train' };
+                if(l.barcoBoolean || l.nombre.toUpperCase().includes('CATAMARÁN')) return { code:'BARCO', label:'Barco', icon:'fa-ship', css:'badge-boat' };
+                return { code:'AUTOBUS', label:'Bus', icon:'fa-bus', css:'badge-bus' };
             },
 
             // --- CARGA DE LÍNEAS ---
             loadLines: async function() {
-                document.getElementById('lines-list').classList.add('hidden');
-                document.getElementById('loader').classList.remove('hidden');
-                document.getElementById('empty-state').classList.add('hidden');
-
+                this.toggleView('loader');
                 try {
                     const url = `${this.config.proxy}${encodeURIComponent(`${this.config.apiBase}/Consorcios/${this.state.consId}/lineas`)}`;
                     const res = await fetch(url);
                     const data = await res.json();
-                    
                     let lines = data.lineas || data || [];
                     
-                    // Procesar Tipos
-                    this.state.lines = lines.map(l => {
-                        let type = 'AUTOBUS';
-                        const n = l.nombre.toLowerCase();
-                        if (n.includes('metro') || l.modo === 'METRO') type = 'METRO';
-                        else if (l.modo === 'TREN' || l.modo === 'CERCANIAS') type = 'TREN';
-                        else if (l.modo === 'BARCO' || n.includes('catamaran')) type = 'BARCO';
-                        return { ...l, type };
-                    });
-
-                    // Ordenar (Metro primero)
-                    this.state.lines.sort((a,b) => {
-                        if(a.type === 'METRO' && b.type !== 'METRO') return -1;
-                        if(a.type !== 'METRO' && b.type === 'METRO') return 1;
-                        return a.codigo.localeCompare(b.codigo);
-                    });
-
+                    this.state.lines = lines.map(l => ({ ...l, modeInfo: this.getModeStyle(l) }));
+                    this.state.lines.sort((a,b) => a.codigo.localeCompare(b.codigo));
+                    
                     this.renderLines();
-
-                } catch (e) {
-                    console.error(e);
-                    alert("Error conectando con la API.");
-                } finally {
-                    document.getElementById('loader').classList.add('hidden');
-                    document.getElementById('lines-list').classList.remove('hidden');
+                } catch(e) { 
+                    document.getElementById('lines-list').innerHTML = `<div class="text-red-500 text-center py-10">Error de conexión API</div>`;
+                    this.toggleView('list');
                 }
-            },
-
-            setFilter: function(mode) {
-                this.state.mode = mode;
-                document.querySelectorAll('.nav-btn').forEach(b => {
-                    const active = b.dataset.mode === mode;
-                    b.className = active ? 'nav-btn text-blue-600 flex flex-col items-center w-16 group transition-colors' : 'nav-btn text-gray-400 flex flex-col items-center w-16 group transition-colors';
-                });
-                this.renderLines();
-            },
-
-            filterLines: function() {
-                this.renderLines();
             },
 
             renderLines: function() {
                 const term = document.getElementById('searchInput').value.toLowerCase();
-                const mode = this.state.mode;
+                const filter = this.state.filter;
                 const container = document.getElementById('lines-list');
-                
+                container.innerHTML = '';
+
                 const filtered = this.state.lines.filter(l => {
                     const matchText = l.nombre.toLowerCase().includes(term) || l.codigo.toLowerCase().includes(term);
                     let matchMode = true;
-                    if(mode === 'AUTOBUS') matchMode = l.type === 'AUTOBUS';
-                    if(mode === 'METRO') matchMode = l.type === 'METRO';
-                    if(mode === 'OTROS') matchMode = l.type === 'TREN' || l.type === 'BARCO';
+                    if(filter !== 'ALL') {
+                        if(filter === 'TREN' && (l.modeInfo.code === 'TREN' || l.modeInfo.code === 'TRANVIA')) matchMode = true;
+                        else matchMode = l.modeInfo.code === filter;
+                    }
                     return matchText && matchMode;
                 });
 
-                container.innerHTML = '';
-                
                 if(filtered.length === 0) {
                     document.getElementById('empty-state').classList.remove('hidden');
-                    return;
                 } else {
                     document.getElementById('empty-state').classList.add('hidden');
                 }
 
                 filtered.forEach(line => {
-                    let color = 'bg-blue-600';
-                    let icon = 'fa-bus';
-                    let typeLabel = 'BUS';
-                    
-                    if(line.type === 'METRO') { color = 'bg-emerald-500'; icon = 'fa-subway'; typeLabel='METRO'; }
-                    if(line.type === 'TREN') { color = 'bg-purple-600'; icon = 'fa-train'; typeLabel='TREN'; }
-                    if(line.type === 'BARCO') { color = 'bg-cyan-600'; icon = 'fa-ship'; typeLabel='BARCO'; }
-
                     const el = document.createElement('div');
-                    el.className = 'bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 cursor-pointer active:scale-[0.98] transition-transform';
+                    el.className = 'bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4 cursor-pointer active:scale-[0.98] transition-transform';
                     el.onclick = () => this.openDetail(line);
-
                     el.innerHTML = `
-                        <div class="w-12 h-12 rounded-xl ${color} flex items-center justify-center text-white shadow-lg shadow-${color}/20 shrink-0">
-                            <i class="fas ${icon} text-lg"></i>
-                        </div>
+                        <div class="w-12 h-12 rounded-lg ${line.modeInfo.css} flex items-center justify-center text-white shadow-md shrink-0"><i class="fas ${line.modeInfo.icon} text-lg"></i></div>
                         <div class="flex-1 min-w-0">
                             <div class="flex justify-between items-center">
                                 <h3 class="font-black text-slate-800 text-lg leading-none">${line.codigo}</h3>
-                                <span class="text-[9px] bg-slate-100 text-slate-500 font-bold px-1.5 py-0.5 rounded uppercase tracking-wide">${typeLabel}</span>
+                                <span class="text-[9px] bg-slate-100 text-slate-500 font-bold px-1.5 py-0.5 rounded uppercase">${line.modeInfo.label}</span>
                             </div>
                             <p class="text-xs text-slate-500 font-medium truncate mt-1">${line.nombre}</p>
                         </div>
-                        <i class="fas fa-chevron-right text-gray-200"></i>
                     `;
                     container.appendChild(el);
                 });
+                this.toggleView('list');
             },
 
-            // --- DETALLE Y HORARIOS (CORE FEATURE) ---
+            // --- DETALLE ---
             openDetail: function(line) {
                 this.state.currentLine = line;
                 document.getElementById('detailCode').innerText = line.codigo;
                 document.getElementById('detailName').innerText = line.nombre;
-                document.getElementById('detailType').innerText = line.type;
-                
+                const b = document.getElementById('detailBadge');
+                b.className = `text-[10px] px-2 py-0.5 rounded font-bold uppercase text-white ${line.modeInfo.css}`;
+                b.innerText = line.modeInfo.label;
+
                 document.getElementById('view-detail').classList.remove('translate-x-full');
-                
-                // Carga paralela
-                this.loadSchedule(line);
-                this.loadStops(line);
+                this.refreshSchedule(); // Carga Horarios
+                this.loadStops(line);   // Carga Paradas
             },
+            
+            closeDetail: function() { document.getElementById('view-detail').classList.add('translate-x-full'); },
 
-            closeDetail: function() {
-                document.getElementById('view-detail').classList.add('translate-x-full');
-            },
+            refreshSchedule: function() { this.loadSchedule(this.state.currentLine); },
 
-            // 1. CARGA DE HORARIOS (TABLAS)
+            // --- MOTOR DE HORARIOS ROBUSTO ---
             loadSchedule: async function(line) {
                 const container = document.getElementById('schedule-content');
-                container.innerHTML = '<div class="flex justify-center py-12"><div class="animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent"></div></div>';
+                container.innerHTML = '<div class="flex justify-center py-10"><div class="animate-spin rounded-full h-8 w-8 border-2 border-slate-300 border-t-blue-600"></div></div>';
                 
-                const d = new Date();
-                // Endpoint Crítico: Se pasa dia y mes para obtener el "Planificador" correcto
-                const url = `${this.config.proxy}${encodeURIComponent(`${this.config.apiBase}/Consorcios/${this.state.consId}/horarios_lineas?linea=${line.idLinea}&dia=${d.getDate()}&mes=${d.getMonth()+1}&lang=ES`)}`;
+                const dateInput = document.getElementById('datePicker').valueAsDate || new Date();
+                const d = dateInput.getDate();
+                const m = dateInput.getMonth() + 1; // 1-12
+
+                const url = `${this.config.proxy}${encodeURIComponent(`${this.config.apiBase}/Consorcios/${this.state.consId}/horarios_lineas?linea=${line.idLinea}&dia=${d}&mes=${m}&lang=ES`)}`;
 
                 try {
                     const res = await fetch(url);
                     const data = await res.json();
                     
-                    if(data.planificadores && data.planificadores.length > 0) {
-                        this.state.scheduleData = data.planificadores[0];
+                    // LÓGICA HÍBRIDA: Detectar si es planificador o estructura plana
+                    if (data.planificadores && data.planificadores.length > 0) {
+                        this.state.scheduleData = data.planificadores[0]; // Estructura Planificador
+                    } else if (data.bloquesIda) {
+                        this.state.scheduleData = data; // Estructura Plana (Corredor)
+                    } else {
+                        this.state.scheduleData = null;
+                    }
+
+                    if(this.state.scheduleData) {
                         this.renderSchedule(1); // Render Ida por defecto
                     } else {
-                        container.innerHTML = '<div class="text-center py-10 text-gray-400">No hay horarios disponibles para hoy.</div>';
+                        container.innerHTML = '<div class="text-center py-10 text-gray-400 text-xs">No hay horarios disponibles para esta fecha.</div>';
                     }
                 } catch(e) {
-                    console.error(e);
-                    container.innerHTML = '<div class="text-center py-10 text-red-400">Error cargando tabla de horarios.</div>';
+                    container.innerHTML = '<div class="text-center py-10 text-red-400 text-xs">Error cargando horarios.</div>';
                 }
             },
 
             renderSchedule: function(sentido) {
                 const data = this.state.scheduleData;
                 if(!data) return;
-
-                // UI Botones
-                const b1 = document.getElementById('btn-ida');
-                const b2 = document.getElementById('btn-vuelta');
+                
+                // Toggle Buttons
+                const b1 = document.getElementById('btn-ida'); const b2 = document.getElementById('btn-vuelta');
                 if(sentido === 1) {
-                    b1.className = "flex-1 py-2 rounded-lg text-xs font-bold transition-all bg-slate-800 text-white shadow ring-2 ring-slate-800 ring-offset-1";
-                    b2.className = "flex-1 py-2 rounded-lg text-xs font-bold transition-all text-slate-500 hover:bg-slate-50";
+                    b1.classList.add('bg-slate-800','text-white','shadow'); b1.classList.remove('text-slate-400');
+                    b2.classList.remove('bg-slate-800','text-white','shadow'); b2.classList.add('text-slate-400');
                 } else {
-                    b2.className = "flex-1 py-2 rounded-lg text-xs font-bold transition-all bg-slate-800 text-white shadow ring-2 ring-slate-800 ring-offset-1";
-                    b1.className = "flex-1 py-2 rounded-lg text-xs font-bold transition-all text-slate-500 hover:bg-slate-50";
+                    b2.classList.add('bg-slate-800','text-white','shadow'); b2.classList.remove('text-slate-400');
+                    b1.classList.remove('bg-slate-800','text-white','shadow'); b1.classList.add('text-slate-400');
                 }
 
-                // Selección de datos
-                const bloques = sentido === 1 ? data.bloquesIda : data.bloquesVuelta;
-                const horarios = sentido === 1 ? data.horarioIda : data.horarioVuelta;
+                // Extracción de datos (Defensiva)
+                const bloques = sentido === 1 ? (data.bloquesIda || []) : (data.bloquesVuelta || []);
+                const horarios = sentido === 1 ? (data.horarioIda || []) : (data.horarioVuelta || []);
 
-                if(!horarios || horarios.length === 0) {
-                    document.getElementById('schedule-content').innerHTML = '<div class="text-center py-12 text-gray-400">Sin servicio en este sentido.</div>';
+                if(horarios.length === 0) {
+                    document.getElementById('schedule-content').innerHTML = '<div class="text-center py-12 text-gray-400 text-xs">Sin servicios en este sentido.</div>';
                     return;
                 }
 
-                // CONSTRUCCIÓN DE LA TABLA
-                let html = `<div class="schedule-wrapper fade-in"><table><thead><tr>`;
+                let html = `<div class="schedule-container"><table><thead><tr>`;
                 
-                // Cabeceras (Pueblos/Paradas principales)
-                bloques.forEach(b => {
-                    html += `<th>${b.nombre}</th>`;
-                });
+                // Cabeceras (Validando que existan)
+                if(bloques.length > 0) {
+                    bloques.forEach(b => html += `<th>${b.nombre}</th>`);
+                } else {
+                    html += `<th>Hora Salida</th>`; // Fallback
+                }
+                
                 html += `</tr></thead><tbody>`;
 
-                // Filas (Horas)
                 horarios.forEach(h => {
                     html += `<tr>`;
-                    // La API a veces usa 'horas' y a veces 'horasString'. Prevenimos errores.
-                    const times = h.horas || h.horasString || [];
+                    // Detección de campo de horas (Array vs String vs Nested)
+                    let times = [];
+                    if (Array.isArray(h.horas)) times = h.horas;
+                    else if (Array.isArray(h.horasString)) times = h.horasString;
                     
-                    times.forEach(t => {
-                        let display = t;
-                        // Si es nulo o guión, lo mostramos más suave
-                        if(!t || t === '-') display = '<span class="text-gray-200 text-xs">—</span>';
-                        else display = t.substring(0, 5); // Recortar segundos si vienen
-                        
-                        html += `<td>${display}</td>`;
-                    });
+                    // Render celdas
+                    if(times.length > 0) {
+                        times.forEach(t => {
+                            let val = (!t || t==='-') ? '<span class="text-gray-200">·</span>' : t.toString().substring(0,5);
+                            html += `<td>${val}</td>`;
+                        });
+                    } else {
+                        // Fallback si no hay array de horas (raro)
+                        html += `<td>-</td>`;
+                    }
                     html += `</tr>`;
                 });
-
                 html += `</tbody></table></div>`;
-                html += `<p class="text-[10px] text-gray-400 text-center px-4 italic">* Desliza horizontalmente para ver todas las paradas.</p>`;
-
                 document.getElementById('schedule-content').innerHTML = html;
             },
 
-            // 2. TIEMPO REAL (PARADAS)
+            // --- CARGA DE PARADAS (GPS) ---
             loadStops: async function(line) {
                 const container = document.getElementById('stops-list');
                 container.innerHTML = '';
-                
                 try {
                     const url = `${this.config.proxy}${encodeURIComponent(`${this.config.apiBase}/Consorcios/${this.state.consId}/lineas/${line.idLinea}/paradas`)}`;
                     const res = await fetch(url);
@@ -528,17 +376,17 @@
                         el.onclick = () => this.showGps(s);
                         el.innerHTML = `
                             <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center font-bold text-xs shadow-sm">${s.orden}</div>
+                                <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center font-bold text-[10px]">${s.orden}</div>
                                 <div>
                                     <h4 class="font-bold text-sm text-slate-700">${s.nombre}</h4>
-                                    <p class="text-[10px] text-gray-400">Zona ${s.idZona}</p>
+                                    <p class="text-[9px] text-gray-400 font-mono">LAT: ${parseFloat(s.latitud).toFixed(4)} • LON: ${parseFloat(s.longitud).toFixed(4)}</p>
                                 </div>
                             </div>
-                            <i class="fas fa-wifi text-gray-300 text-xs"></i>
+                            <i class="fas fa-chevron-right text-gray-200 text-xs"></i>
                         `;
                         container.appendChild(el);
                     });
-                } catch(e) { console.error(e); }
+                } catch(e) {}
             },
 
             showGps: async function(stop) {
@@ -548,13 +396,8 @@
                 const content = document.getElementById('gpsContent');
 
                 document.getElementById('gpsTitle').innerText = stop.nombre;
-                
                 modal.classList.remove('hidden');
-                setTimeout(() => {
-                    backdrop.classList.remove('opacity-0');
-                    panel.classList.remove('translate-y-full');
-                }, 10);
-
+                setTimeout(() => { backdrop.classList.remove('opacity-0'); panel.classList.remove('translate-y-full'); }, 10);
                 content.innerHTML = '<div class="text-center py-6"><div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto"></div></div>';
 
                 try {
@@ -564,63 +407,71 @@
                     const serv = data.servicios || data || [];
 
                     if(serv.length === 0) {
-                        content.innerHTML = `<div class="text-center py-8 text-gray-400"><i class="fas fa-moon text-2xl mb-2"></i><p>Sin vehículos detectados.</p></div>`;
+                        content.innerHTML = `<div class="text-center py-8 text-gray-400 text-xs"><i class="fas fa-moon text-2xl mb-2"></i><p>No hay estimaciones GPS.</p></div>`;
                         return;
                     }
 
                     let html = '<div class="space-y-3">';
                     serv.forEach(s => {
-                        let min = 0;
-                        if(s.tiempo) min = Math.floor(s.tiempo/60);
-                        else if(s.minutos) min = parseInt(s.minutos);
-
-                        const timeBadge = min <= 0 
+                        let min = s.tiempo ? Math.floor(s.tiempo/60) : (s.minutos ? parseInt(s.minutos) : 0);
+                        const badge = min <= 0 
                             ? `<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold animate-pulse">LLEGANDO</span>`
                             : `<span class="font-black text-xl text-slate-800">${min}<span class="text-xs font-normal text-gray-400 ml-0.5">min</span></span>`;
-
                         html += `
                             <div class="bg-white border border-gray-100 p-4 rounded-xl flex justify-between items-center shadow-sm">
-                                <div>
-                                    <div class="text-[10px] uppercase font-bold text-gray-400">Destino</div>
-                                    <div class="font-bold text-slate-800">${s.destino}</div>
-                                </div>
-                                <div>${timeBadge}</div>
-                            </div>
-                        `;
+                                <div><div class="text-[9px] uppercase font-bold text-gray-400">Destino</div><div class="font-bold text-slate-800 text-sm">${s.destino}</div></div>
+                                <div>${badge}</div>
+                            </div>`;
                     });
                     html += '</div>';
                     content.innerHTML = html;
-
-                } catch(e) {
-                    content.innerHTML = '<p class="text-red-400 text-center">Error de conexión GPS.</p>';
-                }
+                } catch(e) { content.innerHTML = '<p class="text-red-400 text-center text-xs">Error de conexión GPS.</p>'; }
             },
-
             closeGps: function() {
-                const modal = document.getElementById('gpsModal');
                 document.getElementById('gpsBackdrop').classList.add('opacity-0');
                 document.getElementById('gpsPanel').classList.add('translate-y-full');
-                setTimeout(() => modal.classList.add('hidden'), 300);
+                setTimeout(() => document.getElementById('gpsModal').classList.add('hidden'), 300);
             },
-
-            switchTab: function(tab) {
-                const t1 = document.getElementById('tab-schedule');
-                const t2 = document.getElementById('tab-realtime');
-                const p1 = document.getElementById('panel-schedule');
-                const p2 = document.getElementById('panel-realtime');
-
-                if(tab === 'SCHEDULE') {
-                    t1.classList.replace('border-transparent','border-blue-600'); t1.classList.replace('text-gray-400','text-blue-600');
-                    t2.classList.replace('border-blue-600','border-transparent'); t2.classList.replace('text-blue-600','text-gray-400');
-                    p1.classList.remove('hidden'); p2.classList.add('hidden');
+            toggleSidebar: function() {
+                const sb = document.getElementById('sidebar'); const ov = document.getElementById('sidebarOverlay');
+                if(sb.classList.contains('-translate-x-full')) { ov.classList.remove('hidden'); requestAnimationFrame(()=>ov.classList.remove('opacity-0')); sb.classList.remove('-translate-x-full'); }
+                else { sb.classList.add('-translate-x-full'); ov.classList.add('opacity-0'); setTimeout(()=>ov.classList.add('hidden'),300); }
+            },
+            renderSidebar: function() {
+                const l = document.getElementById('consorciosList'); l.innerHTML = '';
+                this.consorcios.forEach(c => {
+                    const b = document.createElement('button'); b.className = 'w-full text-left px-6 py-4 hover:bg-slate-50 border-b border-gray-100 flex justify-between items-center group transition';
+                    b.onclick = () => { this.state.consId = c.id; document.getElementById('headerTitle').innerText = c.name; document.getElementById('headerId').innerText=c.id; this.loadLines(); this.toggleSidebar(); };
+                    b.innerHTML = `<span class="text-sm font-medium text-slate-700 group-hover:text-blue-600">${c.name}</span> <i class="fas fa-chevron-right text-xs text-gray-300"></i>`;
+                    l.appendChild(b);
+                });
+            },
+            toggleView: function(v) {
+                if(v==='loader') { document.getElementById('loader').classList.remove('hidden'); document.getElementById('lines-list').classList.add('hidden'); }
+                else { document.getElementById('loader').classList.add('hidden'); document.getElementById('lines-list').classList.remove('hidden'); }
+            },
+            setFilter: function(m) {
+                this.state.filter = m;
+                document.querySelectorAll('.nav-btn').forEach(b => {
+                    const a = b.dataset.mode === m;
+                    b.className = a ? 'nav-btn text-blue-600 flex flex-col items-center w-14 group' : 'nav-btn text-gray-400 flex flex-col items-center w-14 group';
+                });
+                this.renderLines();
+            },
+            switchTab: function(t) {
+                const ts=document.getElementById('tab-schedule'); const tr=document.getElementById('tab-realtime');
+                const ps=document.getElementById('panel-schedule'); const pr=document.getElementById('panel-realtime');
+                if(t==='SCHEDULE') {
+                    ts.classList.replace('text-gray-400','text-blue-600'); ts.classList.replace('border-transparent','border-blue-600');
+                    tr.classList.replace('text-blue-600','text-gray-400'); tr.classList.replace('border-blue-600','border-transparent');
+                    ps.classList.remove('hidden'); pr.classList.add('hidden');
                 } else {
-                    t2.classList.replace('border-transparent','border-blue-600'); t2.classList.replace('text-gray-400','text-blue-600');
-                    t1.classList.replace('border-blue-600','border-transparent'); t1.classList.replace('text-blue-600','text-gray-400');
-                    p2.classList.remove('hidden'); p1.classList.add('hidden');
+                    tr.classList.replace('text-gray-400','text-blue-600'); tr.classList.replace('border-transparent','border-blue-600');
+                    ts.classList.replace('text-blue-600','text-gray-400'); ts.classList.replace('border-blue-600','border-transparent');
+                    pr.classList.remove('hidden'); ps.classList.add('hidden');
                 }
             }
         };
-
         window.onload = () => app.init();
     </script>
 </body>
