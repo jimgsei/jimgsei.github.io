@@ -7,51 +7,80 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        /* Scrollbar personalizada */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: #111; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
         ::-webkit-scrollbar-thumb:hover { background: #555; }
+
+        /* Loader */
         .loader { border: 3px solid #333; border-top: 3px solid #ef4444; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Estilos lista */
         .channel-btn.active { background-color: #262626; border-left-color: #ef4444; }
-        .icon-wrapper { position: relative; overflow: hidden; }
         .channel-logo { object-fit: contain; position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 4px; background: #1e1e1e; border-radius: 0.25rem; display: none; }
         .channel-initial { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #d4d4d4; background-color: #2e2e2e; border-radius: 0.25rem; }
         .channel-btn:hover .channel-initial, .channel-btn.active .channel-initial { background-color: #ef4444; color: white; }
+
+        /* Modal */
         dialog::backdrop { background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(2px); }
+
+        /* Player */
         .player-wrapper { position: relative; width: 100%; height: 100%; background: #000; overflow: hidden; aspect-ratio: 16/9; box-shadow: 0 4px 6px rgba(0,0,0,0.5); }
-        .player-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
-        .close-btn { position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.7); color: white; padding: 4px; border-radius: 50%; cursor: pointer; z-index: 50; transition: background 0.2s; }
-        .close-btn:hover { background: #ef4444; }
+        .player-wrapper iframe.video-frame { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+        
+        /* Botones Overlay */
+        .player-overlay-btn { background: rgba(0,0,0,0.6); color: white; padding: 6px; border-radius: 50%; cursor: pointer; transition: all 0.2s; backdrop-filter: blur(2px); }
+        .player-overlay-btn:hover { background: #ef4444; transform: scale(1.1); }
         .btn-toggle.active { background-color: #ef4444; color: white; border-color: #ef4444; }
+
+        /* Panel F1 */
+        .timing-panel { position: absolute; top: 0; right: 0; width: 40%; height: 100%; background: rgba(0,0,0,0.95); border-left: 1px solid #333; transform: translateX(100%); transition: transform 0.3s ease-in-out; z-index: 40; }
+        .timing-panel.open { transform: translateX(0); }
+        @media (max-width: 768px) { .timing-panel { width: 90%; } }
+
+        /* Utilidad para asegurar visibilidad en desktop */
+        @media (min-width: 768px) {
+            #channel-list { display: block !important; height: auto !important; }
+        }
     </style>
 </head>
-<body class="bg-black text-gray-100 font-sans h-screen flex flex-col-reverse md:flex-row overflow-hidden">
+<body class="bg-black text-gray-100 font-sans h-screen flex flex-col md:flex-row overflow-hidden">
 
-    <aside class="w-full md:w-80 bg-neutral-900 border-r border-neutral-800 flex flex-col h-1/2 md:h-full z-20 shadow-xl">
-        <div class="p-3 border-b border-neutral-800 bg-neutral-900 flex items-center justify-between sticky top-0 z-10 gap-2">
+    <!-- Sidebar: Usamos flex-col y h-full para asegurar estructura -->
+    <aside id="sidebar" class="w-full md:w-80 bg-neutral-900 border-r border-neutral-800 flex flex-col z-30 shadow-xl transition-all duration-300 h-1/2 md:h-full shrink-0">
+        <!-- Cabecera Sidebar -->
+        <div class="p-3 border-b border-neutral-800 bg-neutral-900 flex items-center justify-between sticky top-0 z-10 shrink-0 h-14">
             <div class="flex items-center gap-2">
-                <i data-lucide="tv" class="text-red-600 w-5 h-5"></i>
-                <h1 class="font-bold text-lg tracking-wide text-white">TV</h1>
+                <!-- Botón Menú Móvil -->
+                <button onclick="toggleList()" class="md:hidden text-gray-400 hover:text-white p-1 rounded hover:bg-neutral-800 transition-colors">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </button>
+                <i data-lucide="tv" class="text-red-600 w-5 h-5 hidden md:block"></i>
+                <h1 class="font-bold text-lg tracking-wide text-white hidden md:block">TV</h1>
             </div>
-            <div class="flex gap-2">
+            <div class="flex gap-2 ml-auto md:ml-0">
                 <button id="multiBtn" onclick="toggleMultiscreen()" class="btn-toggle flex items-center gap-1 bg-neutral-800 hover:bg-neutral-700 text-xs px-2 py-1.5 rounded border border-neutral-700 transition-colors">
-                    <i data-lucide="grid-2x2" class="w-3 h-3"></i> Multi
+                    <i data-lucide="grid-2x2" class="w-3 h-3"></i> <span class="hidden sm:inline">Multi</span>
                 </button>
                 <button onclick="openSchedule()" class="flex items-center gap-1 bg-neutral-800 hover:bg-neutral-700 text-xs px-2 py-1.5 rounded border border-neutral-700 transition-colors">
-                    <i data-lucide="calendar-days" class="w-3 h-3"></i> Guía
+                    <i data-lucide="calendar-days" class="w-3 h-3"></i> <span class="hidden sm:inline">Guía</span>
                 </button>
             </div>
         </div>
-        <div id="channel-list" class="flex-1 overflow-y-auto p-0 scroll-smooth">
-            <div class="flex flex-col items-center justify-center h-40 text-gray-500 gap-3">
+
+        <!-- Lista de Canales: min-h-0 es CRUCIAL para scroll en flexbox anidado -->
+        <div id="channel-list" class="flex-1 overflow-y-auto p-0 scroll-smooth min-h-0 bg-neutral-900 relative">
+            <div id="loader-container" class="absolute inset-0 flex flex-col items-center justify-center text-gray-500 gap-3">
                 <div class="loader"></div>
                 <p class="text-xs font-mono">Conectando...</p>
             </div>
         </div>
     </aside>
 
-    <main class="flex-1 flex flex-col h-1/2 md:h-full bg-black relative">
+    <!-- Área Principal -->
+    <main class="flex-1 flex flex-col h-1/2 md:h-full bg-black relative transition-all duration-300 overflow-hidden">
         <div id="grid-container" class="w-full h-full p-2 overflow-y-auto grid gap-2 grid-cols-1 content-center">
             <div id="empty-state" class="flex flex-col items-center justify-center text-neutral-600 h-full col-span-full">
                 <i data-lucide="play-circle" class="w-16 h-16 mb-4 opacity-30"></i>
@@ -70,6 +99,7 @@
         </div>
     </main>
 
+    <!-- Modal Guía -->
     <dialog id="scheduleModal" class="bg-neutral-900 text-white rounded-lg shadow-2xl w-full max-w-md h-[80vh] border border-neutral-700 p-0 m-auto backdrop:bg-black/80">
         <div class="flex flex-col h-full">
             <div class="p-4 border-b border-neutral-800 flex justify-between items-center bg-neutral-900 sticky top-0 z-10">
@@ -85,10 +115,14 @@
     <script>
         lucide.createIcons();
 
+        // Configuración
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz924XnshJ9NvdC9QhMtvf0NpdNs0-DxlDxahSOoFotLU9ujw3NW5snLrWZgMho0S_Ccw/exec"; 
         const EPG_CHANNEL_ID = "406540";
+        const TIMING_URL = "https://formula-timer.com/livetiming";
         
+        // Elementos DOM
         const channelListEl = document.getElementById('channel-list');
+        const loaderContainer = document.getElementById('loader-container');
         const gridContainer = document.getElementById('grid-container');
         const emptyState = document.getElementById('empty-state');
         const infoBar = document.getElementById('info-bar');
@@ -97,21 +131,14 @@
         const timeLabel = document.getElementById('program-time');
         const scheduleListEl = document.getElementById('modal-content');
         const multiBtn = document.getElementById('multiBtn');
+        const sidebar = document.getElementById('sidebar');
 
+        // Estado
         let daznEpgData = { epg_list: [] }; 
         let isMultiscreen = false;
         let activePlayers = 0;
 
-        const LOGO_MAP = {
-        };
-
-        function getLogoUrl(name, epgData) {
-            if (name.toLowerCase().includes('dazn f1') && epgData && epgData.icon) return epgData.icon;
-            if (name.toLowerCase().includes('dazn')) return LOGO_MAP['DAZN'];
-            const key = Object.keys(LOGO_MAP).find(k => name.toLowerCase().includes(k.toLowerCase()));
-            return key ? LOGO_MAP[key] : null; 
-        }
-
+        // Fetch EPG
         async function fetchEPG() {
             try {
                 const today = new Date();
@@ -150,40 +177,64 @@
             return program ? { title: program.title, time: new Date(program.start_date).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) } : { title: "Sin información", time: "" };
         }
 
+        // Fetch con Proxy Fallback
         async function robustFetch(url) {
             try {
                 const response = await fetch(url, { redirect: 'follow' });
                 if (response.ok) return await response.json();
-            } catch (e) { console.log("Proxy..."); }
-            
-            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-            const response = await fetch(proxyUrl);
-            if (!response.ok) throw new Error("Proxy error");
-            const data = await response.json();
-            return JSON.parse(data.contents);
+                throw new Error("Direct fetch failed");
+            } catch (e) {
+                console.log("Intentando proxy...");
+                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+                const response = await fetch(proxyUrl);
+                if (!response.ok) throw new Error("Proxy error");
+                const data = await response.json();
+                return JSON.parse(data.contents);
+            }
         }
 
         async function init() {
             await fetchEPG();
             try {
                 const data = await robustFetch(APPS_SCRIPT_URL);
-                if(data) renderChannels(data);
-                else throw new Error("Datos vacíos");
+                if(data && Array.isArray(data)) {
+                    renderChannels(data);
+                } else {
+                    throw new Error("Datos inválidos");
+                }
             } catch (error) {
+                console.error(error);
                 channelListEl.innerHTML = `
-                <div class="p-6 text-center">
-                    <i data-lucide="lock" class="mx-auto mb-3 text-red-500 w-8 h-8"></i>
-                    <p class="text-sm text-gray-400">Error de Acceso</p>
-                    <button onclick="location.reload()" class="mt-4 px-4 py-2 bg-neutral-800 rounded text-xs">Reintentar</button>
+                <div class="p-6 text-center h-full flex flex-col items-center justify-center">
+                    <i data-lucide="wifi-off" class="mb-3 text-red-500 w-8 h-8"></i>
+                    <p class="text-sm text-gray-400">Error de Conexión</p>
+                    <button onclick="location.reload()" class="mt-4 px-4 py-2 bg-neutral-800 rounded text-xs hover:bg-neutral-700 transition-colors">Reintentar</button>
                 </div>`;
                 lucide.createIcons();
             }
         }
 
+        // --- UI Logic ---
+
         function toggleMultiscreen() {
             isMultiscreen = !isMultiscreen;
             multiBtn.classList.toggle('active', isMultiscreen);
             updateGridLayout();
+        }
+
+        // Lógica de lista móvil corregida
+        function toggleList() {
+            const list = document.getElementById('channel-list');
+            // En móvil usamos clase 'hidden' para ocultar/mostrar
+            if (list.classList.contains('hidden')) {
+                list.classList.remove('hidden');
+                sidebar.classList.remove('h-auto');
+                sidebar.classList.add('h-1/2'); // Restaurar altura en móvil
+            } else {
+                list.classList.add('hidden');
+                sidebar.classList.remove('h-1/2');
+                sidebar.classList.add('h-auto'); // Colapsar altura sidebar
+            }
         }
 
         function updateGridLayout() {
@@ -199,19 +250,32 @@
                 gridContainer.innerHTML = '';
                 activePlayers = 0;
             }
-            
-            if (activePlayers === 0) {
-                if(emptyState) emptyState.remove();
-            }
+            if (activePlayers === 0 && emptyState) emptyState.remove();
 
+            const isDazn = name.toLowerCase().includes('dazn');
             const wrapper = document.createElement('div');
-            wrapper.className = 'player-wrapper rounded-lg relative group bg-black';
+            wrapper.className = 'player-wrapper rounded-lg relative group bg-black border border-neutral-800';
+            
+            const timingBtnHtml = isDazn ? 
+                `<button class="player-overlay-btn absolute top-3 right-12 z-50 opacity-0 group-hover:opacity-100" onclick="toggleTimingPanel(this)" title="Live Timing">
+                    <i data-lucide="timer" class="w-4 h-4"></i>
+                 </button>` : '';
+
             wrapper.innerHTML = `
-                <iframe src="${url}" frameborder="0" allowfullscreen allow="autoplay; encrypted-media" scrolling="no" class="w-full h-full"></iframe>
-                <div class="absolute top-0 left-0 p-2 bg-gradient-to-b from-black/80 to-transparent w-full pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
-                    <span class="text-white text-xs font-bold shadow-black drop-shadow-md">${name}</span>
+                <iframe src="${url}" class="video-frame" frameborder="0" allowfullscreen allow="autoplay; encrypted-media" scrolling="no"></iframe>
+                <div class="timing-panel">
+                    <div class="h-full w-full relative">
+                        <button class="absolute top-2 left-2 z-50 text-white bg-red-600 rounded p-1 hover:bg-red-700" onclick="toggleTimingPanel(this.parentElement.parentElement.parentElement.querySelector('.player-overlay-btn'))"><i data-lucide="x" class="w-3 h-3"></i></button>
+                        <iframe src="" class="w-full h-full border-0"></iframe>
+                    </div>
                 </div>
-                <button class="close-btn opacity-0 group-hover:opacity-100" onclick="removePlayer(this.parentElement)">
+                <div class="absolute top-0 left-0 p-3 bg-gradient-to-b from-black/90 to-transparent w-full pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity z-40">
+                    <span class="text-white text-xs font-bold shadow-black drop-shadow-md flex items-center gap-2">
+                        ${isDazn ? '<span class="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></span>' : ''} ${name}
+                    </span>
+                </div>
+                ${timingBtnHtml}
+                <button class="player-overlay-btn close-btn absolute top-3 right-3 z-50 opacity-0 group-hover:opacity-100" onclick="removePlayer(this.parentElement)">
                     <i data-lucide="x" class="w-4 h-4"></i>
                 </button>
             `;
@@ -221,6 +285,20 @@
             updateGridLayout();
             lucide.createIcons();
         }
+
+        window.toggleTimingPanel = function(btn) {
+            const wrapper = btn.closest('.player-wrapper');
+            const panel = wrapper.querySelector('.timing-panel');
+            const iframe = panel.querySelector('.timing-panel iframe');
+            
+            if (panel.classList.contains('open')) {
+                panel.classList.remove('open');
+                setTimeout(() => { iframe.src = ''; }, 300); 
+            } else {
+                iframe.src = TIMING_URL;
+                panel.classList.add('open');
+            }
+        };
 
         window.removePlayer = function(el) {
             el.remove();
@@ -233,7 +311,11 @@
         }
 
         function renderChannels(channels) {
+            // Limpiar loader
+            if(loaderContainer) loaderContainer.remove();
+            // Limpiar lista pero no borrar loader si ya no existe
             channelListEl.innerHTML = ''; 
+
             channels.forEach((channel) => {
                 const isF1 = channel.nombre.toLowerCase().includes('dazn f1');
                 
@@ -250,12 +332,19 @@
                 btn.className = `channel-btn w-full text-left p-3 border-l-4 border-transparent hover:bg-neutral-800 transition-all duration-200 flex items-center gap-3 group border-b border-neutral-800/50`;
                 
                 let iconHtml = `
-                    <div class="icon-wrapper w-12 h-10 rounded shrink-0 bg-neutral-800">
+                    <div class="icon-wrapper w-12 h-10 rounded shrink-0 bg-neutral-800 relative">
                         <div class="channel-initial">${channel.nombre.charAt(0)}</div>
                         ${logoUrl ? `<img src="${logoUrl}" alt="${channel.nombre}" class="channel-logo" onload="this.style.display='block'" onerror="this.style.display='none'">` : ''}
                     </div>`;
 
-                btn.innerHTML = `${iconHtml}<div class="flex-1 min-w-0"><h3 class="text-sm font-semibold text-gray-200 group-hover:text-white truncate">${channel.nombre}</h3><p class="text-[10px] text-gray-500 truncate flex items-center">${progTime ? `<span class="text-xs text-red-500 font-mono mr-1">${progTime}</span>` : ''}${progTitle}</p></div><i data-lucide="play-circle" class="w-5 h-5 text-neutral-600 group-hover:text-red-500 transition-colors"></i>`;
+                btn.innerHTML = `${iconHtml}
+                    <div class="flex-1 min-w-0">
+                        <h3 class="text-sm font-semibold text-gray-200 group-hover:text-white truncate">${channel.nombre}</h3>
+                        <p class="text-[10px] text-gray-500 truncate flex items-center">
+                            ${progTime ? `<span class="text-xs text-red-500 font-mono mr-1">${progTime}</span>` : ''}${progTitle}
+                        </p>
+                    </div>
+                    <i data-lucide="play-circle" class="w-5 h-5 text-neutral-600 group-hover:text-red-500 transition-colors"></i>`;
                 
                 btn.onclick = () => {
                     try {
@@ -268,8 +357,16 @@
                             timeLabel.textContent = progTime ? `Inicio: ${progTime}` : '';
                             infoBar.classList.remove('opacity-0');
                         }
+                        
+                        // Auto-ocultar solo en móvil (<768px)
+                        if (window.innerWidth < 768) {
+                            toggleList();
+                        }
+
                         addPlayer(decodedUrl, channel.nombre);
-                    } catch (e) {}
+                    } catch (e) {
+                        console.error("Error decode", e);
+                    }
                 };
                 channelListEl.appendChild(btn);
             });
