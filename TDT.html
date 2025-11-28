@@ -31,12 +31,31 @@
         .timing-section { width: 100%; background: #111; border-top: 1px solid #333; height: 0; overflow: hidden; transition: height 0.3s ease; position: relative; z-index: 5; }
         .timing-section iframe { width: 100%; height: 100%; border: 0; }
 
-        .player-wrapper.with-timing .video-section { height: 60%; }
-        .player-wrapper.with-timing .timing-section { height: 40%; display: block; }
+        .player-wrapper.with-timing .video-section { height: 40%; }
+        .player-wrapper.with-timing .timing-section { height: 60%; display: block; }
+
+        @media (min-width: 768px) {
+            .player-wrapper.with-timing .video-section { height: 60%; }
+            .player-wrapper.with-timing .timing-section { height: 40%; }
+        }
         
         .player-overlay-btn { background: rgba(0,0,0,0.6); color: white; padding: 6px; border-radius: 50%; cursor: pointer; transition: all 0.2s; backdrop-filter: blur(2px); z-index: 50; }
         .player-overlay-btn:hover { background: #ef4444; transform: scale(1.1); }
         .btn-toggle.active { background-color: #ef4444; color: white; border-color: #ef4444; }
+        
+        select.option-selector { 
+            background-color: #dc2626; 
+            color: white; 
+            border: 1px solid #991b1b; 
+            border-radius: 0.25rem; 
+            padding: 4px 10px; 
+            font-size: 0.8rem; 
+            font-weight: 600;
+            outline: none; 
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        select.option-selector:hover { background-color: #b91c1c; }
 
         @media (min-width: 768px) {
             #channel-list { display: block !important; height: auto !important; }
@@ -80,13 +99,18 @@
             </div>
         </div>
         
-        <div id="info-bar" class="p-3 bg-neutral-900/95 border-t border-neutral-800 absolute bottom-0 left-0 right-0 pointer-events-none z-20 opacity-0 transition-opacity duration-300">
-            <h2 id="current-channel-name" class="text-base md:text-xl font-bold text-white drop-shadow-md">...</h2>
-            <div class="flex items-center gap-2 mt-1">
-                <p id="current-program" class="text-xs text-red-400 font-medium drop-shadow-md flex items-center gap-2">
-                    <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span> EN DIRECTO
-                </p>
-                <p id="program-time" class="text-[10px] text-gray-400"></p>
+        <div id="info-bar" class="p-3 bg-neutral-900/95 border-t border-neutral-800 absolute bottom-0 left-0 right-0 z-20 opacity-0 transition-opacity duration-300 flex items-center justify-between pointer-events-auto">
+            <div class="flex-1 min-w-0 mr-2">
+                <h2 id="current-channel-name" class="text-base md:text-xl font-bold text-white drop-shadow-md truncate">...</h2>
+                <div class="flex items-center gap-2 mt-1">
+                    <p id="current-program" class="text-xs text-red-400 font-medium drop-shadow-md flex items-center gap-2">
+                        <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span> EN DIRECTO
+                    </p>
+                    <p id="program-time" class="text-[10px] text-gray-400"></p>
+                </div>
+            </div>
+            <div id="options-container" class="shrink-0">
+                
             </div>
         </div>
     </main>
@@ -115,6 +139,7 @@
         const gridContainer = document.getElementById('grid-container');
         const emptyState = document.getElementById('empty-state');
         const infoBar = document.getElementById('info-bar');
+        const optionsContainer = document.getElementById('options-container');
         const titleLabel = document.getElementById('current-channel-name');
         const programLabel = document.getElementById('current-program');
         const timeLabel = document.getElementById('program-time');
@@ -125,6 +150,7 @@
         let daznEpgData = { epg_list: [] }; 
         let isMultiscreen = false;
         let activePlayers = 0;
+        let currentChannelName = "";
 
         async function fetchEPG() {
             try {
@@ -245,7 +271,7 @@
 
             wrapper.innerHTML = `
                 <div class="video-section">
-                    <iframe src="${url}" frameborder="0" allowfullscreen allow="autoplay; encrypted-media" scrolling="no"></iframe>
+                    <iframe src="${url}" frameborder="0" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture" scrolling="no"></iframe>
                     <div class="absolute top-0 left-0 p-3 bg-gradient-to-b from-black/90 to-transparent w-full pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity z-40">
                         <span class="text-white text-xs font-bold shadow-black drop-shadow-md flex items-center gap-2">
                             ${isDazn ? '<span class="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></span>' : ''} ${name}
@@ -294,13 +320,13 @@
             updateGridLayout();
         }
 
-        function renderChannels(channels) {
+        function renderChannels(groups) {
             if(loaderContainer) loaderContainer.remove();
             channelListEl.innerHTML = ''; 
 
-            channels.forEach((channel) => {
-                const isF1 = channel.nombre.toLowerCase().includes('dazn f1');
-                const logoUrl = channel.logo; 
+            groups.forEach((group) => {
+                const isF1 = group.nombre.toLowerCase().includes('dazn f1');
+                const logoUrl = group.logo; 
 
                 let progTitle = "TV en vivo", progTime = "";
                 if (isF1 && daznEpgData) {
@@ -313,13 +339,13 @@
                 
                 let iconHtml = `
                     <div class="icon-wrapper w-12 h-10 rounded shrink-0 bg-neutral-800 relative">
-                        <div class="channel-initial">${channel.nombre.charAt(0)}</div>
-                        ${logoUrl ? `<img src="${logoUrl}" alt="${channel.nombre}" class="channel-logo" onload="this.style.display='block'" onerror="this.style.display='none'">` : ''}
+                        <div class="channel-initial">${group.nombre.charAt(0)}</div>
+                        ${logoUrl ? `<img src="${logoUrl}" alt="${group.nombre}" class="channel-logo" onload="this.style.display='block'" onerror="this.style.display='none'">` : ''}
                     </div>`;
 
                 btn.innerHTML = `${iconHtml}
                     <div class="flex-1 min-w-0">
-                        <h3 class="text-sm font-semibold text-gray-200 group-hover:text-white truncate">${channel.nombre}</h3>
+                        <h3 class="text-sm font-semibold text-gray-200 group-hover:text-white truncate">${group.nombre}</h3>
                         <p class="text-[10px] text-gray-500 truncate flex items-center">
                             ${progTime ? `<span class="text-xs text-red-500 font-mono mr-1">${progTime}</span>` : ''}${progTitle}
                         </p>
@@ -328,13 +354,34 @@
                 
                 btn.onclick = () => {
                     try {
-                        const decodedUrl = atob(channel.url);
+                        const firstOptionUrl = group.opciones[0];
+                        const decodedUrl = atob(firstOptionUrl);
+                        
                         if(!isMultiscreen) {
                             document.querySelectorAll('.channel-btn').forEach(b => b.classList.remove('active'));
                             btn.classList.add('active');
-                            titleLabel.textContent = channel.nombre;
+                            
+                            titleLabel.textContent = group.nombre;
+                            currentChannelName = group.nombre;
                             programLabel.innerHTML = `<span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span> ${progTitle}`;
                             timeLabel.textContent = progTime ? `Inicio: ${progTime}` : '';
+                            
+                            optionsContainer.innerHTML = '';
+                            if (group.opciones.length > 1) {
+                                const select = document.createElement('select');
+                                select.className = 'option-selector';
+                                group.opciones.forEach((url, idx) => {
+                                    const option = document.createElement('option');
+                                    option.value = url;
+                                    option.text = `Opción ${idx + 1}`;
+                                    select.appendChild(option);
+                                });
+                                select.onchange = (e) => {
+                                    addPlayer(atob(e.target.value), group.nombre);
+                                };
+                                optionsContainer.appendChild(select);
+                            }
+
                             infoBar.classList.remove('opacity-0');
                         }
                         
@@ -342,7 +389,7 @@
                             toggleList();
                         }
 
-                        addPlayer(decodedUrl, channel.nombre);
+                        addPlayer(decodedUrl, group.nombre);
                     } catch (e) {
                         console.error("Error decode", e);
                     }
