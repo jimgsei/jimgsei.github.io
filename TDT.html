@@ -1,161 +1,311 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Jimgsey</title>
-  <style>
-    body {
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      background: #000;
-      color: #fff;
-      font-family: Arial, sans-serif;
-      padding: 20px;
-    }
-
-    #players {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      width: 100%;
-      gap: 20px;
-    }
-
-    .player-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      width: 100%;
-      max-width: 1280px;
-    }
-
-    select, button.add-player {
-      appearance: none;
-      background-color: #1e1e1e;
-      color: #fff;
-      padding: 10px 20px;
-      font-size: 1rem;
-      border: 2px solid #444;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-bottom: 10px;
-      transition: 0.3s ease;
-      width: 100%;
-      max-width: 300px;
-    }
-
-    select:hover, button.add-player:hover {
-      border-color: #00bcd4;
-      background-color: #2c2c2c;
-    }
-
-    iframe {
-      border: none;
-      width: 100%;
-      aspect-ratio: 16 / 9;
-      background: #000;
-    }
-
-    .controls {
-      margin-top: 20px;
-      width: 100%;
-      display: flex;
-      justify-content: center;
-    }
-
-    @media (min-width: 768px) {
-      .player-container {
-        flex: 1 1 calc(50% - 20px);
-        min-width: calc(50% - 20px);
-      }
-    }
-
-    @media (max-width: 767px) {
-      .player-container {
-        flex: 1 1 100%;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TV Directo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #111; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+        .loader { border: 3px solid #333; border-top: 3px solid #ef4444; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .channel-btn.active { background-color: #262626; border-left-color: #ef4444; }
+        .icon-wrapper { position: relative; overflow: hidden; }
+        .channel-logo { object-fit: contain; position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 4px; background: #1e1e1e; border-radius: 0.25rem; display: none; }
+        .channel-initial { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #d4d4d4; background-color: #2e2e2e; border-radius: 0.25rem; }
+        .channel-btn:hover .channel-initial, .channel-btn.active .channel-initial { background-color: #ef4444; color: white; }
+        dialog::backdrop { background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(2px); }
+        .player-wrapper { position: relative; width: 100%; height: 100%; background: #000; overflow: hidden; aspect-ratio: 16/9; box-shadow: 0 4px 6px rgba(0,0,0,0.5); }
+        .player-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+        .close-btn { position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.7); color: white; padding: 4px; border-radius: 50%; cursor: pointer; z-index: 50; transition: background 0.2s; }
+        .close-btn:hover { background: #ef4444; }
+        .btn-toggle.active { background-color: #ef4444; color: white; border-color: #ef4444; }
+    </style>
 </head>
-<body>
-  <div id="players"></div>
-  <div class="controls">
-    <button id="addPlayer" class="add-player">Añadir Reproductor</button>
-  </div>
+<body class="bg-black text-gray-100 font-sans h-screen flex flex-col-reverse md:flex-row overflow-hidden">
 
-  <script>
-	const channelData = {
+    <aside class="w-full md:w-80 bg-neutral-900 border-r border-neutral-800 flex flex-col h-1/2 md:h-full z-20 shadow-xl">
+        <div class="p-3 border-b border-neutral-800 bg-neutral-900 flex items-center justify-between sticky top-0 z-10 gap-2">
+            <div class="flex items-center gap-2">
+                <i data-lucide="tv" class="text-red-600 w-5 h-5"></i>
+                <h1 class="font-bold text-lg tracking-wide text-white">TV</h1>
+            </div>
+            <div class="flex gap-2">
+                <button id="multiBtn" onclick="toggleMultiscreen()" class="btn-toggle flex items-center gap-1 bg-neutral-800 hover:bg-neutral-700 text-xs px-2 py-1.5 rounded border border-neutral-700 transition-colors">
+                    <i data-lucide="grid-2x2" class="w-3 h-3"></i> Multi
+                </button>
+                <button onclick="openSchedule()" class="flex items-center gap-1 bg-neutral-800 hover:bg-neutral-700 text-xs px-2 py-1.5 rounded border border-neutral-700 transition-colors">
+                    <i data-lucide="calendar-days" class="w-3 h-3"></i> Guía
+                </button>
+            </div>
+        </div>
+        <div id="channel-list" class="flex-1 overflow-y-auto p-0 scroll-smooth">
+            <div class="flex flex-col items-center justify-center h-40 text-gray-500 gap-3">
+                <div class="loader"></div>
+                <p class="text-xs font-mono">Conectando...</p>
+            </div>
+        </div>
+    </aside>
 
-  'TEEgMQ==': 'aHR0cHM6Ly90ZWxlZnVsbGhkLmNvbS9jYW5hbGVzL3R2ZTEv',
-  'QW50ZW5hIDM=': 'aHR0cHM6Ly90ZWxlZnVsbGhkLmNvbS9jYW5hbGVzL2FudGVuYTMv',
-  'Q3VhdHJv': 'aHR0cHM6Ly90ZWxlZnVsbGhkLmNvbS9jYW5hbGVzL2xhY3VhdHJvLw==',
-  'VGVsZWNpbmNv': 'aHR0cHM6Ly90ZWxlZnVsbGhkLmNvbS9jYW5hbGVzL3RlbGVjaW5jby8=',
-  'TGEgU2V4dGE=': 'aHR0cHM6Ly90ZWxlZnVsbGhkLmNvbS9jYW5hbGVzL2xhc2V4dGEv',
-  'TWVnYQ==': 'aHR0cHM6Ly90ZWxlZnVsbGhkLmNvbS9jYW5hbGVzL21lZ2Ev',
-  'REFaTiBMaWdh': 'aHR0cHM6Ly9taXp0di50b3AvdG90YWwvc3RyZWFtLTUzOC5waHA=',
-  'REFaTiBGMSAx': 'aHR0cHM6Ly9taXp0di50b3AvdG90YWwvc3RyZWFtLTUzNy5waHA=',
-  'REFaTiBGMSAy': 'aHR0cHM6Ly9lbWJlZHNwb3J0cy50b3AvZW1iZWQvYWxwaGEvZGF6bi1mb3JtdWxhLTEtZGF6bi1mMS8x',
-  'REFaTiBGMSAz': 'aHR0cHM6Ly9lbWJlZC5rc2RqdWFnZnNkZXBvcnRzLmZ1bi9lbWJlZC9kYXpuZjEuaHRtbA==',
-  'REFaTiBGMSA0': 'aHR0cHM6Ly9lbWJlZC5rc2RqdWdmc2RkZXBvcnRzLmNvbS9lbWJlZDIvZGF6bmYxLmh0bWw=',
-  'REFaTiBGMSA1': 'aHR0cHM6Ly93d3cuY2Fwb3BsYXllci5uZXQvcGxheS9mb3JtdWxhMS5waHA=',
-  'REFaTiBGMSA2': 'aHR0cHM6Ly9lbnouZ2RwbGF5ZXJ0di50by9saXZlLXR2L2Rhem4tZjEvP2VtYmVkPTE=',
-  'REFaTiBGMSA3': 'aHR0cHM6Ly9kZXBvcnRlLWxpYnJlLmNsaWNrL2VuLXZpdm8tb25saW5lL2RhenQtZm9ybXVsYS0xLWVzL2VtYmVkLnBocA=='
+    <main class="flex-1 flex flex-col h-1/2 md:h-full bg-black relative">
+        <div id="grid-container" class="w-full h-full p-2 overflow-y-auto grid gap-2 grid-cols-1 content-center">
+            <div id="empty-state" class="flex flex-col items-center justify-center text-neutral-600 h-full col-span-full">
+                <i data-lucide="play-circle" class="w-16 h-16 mb-4 opacity-30"></i>
+                <p class="text-sm font-medium opacity-50">Selecciona un canal</p>
+            </div>
+        </div>
+        
+        <div id="info-bar" class="p-3 bg-neutral-900/95 border-t border-neutral-800 absolute bottom-0 left-0 right-0 pointer-events-none z-20 opacity-0 transition-opacity duration-300">
+            <h2 id="current-channel-name" class="text-base md:text-xl font-bold text-white drop-shadow-md">...</h2>
+            <div class="flex items-center gap-2 mt-1">
+                <p id="current-program" class="text-xs text-red-400 font-medium drop-shadow-md flex items-center gap-2">
+                    <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span> EN DIRECTO
+                </p>
+                <p id="program-time" class="text-[10px] text-gray-400"></p>
+            </div>
+        </div>
+    </main>
 
+    <dialog id="scheduleModal" class="bg-neutral-900 text-white rounded-lg shadow-2xl w-full max-w-md h-[80vh] border border-neutral-700 p-0 m-auto backdrop:bg-black/80">
+        <div class="flex flex-col h-full">
+            <div class="p-4 border-b border-neutral-800 flex justify-between items-center bg-neutral-900 sticky top-0 z-10">
+                <h3 class="font-bold flex items-center gap-2"><i data-lucide="calendar" class="text-red-500 w-4 h-4"></i> Programación F1</h3>
+                <button onclick="document.getElementById('scheduleModal').close()" class="p-1 hover:bg-neutral-800 rounded"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div id="modal-content" class="flex-1 overflow-y-auto p-4 space-y-4">
+                <div class="text-center text-gray-500 text-sm py-10">Cargando datos...</div>
+            </div>
+        </div>
+    </dialog>
 
-	};
+    <script>
+        lucide.createIcons();
 
-    function decodeBase64(base64Str) {
-      return atob(base64Str);
-    }
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz924XnshJ9NvdC9QhMtvf0NpdNs0-DxlDxahSOoFotLU9ujw3NW5snLrWZgMho0S_Ccw/exec"; 
+        const EPG_CHANNEL_ID = "406540";
+        
+        const channelListEl = document.getElementById('channel-list');
+        const gridContainer = document.getElementById('grid-container');
+        const emptyState = document.getElementById('empty-state');
+        const infoBar = document.getElementById('info-bar');
+        const titleLabel = document.getElementById('current-channel-name');
+        const programLabel = document.getElementById('current-program');
+        const timeLabel = document.getElementById('program-time');
+        const scheduleListEl = document.getElementById('modal-content');
+        const multiBtn = document.getElementById('multiBtn');
 
-    function createPlayerContainer(playerId) {
-      const container = document.createElement('div');
-      container.className = 'player-container';
-      container.id = `player-${playerId}`;
+        let daznEpgData = { epg_list: [] }; 
+        let isMultiscreen = false;
+        let activePlayers = 0;
 
-      const select = document.createElement('select');
-      select.className = 'channel-selector';
-      select.id = `channelSelector-${playerId}`;
+        const LOGO_MAP = {
+        };
 
-      for (const [encodedName, encodedUrl] of Object.entries(channelData)) {
-        const option = document.createElement('option');
-        option.value = encodedUrl;
-        option.textContent = decodeBase64(encodedName);
-        select.appendChild(option);
-      }
+        function getLogoUrl(name, epgData) {
+            if (name.toLowerCase().includes('dazn f1') && epgData && epgData.icon) return epgData.icon;
+            if (name.toLowerCase().includes('dazn')) return LOGO_MAP['DAZN'];
+            const key = Object.keys(LOGO_MAP).find(k => name.toLowerCase().includes(k.toLowerCase()));
+            return key ? LOGO_MAP[key] : null; 
+        }
 
-      const iframe = document.createElement('iframe');
-      iframe.id = `tvFrame-${playerId}`;
-      iframe.allow = "autoplay; encrypted-media";
-      iframe.allowFullscreen = true;
+        async function fetchEPG() {
+            try {
+                const today = new Date();
+                const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
+                const dates = [today, tomorrow];
+                let combinedList = [];
+                let mainData = null;
 
-      container.appendChild(select);
-      container.appendChild(iframe);
+                for (const d of dates) {
+                    const yyyy = d.getFullYear();
+                    const mm = String(d.getMonth() + 1).padStart(2, '0');
+                    const dd = String(d.getDate()).padStart(2, '0');
+                    const url = `https://epg.pw/api/epg.json?lang=en&timezone=RXVyb3BlL01hZHJpZA==&date=${yyyy}${mm}${dd}&channel_id=${EPG_CHANNEL_ID}`;
+                    try {
+                        const res = await fetch(url);
+                        if (res.ok) {
+                            const data = await res.json();
+                            if (!mainData) mainData = data;
+                            if (data.epg_list) combinedList = [...combinedList, ...data.epg_list];
+                        }
+                    } catch (e) {}
+                }
+                if (mainData) { daznEpgData = mainData; daznEpgData.epg_list = combinedList; }
+            } catch (e) {}
+        }
 
-      select.addEventListener('change', (e) => {
-        const decodedUrl = decodeBase64(e.target.value);
-        iframe.src = decodedUrl;
-      });
+        function getCurrentProgramInfo(epgData) {
+            if (!epgData?.epg_list?.length) return { title: "Emisión en directo", time: "" };
+            const now = new Date();
+            const program = epgData.epg_list.find((item, i) => {
+                const start = new Date(item.start_date);
+                const nextItem = epgData.epg_list[i+1];
+                const end = nextItem ? new Date(nextItem.start_date) : new Date(start.getTime() + 7200000);
+                return now >= start && now < end;
+            });
+            return program ? { title: program.title, time: new Date(program.start_date).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) } : { title: "Sin información", time: "" };
+        }
 
-      // Set initial channel
-      const initialEncodedUrl = Object.values(channelData)[0];
-      const initialDecodedUrl = decodeBase64(initialEncodedUrl);
-      iframe.src = initialDecodedUrl;
+        async function robustFetch(url) {
+            try {
+                const response = await fetch(url, { redirect: 'follow' });
+                if (response.ok) return await response.json();
+            } catch (e) { console.log("Proxy..."); }
+            
+            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+            const response = await fetch(proxyUrl);
+            if (!response.ok) throw new Error("Proxy error");
+            const data = await response.json();
+            return JSON.parse(data.contents);
+        }
 
-      return container;
-    }
+        async function init() {
+            await fetchEPG();
+            try {
+                const data = await robustFetch(APPS_SCRIPT_URL);
+                if(data) renderChannels(data);
+                else throw new Error("Datos vacíos");
+            } catch (error) {
+                channelListEl.innerHTML = `
+                <div class="p-6 text-center">
+                    <i data-lucide="lock" class="mx-auto mb-3 text-red-500 w-8 h-8"></i>
+                    <p class="text-sm text-gray-400">Error de Acceso</p>
+                    <button onclick="location.reload()" class="mt-4 px-4 py-2 bg-neutral-800 rounded text-xs">Reintentar</button>
+                </div>`;
+                lucide.createIcons();
+            }
+        }
 
-    document.getElementById('addPlayer').addEventListener('click', () => {
-      const playersContainer = document.getElementById('players');
-      const playerId = playersContainer.children.length;
-      const playerContainer = createPlayerContainer(playerId);
-      playersContainer.appendChild(playerContainer);
-    });
+        function toggleMultiscreen() {
+            isMultiscreen = !isMultiscreen;
+            multiBtn.classList.toggle('active', isMultiscreen);
+            updateGridLayout();
+        }
 
-    document.getElementById('players').appendChild(createPlayerContainer(0));
-  </script>
+        function updateGridLayout() {
+            gridContainer.className = 'w-full h-full p-2 overflow-y-auto grid gap-2 content-center';
+            if (activePlayers <= 1) gridContainer.classList.add('grid-cols-1');
+            else if (activePlayers === 2) gridContainer.classList.add('grid-cols-1', 'md:grid-cols-2');
+            else if (activePlayers <= 4) gridContainer.classList.add('grid-cols-1', 'md:grid-cols-2');
+            else gridContainer.classList.add('grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-3');
+        }
+
+        function addPlayer(url, name) {
+            if (!isMultiscreen) {
+                gridContainer.innerHTML = '';
+                activePlayers = 0;
+            }
+            
+            if (activePlayers === 0) {
+                if(emptyState) emptyState.remove();
+            }
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'player-wrapper rounded-lg relative group bg-black';
+            wrapper.innerHTML = `
+                <iframe src="${url}" frameborder="0" allowfullscreen allow="autoplay; encrypted-media" scrolling="no" class="w-full h-full"></iframe>
+                <div class="absolute top-0 left-0 p-2 bg-gradient-to-b from-black/80 to-transparent w-full pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span class="text-white text-xs font-bold shadow-black drop-shadow-md">${name}</span>
+                </div>
+                <button class="close-btn opacity-0 group-hover:opacity-100" onclick="removePlayer(this.parentElement)">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            `;
+            
+            gridContainer.appendChild(wrapper);
+            activePlayers++;
+            updateGridLayout();
+            lucide.createIcons();
+        }
+
+        window.removePlayer = function(el) {
+            el.remove();
+            activePlayers--;
+            if (activePlayers === 0) {
+                gridContainer.appendChild(emptyState);
+                infoBar.classList.add('opacity-0');
+            }
+            updateGridLayout();
+        }
+
+        function renderChannels(channels) {
+            channelListEl.innerHTML = ''; 
+            channels.forEach((channel) => {
+                const isF1 = channel.nombre.toLowerCase().includes('dazn f1');
+                
+                let logoUrl = channel.logo; 
+                if (isF1 && daznEpgData && daznEpgData.icon) logoUrl = daznEpgData.icon;
+
+                let progTitle = "TV en vivo", progTime = "";
+                if (isF1 && daznEpgData) {
+                    const info = getCurrentProgramInfo(daznEpgData);
+                    progTitle = info.title; progTime = info.time;
+                }
+
+                const btn = document.createElement('button');
+                btn.className = `channel-btn w-full text-left p-3 border-l-4 border-transparent hover:bg-neutral-800 transition-all duration-200 flex items-center gap-3 group border-b border-neutral-800/50`;
+                
+                let iconHtml = `
+                    <div class="icon-wrapper w-12 h-10 rounded shrink-0 bg-neutral-800">
+                        <div class="channel-initial">${channel.nombre.charAt(0)}</div>
+                        ${logoUrl ? `<img src="${logoUrl}" alt="${channel.nombre}" class="channel-logo" onload="this.style.display='block'" onerror="this.style.display='none'">` : ''}
+                    </div>`;
+
+                btn.innerHTML = `${iconHtml}<div class="flex-1 min-w-0"><h3 class="text-sm font-semibold text-gray-200 group-hover:text-white truncate">${channel.nombre}</h3><p class="text-[10px] text-gray-500 truncate flex items-center">${progTime ? `<span class="text-xs text-red-500 font-mono mr-1">${progTime}</span>` : ''}${progTitle}</p></div><i data-lucide="play-circle" class="w-5 h-5 text-neutral-600 group-hover:text-red-500 transition-colors"></i>`;
+                
+                btn.onclick = () => {
+                    try {
+                        const decodedUrl = atob(channel.url);
+                        if(!isMultiscreen) {
+                            document.querySelectorAll('.channel-btn').forEach(b => b.classList.remove('active'));
+                            btn.classList.add('active');
+                            titleLabel.textContent = channel.nombre;
+                            programLabel.innerHTML = `<span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span> ${progTitle}`;
+                            timeLabel.textContent = progTime ? `Inicio: ${progTime}` : '';
+                            infoBar.classList.remove('opacity-0');
+                        }
+                        addPlayer(decodedUrl, channel.nombre);
+                    } catch (e) {}
+                };
+                channelListEl.appendChild(btn);
+            });
+            lucide.createIcons(); 
+        }
+
+        function openSchedule() {
+            const modal = document.getElementById('scheduleModal');
+            renderScheduleList();
+            modal.showModal();
+        }
+
+        function renderScheduleList() {
+            if (!daznEpgData?.epg_list?.length) { scheduleListEl.innerHTML = '<div class="text-center text-gray-500">No hay datos</div>'; return; }
+            
+            const now = new Date();
+            let html = '', currentDay = '';
+
+            const futureList = daznEpgData.epg_list.filter((item, index) => {
+                const start = new Date(item.start_date);
+                const nextItem = daznEpgData.epg_list[index+1];
+                const end = nextItem ? new Date(nextItem.start_date) : new Date(start.getTime() + 7200000); 
+                return end > now; 
+            });
+
+            futureList.forEach((item, index) => {
+                const start = new Date(item.start_date);
+                const dayStr = start.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric' });
+                if (dayStr !== currentDay) { currentDay = dayStr; html += `<div class="sticky top-0 bg-neutral-900 py-2 border-b border-neutral-800 font-bold text-red-500 text-sm uppercase tracking-wider mt-2">${dayStr}</div>`; }
+                const isLive = index === 0 && start <= now;
+                html += `<div class="flex gap-3 py-2 border-b border-neutral-800/50 ${isLive ? 'bg-neutral-800/50 border-l-2 border-red-500 pl-2' : ''}"><div class="text-sm font-mono text-gray-400 shrink-0 pt-0.5">${start.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div><div><p class="text-sm font-medium text-gray-200 flex items-center">${item.title} ${isLive ? '<span class="ml-2 text-[10px] bg-red-600 text-white px-1 rounded animate-pulse">AHORA</span>' : ''}</p></div></div>`;
+            });
+            scheduleListEl.innerHTML = html || '<div class="text-center text-gray-500">No hay programación futura.</div>';
+        }
+
+        init();
+    </script>
 </body>
 </html>
