@@ -7,40 +7,37 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        /* Scrollbar personalizada */
         ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: #111; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
         ::-webkit-scrollbar-thumb:hover { background: #555; }
 
-        /* Loader */
         .loader { border: 3px solid #333; border-top: 3px solid #ef4444; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Estilos lista */
         .channel-btn.active { background-color: #262626; border-left-color: #ef4444; }
         .channel-logo { object-fit: contain; position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 4px; background: #1e1e1e; border-radius: 0.25rem; display: none; }
         .channel-initial { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #d4d4d4; background-color: #2e2e2e; border-radius: 0.25rem; }
         .channel-btn:hover .channel-initial, .channel-btn.active .channel-initial { background-color: #ef4444; color: white; }
 
-        /* Modal */
         dialog::backdrop { background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(2px); }
 
-        /* Player */
-        .player-wrapper { position: relative; width: 100%; height: 100%; background: #000; overflow: hidden; aspect-ratio: 16/9; box-shadow: 0 4px 6px rgba(0,0,0,0.5); }
-        .player-wrapper iframe.video-frame { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+        .player-wrapper { display: flex; flex-direction: column; position: relative; width: 100%; height: 100%; background: #000; overflow: hidden; aspect-ratio: 9/16; box-shadow: 0 4px 6px rgba(0,0,0,0.5); }
+        @media (min-width: 768px) { .player-wrapper { aspect-ratio: 16/9; } }
         
-        /* Botones Overlay */
-        .player-overlay-btn { background: rgba(0,0,0,0.6); color: white; padding: 6px; border-radius: 50%; cursor: pointer; transition: all 0.2s; backdrop-filter: blur(2px); }
+        .video-section { position: relative; width: 100%; transition: height 0.3s ease; height: 100%; z-index: 10; }
+        .video-section iframe { width: 100%; height: 100%; border: 0; }
+        
+        .timing-section { width: 100%; background: #111; border-top: 1px solid #333; height: 0; overflow: hidden; transition: height 0.3s ease; position: relative; z-index: 5; }
+        .timing-section iframe { width: 100%; height: 100%; border: 0; }
+
+        .player-wrapper.with-timing .video-section { height: 60%; }
+        .player-wrapper.with-timing .timing-section { height: 40%; display: block; }
+        
+        .player-overlay-btn { background: rgba(0,0,0,0.6); color: white; padding: 6px; border-radius: 50%; cursor: pointer; transition: all 0.2s; backdrop-filter: blur(2px); z-index: 50; }
         .player-overlay-btn:hover { background: #ef4444; transform: scale(1.1); }
         .btn-toggle.active { background-color: #ef4444; color: white; border-color: #ef4444; }
 
-        /* Panel F1 */
-        .timing-panel { position: absolute; top: 0; right: 0; width: 40%; height: 100%; background: rgba(0,0,0,0.95); border-left: 1px solid #333; transform: translateX(100%); transition: transform 0.3s ease-in-out; z-index: 40; }
-        .timing-panel.open { transform: translateX(0); }
-        @media (max-width: 768px) { .timing-panel { width: 90%; } }
-
-        /* Utilidad para asegurar visibilidad en desktop */
         @media (min-width: 768px) {
             #channel-list { display: block !important; height: auto !important; }
         }
@@ -48,12 +45,9 @@
 </head>
 <body class="bg-black text-gray-100 font-sans h-screen flex flex-col md:flex-row overflow-hidden">
 
-    <!-- Sidebar: Usamos flex-col y h-full para asegurar estructura -->
     <aside id="sidebar" class="w-full md:w-80 bg-neutral-900 border-r border-neutral-800 flex flex-col z-30 shadow-xl transition-all duration-300 h-1/2 md:h-full shrink-0">
-        <!-- Cabecera Sidebar -->
         <div class="p-3 border-b border-neutral-800 bg-neutral-900 flex items-center justify-between sticky top-0 z-10 shrink-0 h-14">
             <div class="flex items-center gap-2">
-                <!-- Botón Menú Móvil -->
                 <button onclick="toggleList()" class="md:hidden text-gray-400 hover:text-white p-1 rounded hover:bg-neutral-800 transition-colors">
                     <i data-lucide="menu" class="w-5 h-5"></i>
                 </button>
@@ -70,7 +64,6 @@
             </div>
         </div>
 
-        <!-- Lista de Canales: min-h-0 es CRUCIAL para scroll en flexbox anidado -->
         <div id="channel-list" class="flex-1 overflow-y-auto p-0 scroll-smooth min-h-0 bg-neutral-900 relative">
             <div id="loader-container" class="absolute inset-0 flex flex-col items-center justify-center text-gray-500 gap-3">
                 <div class="loader"></div>
@@ -79,7 +72,6 @@
         </div>
     </aside>
 
-    <!-- Área Principal -->
     <main class="flex-1 flex flex-col h-1/2 md:h-full bg-black relative transition-all duration-300 overflow-hidden">
         <div id="grid-container" class="w-full h-full p-2 overflow-y-auto grid gap-2 grid-cols-1 content-center">
             <div id="empty-state" class="flex flex-col items-center justify-center text-neutral-600 h-full col-span-full">
@@ -99,7 +91,6 @@
         </div>
     </main>
 
-    <!-- Modal Guía -->
     <dialog id="scheduleModal" class="bg-neutral-900 text-white rounded-lg shadow-2xl w-full max-w-md h-[80vh] border border-neutral-700 p-0 m-auto backdrop:bg-black/80">
         <div class="flex flex-col h-full">
             <div class="p-4 border-b border-neutral-800 flex justify-between items-center bg-neutral-900 sticky top-0 z-10">
@@ -115,12 +106,10 @@
     <script>
         lucide.createIcons();
 
-        // Configuración
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz924XnshJ9NvdC9QhMtvf0NpdNs0-DxlDxahSOoFotLU9ujw3NW5snLrWZgMho0S_Ccw/exec"; 
         const EPG_CHANNEL_ID = "406540";
         const TIMING_URL = "https://formula-timer.com/livetiming";
         
-        // Elementos DOM
         const channelListEl = document.getElementById('channel-list');
         const loaderContainer = document.getElementById('loader-container');
         const gridContainer = document.getElementById('grid-container');
@@ -133,12 +122,10 @@
         const multiBtn = document.getElementById('multiBtn');
         const sidebar = document.getElementById('sidebar');
 
-        // Estado
         let daznEpgData = { epg_list: [] }; 
         let isMultiscreen = false;
         let activePlayers = 0;
 
-        // Fetch EPG
         async function fetchEPG() {
             try {
                 const today = new Date();
@@ -177,14 +164,12 @@
             return program ? { title: program.title, time: new Date(program.start_date).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) } : { title: "Sin información", time: "" };
         }
 
-        // Fetch con Proxy Fallback
         async function robustFetch(url) {
             try {
                 const response = await fetch(url, { redirect: 'follow' });
                 if (response.ok) return await response.json();
                 throw new Error("Direct fetch failed");
             } catch (e) {
-                console.log("Intentando proxy...");
                 const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
                 const response = await fetch(proxyUrl);
                 if (!response.ok) throw new Error("Proxy error");
@@ -203,7 +188,6 @@
                     throw new Error("Datos inválidos");
                 }
             } catch (error) {
-                console.error(error);
                 channelListEl.innerHTML = `
                 <div class="p-6 text-center h-full flex flex-col items-center justify-center">
                     <i data-lucide="wifi-off" class="mb-3 text-red-500 w-8 h-8"></i>
@@ -214,26 +198,22 @@
             }
         }
 
-        // --- UI Logic ---
-
         function toggleMultiscreen() {
             isMultiscreen = !isMultiscreen;
             multiBtn.classList.toggle('active', isMultiscreen);
             updateGridLayout();
         }
 
-        // Lógica de lista móvil corregida
         function toggleList() {
             const list = document.getElementById('channel-list');
-            // En móvil usamos clase 'hidden' para ocultar/mostrar
             if (list.classList.contains('hidden')) {
                 list.classList.remove('hidden');
                 sidebar.classList.remove('h-auto');
-                sidebar.classList.add('h-1/2'); // Restaurar altura en móvil
+                sidebar.classList.add('h-1/2'); 
             } else {
                 list.classList.add('hidden');
                 sidebar.classList.remove('h-1/2');
-                sidebar.classList.add('h-auto'); // Colapsar altura sidebar
+                sidebar.classList.add('h-auto');
             }
         }
 
@@ -254,30 +234,33 @@
 
             const isDazn = name.toLowerCase().includes('dazn');
             const wrapper = document.createElement('div');
-            wrapper.className = 'player-wrapper rounded-lg relative group bg-black border border-neutral-800';
+            
+            const initialClass = isDazn ? 'with-timing' : '';
+            wrapper.className = `player-wrapper rounded-lg group bg-black border border-neutral-800 ${initialClass}`;
             
             const timingBtnHtml = isDazn ? 
-                `<button class="player-overlay-btn absolute top-3 right-12 z-50 opacity-0 group-hover:opacity-100" onclick="toggleTimingPanel(this)" title="Live Timing">
+                `<button class="player-overlay-btn absolute top-3 right-12 z-50 opacity-0 group-hover:opacity-100" onclick="toggleTimingView(this)" title="Toggle Timing">
                     <i data-lucide="timer" class="w-4 h-4"></i>
                  </button>` : '';
 
             wrapper.innerHTML = `
-                <iframe src="${url}" class="video-frame" frameborder="0" allowfullscreen allow="autoplay; encrypted-media" scrolling="no"></iframe>
-                <div class="timing-panel">
+                <div class="video-section">
+                    <iframe src="${url}" frameborder="0" allowfullscreen allow="autoplay; encrypted-media" scrolling="no"></iframe>
+                    <div class="absolute top-0 left-0 p-3 bg-gradient-to-b from-black/90 to-transparent w-full pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity z-40">
+                        <span class="text-white text-xs font-bold shadow-black drop-shadow-md flex items-center gap-2">
+                            ${isDazn ? '<span class="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></span>' : ''} ${name}
+                        </span>
+                    </div>
+                    ${timingBtnHtml}
+                    <button class="player-overlay-btn close-btn absolute top-3 right-3 z-50 opacity-0 group-hover:opacity-100" onclick="removePlayer(this)">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                <div class="timing-section">
                     <div class="h-full w-full relative">
-                        <button class="absolute top-2 left-2 z-50 text-white bg-red-600 rounded p-1 hover:bg-red-700" onclick="toggleTimingPanel(this.parentElement.parentElement.parentElement.querySelector('.player-overlay-btn'))"><i data-lucide="x" class="w-3 h-3"></i></button>
-                        <iframe src="" class="w-full h-full border-0"></iframe>
+                        <iframe src="${isDazn ? TIMING_URL : ''}" class="w-full h-full border-0"></iframe>
                     </div>
                 </div>
-                <div class="absolute top-0 left-0 p-3 bg-gradient-to-b from-black/90 to-transparent w-full pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity z-40">
-                    <span class="text-white text-xs font-bold shadow-black drop-shadow-md flex items-center gap-2">
-                        ${isDazn ? '<span class="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></span>' : ''} ${name}
-                    </span>
-                </div>
-                ${timingBtnHtml}
-                <button class="player-overlay-btn close-btn absolute top-3 right-3 z-50 opacity-0 group-hover:opacity-100" onclick="removePlayer(this.parentElement)">
-                    <i data-lucide="x" class="w-4 h-4"></i>
-                </button>
             `;
             
             gridContainer.appendChild(wrapper);
@@ -286,22 +269,23 @@
             lucide.createIcons();
         }
 
-        window.toggleTimingPanel = function(btn) {
+        window.toggleTimingView = function(btn) {
             const wrapper = btn.closest('.player-wrapper');
-            const panel = wrapper.querySelector('.timing-panel');
-            const iframe = panel.querySelector('.timing-panel iframe');
+            const timingSection = wrapper.querySelector('.timing-section');
+            const iframe = timingSection.querySelector('iframe');
             
-            if (panel.classList.contains('open')) {
-                panel.classList.remove('open');
-                setTimeout(() => { iframe.src = ''; }, 300); 
+            if (wrapper.classList.contains('with-timing')) {
+                wrapper.classList.remove('with-timing');
+                setTimeout(() => { iframe.src = ''; }, 300);
             } else {
                 iframe.src = TIMING_URL;
-                panel.classList.add('open');
+                wrapper.classList.add('with-timing');
             }
         };
 
-        window.removePlayer = function(el) {
-            el.remove();
+        window.removePlayer = function(btn) {
+            const wrapper = btn.closest('.player-wrapper');
+            wrapper.remove();
             activePlayers--;
             if (activePlayers === 0) {
                 gridContainer.appendChild(emptyState);
@@ -311,16 +295,12 @@
         }
 
         function renderChannels(channels) {
-            // Limpiar loader
             if(loaderContainer) loaderContainer.remove();
-            // Limpiar lista pero no borrar loader si ya no existe
             channelListEl.innerHTML = ''; 
 
             channels.forEach((channel) => {
                 const isF1 = channel.nombre.toLowerCase().includes('dazn f1');
-                
-                let logoUrl = channel.logo; 
-                if (isF1 && daznEpgData && daznEpgData.icon) logoUrl = daznEpgData.icon;
+                const logoUrl = channel.logo; 
 
                 let progTitle = "TV en vivo", progTime = "";
                 if (isF1 && daznEpgData) {
@@ -358,7 +338,6 @@
                             infoBar.classList.remove('opacity-0');
                         }
                         
-                        // Auto-ocultar solo en móvil (<768px)
                         if (window.innerWidth < 768) {
                             toggleList();
                         }
