@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitor Dad</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #e2e8f0;
+            overflow: hidden;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569; 
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b; 
+        }
+        .channel-btn {
+            transition: all 0.2s;
+            text-align: left;
+        }
+        .channel-btn:hover {
+            background-color: #1e293b;
+            padding-left: 1rem;
+        }
+        .channel-btn.active {
+            background-color: #2563eb;
+            color: white;
+            border-right: 4px solid #60a5fa;
+        }
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .category-header {
+            position: sticky;
+            top: 0;
+            background-color: #0f172a;
+            z-index: 10;
+            padding: 0.5rem 1rem;
+            border-bottom: 1px solid #1e293b;
+            border-top: 1px solid #1e293b;
+            font-weight: bold;
+            color: #94a3b8;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col">
+
+    <nav class="bg-slate-800 border-b border-slate-700 p-3 flex-none z-50 shadow-lg">
+        <div class="flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <button id="mobile-menu-btn" class="md:hidden text-slate-300 hover:text-white focus:outline-none">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+                <i class="fas fa-flag-checkered text-red-500 text-2xl hidden sm:block"></i>
+                <div>
+                    <h1 class="text-lg font-bold text-white leading-tight">Monitor ES & F1</h1>
+                    <span class="text-xs text-slate-400" id="status-text">Conectando...</span>
+                </div>
+            </div>
+            
+            <div class="flex gap-2">
+                <button onclick="fetchChannels()" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded text-sm transition">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <div class="relative">
+                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input type="text" id="searchInput" placeholder="Buscar..." class="bg-slate-900 border border-slate-700 text-white pl-8 pr-3 py-1.5 rounded text-sm outline-none focus:border-blue-500 w-32 sm:w-40">
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="flex flex-grow overflow-hidden relative">
+        
+        <div id="mobile-backdrop" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden glass"></div>
+
+        <aside id="sidebar" class="absolute md:relative z-40 w-72 h-full bg-slate-900 border-r border-slate-800 flex flex-col transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
+            <div class="p-3 bg-slate-800/50 border-b border-slate-800 text-xs font-bold text-slate-400 uppercase tracking-wider flex justify-between">
+                <span>Canales</span>
+                <span id="channel-count" class="bg-slate-700 px-2 rounded-full text-white">0</span>
+            </div>
+
+            <div id="channel-list" class="flex-grow overflow-y-auto pb-4">
+                <div id="loader" class="text-center py-10 w-full">
+                    <div class="loader"></div>
+                    <p class="text-xs text-slate-500 mt-2">Cargando lista...</p>
+                </div>
+                
+                <div id="error-msg" class="hidden p-4 text-center text-red-400 text-sm">
+                    <i class="fas fa-exclamation-circle mb-2 text-xl"></i><br>
+                    Error al cargar datos<br>
+                    <span class="text-xs text-slate-500">Intenta recargar de nuevo</span>
+                </div>
+            </div>
+        </aside>
+
+        <main class="flex-grow bg-black relative flex flex-col h-full w-full">
+            <div id="placeholder-screen" class="absolute inset-0 flex flex-col items-center justify-center text-slate-600 p-4 text-center">
+                <i class="fas fa-tv text-5xl sm:text-6xl mb-4 opacity-20"></i>
+                <p class="text-lg font-light">Selecciona un canal</p>
+            </div>
+
+            <iframe id="main-player" name="main-player" class="w-full h-full z-10 hidden" allowfullscreen allow="autoplay; encrypted-media"></iframe>
+            
+            <div id="player-controls" class="absolute top-0 right-0 p-2 z-20 opacity-0 hover:opacity-100 transition-opacity">
+                <a id="external-link" href="#" target="_blank" class="bg-black/80 text-white text-xs px-3 py-1 rounded hover:bg-blue-600 backdrop-blur-sm">
+                    <i class="fas fa-external-link-alt mr-1"></i> Abrir fuera
+                </a>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const SOURCE_URL = 'https://daddylive.nl/cache/channels.json';
+        
+        const sidebar = document.getElementById('sidebar');
+        const mobileBackdrop = document.getElementById('mobile-backdrop');
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchChannels();
+            
+            mobileMenuBtn.addEventListener('click', toggleSidebar);
+            mobileBackdrop.addEventListener('click', toggleSidebar);
+
+            document.getElementById('searchInput').addEventListener('input', (e) => {
+                const term = e.target.value.toLowerCase();
+                const items = document.querySelectorAll('.channel-item');
+                const headers = document.querySelectorAll('.category-header');
+                
+                items.forEach(item => {
+                    const title = item.getAttribute('data-title').toLowerCase();
+                    item.style.display = title.includes(term) ? 'block' : 'none';
+                });
+
+                headers.forEach(header => {
+                    const nextSiblings = [];
+                    let next = header.nextElementSibling;
+                    let hasVisible = false;
+                    while(next && !next.classList.contains('category-header')) {
+                        if(next.style.display !== 'none') hasVisible = true;
+                        next = next.nextElementSibling;
+                    }
+                    header.style.display = hasVisible ? 'block' : 'none';
+                });
+            });
+        });
+
+        function toggleSidebar() {
+            const isClosed = sidebar.classList.contains('-translate-x-full');
+            if (isClosed) {
+                sidebar.classList.remove('-translate-x-full');
+                mobileBackdrop.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                mobileBackdrop.classList.add('hidden');
+            }
+        }
+
+        async function fetchChannels() {
+            const listContainer = document.getElementById('channel-list');
+            const loader = document.getElementById('loader');
+            const statusText = document.getElementById('status-text');
+            const countBadge = document.getElementById('channel-count');
+            const errorMsg = document.getElementById('error-msg');
+
+            statusText.textContent = "Actualizando...";
+            loader.style.display = 'block';
+            errorMsg.classList.add('hidden');
+            listContainer.innerHTML = '';
+            listContainer.appendChild(loader);
+            listContainer.appendChild(errorMsg);
+
+            // Lista de proxies de respaldo
+            const proxies = [
+                'https://api.allorigins.win/raw?url=',
+                'https://api.codetabs.com/v1/proxy?quest=',
+                'https://corsproxy.io/?'
+            ];
+
+            let data = null;
+
+            for (const proxy of proxies) {
+                try {
+                    const timestamp = new Date().getTime();
+                    // Intentamos conectar
+                    const response = await fetch(proxy + encodeURIComponent(`${SOURCE_URL}?t=${timestamp}`));
+                    if (response.ok) {
+                        data = await response.json();
+                        break; // Si funciona, salimos del bucle
+                    }
+                } catch (e) {
+                    console.log(`Fallo proxy: ${proxy}`);
+                }
+            }
+
+            // Limpiamos el loader (se re-creará si hay éxito al renderizar)
+            listContainer.innerHTML = '';
+
+            if (!data) {
+                listContainer.appendChild(errorMsg);
+                errorMsg.classList.remove('hidden');
+                loader.style.display = 'none';
+                statusText.textContent = "Error Conexión";
+                statusText.className = "text-xs text-red-400";
+                return;
+            }
+
+            try {
+                let spainChannels = [];
+                let f1Channels = [];
+
+                data.forEach(channel => {
+                    const title = cleanTitle(channel.title || "Sin Título");
+                    const upperTitle = title.toUpperCase();
+                    const id = channel.id;
+
+                    const isF1 = upperTitle.includes('F1') || upperTitle.includes('FORMULA 1');
+                    
+                    const isSpain = upperTitle.includes('SPAIN') || 
+                                    upperTitle.includes('ESPAÑA') || 
+                                    (upperTitle.includes('DAZN') && upperTitle.includes('ES'));
+
+                    if (isF1) {
+                        f1Channels.push({ id, title, type: 'f1' });
+                    } else if (isSpain) {
+                        spainChannels.push({ id, title, type: 'spain' });
+                    }
+                });
+
+                spainChannels.sort((a, b) => a.title.localeCompare(b.title));
+                f1Channels.sort((a, b) => a.title.localeCompare(b.title));
+
+                if (spainChannels.length > 0) {
+                    renderCategory(listContainer, "🇪🇸 Canales España", spainChannels);
+                }
+                
+                if (f1Channels.length > 0) {
+                    renderCategory(listContainer, "🏎️ Fórmula 1", f1Channels);
+                }
+
+                const total = spainChannels.length + f1Channels.length;
+                countBadge.textContent = total;
+                statusText.textContent = "En línea";
+                statusText.className = "text-xs text-green-400";
+
+                if (total === 0) {
+                    listContainer.innerHTML = '<div class="p-4 text-center text-slate-500 text-sm">No se encontraron canales.</div>';
+                }
+
+            } catch (error) {
+                listContainer.appendChild(errorMsg);
+                errorMsg.classList.remove('hidden');
+                statusText.textContent = "Error Datos";
+                statusText.className = "text-xs text-red-400";
+            }
+        }
+
+        function renderCategory(container, headerText, channels) {
+            const header = document.createElement('div');
+            header.className = 'category-header';
+            header.textContent = headerText;
+            container.appendChild(header);
+
+            channels.forEach(ch => {
+                const btn = document.createElement('button');
+                btn.className = 'channel-btn channel-item w-full px-4 py-3 text-sm border-b border-slate-800 text-slate-300 flex items-center justify-between group';
+                btn.setAttribute('data-title', ch.title);
+                
+                let iconClass = 'fa-tv';
+                let textClass = '';
+                
+                if (ch.type === 'f1') {
+                    iconClass = 'fa-flag-checkered text-red-500';
+                    textClass = 'font-bold text-white';
+                } else if (ch.title.toUpperCase().includes('DAZN')) {
+                    iconClass = 'fa-futbol';
+                    textClass = 'text-white';
+                }
+
+                btn.innerHTML = `
+                    <div class="truncate pr-2 ${textClass}">
+                        <i class="fas ${iconClass} w-5 text-center mr-2 opacity-50 group-hover:opacity-100"></i>
+                        ${ch.title}
+                    </div>
+                    <i class="fas fa-play text-xs opacity-0 group-hover:opacity-100 text-blue-400"></i>
+                `;
+
+                btn.onclick = () => {
+                    loadChannel(ch.id, btn);
+                    if (window.innerWidth < 768) {
+                        toggleSidebar();
+                    }
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        function loadChannel(id, btnElement) {
+            const url = `https://daddylive.nl/live.php?watch=${id}`;
+            
+            document.querySelectorAll('.channel-btn').forEach(b => b.classList.remove('active'));
+            btnElement.classList.add('active');
+            
+            const iframe = document.getElementById('main-player');
+            const placeholder = document.getElementById('placeholder-screen');
+            const extLink = document.getElementById('external-link');
+            
+            placeholder.style.display = 'none';
+            iframe.style.display = 'block';
+            iframe.classList.remove('hidden');
+            iframe.src = url;
+            
+            extLink.href = url;
+        }
+
+        function cleanTitle(title) {
+            return title.replace(/\\'/g, "'").replace(/\\"/g, '"');
+        }
+    </script>
+</body>
+</html>
