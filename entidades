@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro Andaluz de Entidades Locales (RAEL) - Explorador</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .junta-green { color: #007A33; }
+        .bg-junta-green { background-color: #007A33; }
+        .hover-junta-green:hover { background-color: #005f27; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fadeIn { animation: fadeIn 0.4s ease-out forwards; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen flex flex-col text-slate-900">
+
+    <header class="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="bg-junta-green text-white p-2 rounded-lg shadow-sm">
+                    <i data-lucide="database" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-slate-900 leading-tight">RAEL <span class="text-slate-400 font-normal">Explorer</span></h1>
+                    <p class="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">Junta de Andalucía</p>
+                </div>
+            </div>
+            <a href="https://datos.juntadeandalucia.es/" target="_blank" class="hidden sm:flex items-center gap-1 text-sm text-slate-500 hover:text-junta-green transition-colors">
+                Portal de Datos <i data-lucide="external-link" class="w-3 h-3"></i>
+            </a>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-8">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-base font-semibold text-slate-800 flex items-center gap-2">
+                    <i data-lucide="filter" class="w-4 h-4 text-slate-400"></i>
+                    Búsqueda y Filtrado
+                </h2>
+            </div>
+            
+            <form id="searchForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                
+                <div class="col-span-1 md:col-span-2 lg:col-span-1">
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Nombre</label>
+                    <div class="relative">
+                        <input type="text" id="nameInput" placeholder="Ej: Consorcio..." 
+                            class="w-full pl-9 rounded-lg border-slate-300 border p-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-shadow">
+                        <i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-slate-400"></i>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Provincia</label>
+                    <div class="relative">
+                        <select id="provinceSelect" class="w-full rounded-lg border-slate-300 border p-2 appearance-none bg-white text-sm focus:ring-2 focus:ring-green-500 outline-none cursor-pointer">
+                            <option value="-">Todas</option>
+                            <option value="PROVINCIA ALMERÍA">Almería</option>
+                            <option value="PROVINCIA CÁDIZ">Cádiz</option>
+                            <option value="PROVINCIA CÓRDOBA">Córdoba</option>
+                            <option value="PROVINCIA GRANADA">Granada</option>
+                            <option value="PROVINCIA HUELVA">Huelva</option>
+                            <option value="PROVINCIA JAÉN">Jaén</option>
+                            <option value="PROVINCIA MÁLAGA">Málaga</option>
+                            <option value="PROVINCIA SEVILLA">Sevilla</option>
+                        </select>
+                        <i data-lucide="chevron-down" class="absolute right-3 top-2.5 w-4 h-4 text-slate-400 pointer-events-none"></i>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Entidad</label>
+                    <div class="relative">
+                        <select id="entitySelect" class="w-full rounded-lg border-slate-300 border p-2 appearance-none bg-white text-sm focus:ring-2 focus:ring-green-500 outline-none cursor-pointer">
+                            <option value="-">Cualquiera</option>
+                            <option value="CONSORCIO">Consorcio</option>
+                            <option value="ENTIDAD LOCAL DESCENTRALIZADA">E.L.A.</option>
+                            <option value="MANCOMUNIDAD">Mancomunidad</option>
+                            <option value="MUNICIPIO">Municipio</option>
+                            <option value="PROVINCIA">Diputación</option>
+                        </select>
+                        <i data-lucide="chevron-down" class="absolute right-3 top-2.5 w-4 h-4 text-slate-400 pointer-events-none"></i>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Tipología</label>
+                    <div class="relative">
+                        <select id="typologySelect" class="w-full rounded-lg border-slate-300 border p-2 appearance-none bg-white text-sm focus:ring-2 focus:ring-green-500 outline-none cursor-pointer">
+                            <option value="-">Cualquiera</option>
+                            <option value="ENTIDAD LOCAL AUTÓNOMA">E.L. Autónoma</option>
+                            <option value="ENTIDAD LOCAL DE COOPERACIÓN TERRITORIAL">Coop. Territorial</option>
+                            <option value="OTRO CONSORCIO LOCAL">Otro Consorcio</option>
+                        </select>
+                        <i data-lucide="chevron-down" class="absolute right-3 top-2.5 w-4 h-4 text-slate-400 pointer-events-none"></i>
+                    </div>
+                </div>
+
+                <div class="col-span-1 md:col-span-2 lg:col-span-4 mt-2 flex justify-end">
+                    <button type="submit" class="w-full sm:w-auto bg-junta-green hover:bg-green-800 text-white font-medium py-2 px-6 rounded-lg shadow-sm transition-all flex items-center justify-center gap-2 transform active:scale-95 text-sm">
+                        <i data-lucide="search" class="w-4 h-4"></i>
+                        Ejecutar Consulta
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div id="statusHeader" class="hidden mb-6 animate-fadeIn">
+            <div class="flex items-center gap-2 text-sm text-slate-600 bg-white px-4 py-2 rounded-lg border border-slate-200 inline-flex shadow-sm">
+                <span class="relative flex h-2 w-2">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                </span>
+                Registros encontrados: <span id="totalCount" class="font-bold text-slate-900">0</span>
+            </div>
+        </div>
+
+        <div id="loader" class="hidden py-20 text-center">
+            <div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-slate-200 border-t-junta-green mb-4"></div>
+            <p class="text-sm text-slate-500 font-medium animate-pulse">Consultando API en tiempo real...</p>
+        </div>
+
+        <div id="errorState" class="hidden bg-red-50 border border-red-100 rounded-xl p-6 text-center max-w-lg mx-auto">
+            <div class="bg-red-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
+                <i data-lucide="alert-triangle" class="w-6 h-6 text-red-600"></i>
+            </div>
+            <h3 class="text-red-900 font-semibold mb-1">Error de Comunicación</h3>
+            <p class="text-red-600 text-sm" id="errorMessage">No se pudo conectar con el servidor.</p>
+        </div>
+
+        <div id="resultsGrid" class="grid grid-cols-1 gap-6">
+        </div>
+
+        <div id="emptyState" class="hidden text-center py-20">
+            <div class="bg-slate-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="search-x" class="w-10 h-10 text-slate-400"></i>
+            </div>
+            <h3 class="text-slate-900 font-medium text-lg">Sin resultados</h3>
+            <p class="text-slate-500 text-sm">Intenta ampliar tus criterios de búsqueda.</p>
+        </div>
+
+        <div id="apiDocs" class="mt-16 bg-slate-900 rounded-xl overflow-hidden shadow-lg border border-slate-700 text-slate-300">
+            <div class="px-6 py-4 border-b border-slate-700 bg-slate-800/50 flex items-center gap-2">
+                <i data-lucide="code-2" class="w-5 h-5 text-green-400"></i>
+                <h3 class="font-bold text-sm uppercase tracking-wider text-slate-200">Integración para Desarrolladores</h3>
+            </div>
+            <div class="p-6 space-y-6">
+                
+                <div>
+                    <p class="text-sm text-slate-400 mb-2 font-medium">Endpoint Oficial</p>
+                    <div class="flex items-center gap-2 bg-black/40 rounded-lg p-3 font-mono text-xs border border-slate-700">
+                        <span class="bg-green-900/30 text-green-400 px-2 py-0.5 rounded text-[10px] font-bold border border-green-900/50">GET</span>
+                        <span class="text-slate-300 break-all">https://datos.juntadeandalucia.es/api/v0/rael/search</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div>
+                        <p class="text-sm text-slate-400 mb-2 font-medium">Ejemplo con JavaScript (Fetch)</p>
+                        <pre class="bg-black/40 rounded-lg p-4 font-mono text-xs border border-slate-700 text-blue-300 overflow-x-auto">
+const params = new URLSearchParams({
+  entity: 'MUNICIPIO',
+  province: 'PROVINCIA SEVILLA', 
+  typology: '-',
+  format: 'json'
+});
+
+fetch(`https://datos.juntadeandalucia.es/api/v0/rael/search?${params}`)
+  .then(response => response.json())
+  .then(data => {
+    console.log('Resultados:', data.results);
+  })
+  .catch(error => console.error('Error:', error));</pre>
+                    </div>
+                    
+                    <div>
+                        <p class="text-sm text-slate-400 mb-2 font-medium">Ejemplo cURL</p>
+                        <pre class="bg-black/40 rounded-lg p-4 font-mono text-xs border border-slate-700 text-orange-300 overflow-x-auto whitespace-pre-wrap">
+curl -X 'GET' \
+  'https://datos.juntadeandalucia.es/api/v0/rael/search?entity=MUNICIPIO&province=-&typology=-&format=json' \
+  -H 'accept: application/json'</pre>
+                    </div>
+                </div>
+                
+                <p class="text-xs text-slate-500 pt-2 border-t border-slate-800">
+                    * Los parámetros marcados como opcionales en el formulario deben enviarse como guión <code>-</code> si no se desea filtrar por ellos.
+                </p>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 mt-12 py-8">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-sm text-slate-500">Datos facilitados por la <strong>Junta de Andalucía</strong></p>
+            <p class="text-xs text-slate-400 mt-1">Visualizador desarrollado con Tailwind CSS + Vanilla JS</p>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+        const API_BASE = 'https://datos.juntadeandalucia.es/api/v0/rael';
+        
+        const form = document.getElementById('searchForm');
+        const resultsGrid = document.getElementById('resultsGrid');
+        const loader = document.getElementById('loader');
+        const emptyState = document.getElementById('emptyState');
+        const errorState = document.getElementById('errorState');
+        const statusHeader = document.getElementById('statusHeader');
+        const totalCountSpan = document.getElementById('totalCount');
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            fetchData();
+        });
+
+        async function fetchData() {
+            resultsGrid.innerHTML = '';
+            loader.classList.remove('hidden');
+            emptyState.classList.add('hidden');
+            errorState.classList.add('hidden');
+            statusHeader.classList.add('hidden');
+
+            const nameFilter = document.getElementById('nameInput').value.trim().toLowerCase();
+            const province = document.getElementById('provinceSelect').value;
+            const entity = document.getElementById('entitySelect').value;
+            const typology = document.getElementById('typologySelect').value;
+
+            const params = new URLSearchParams({
+                entity: entity,
+                province: province,
+                typology: typology,
+                order_by: 'denominacion',
+                mode: 'ASC',
+                format: 'json',
+                size: 0
+            });
+
+            try {
+                const url = `${API_BASE}/search?${params.toString()}`;
+                
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`Status: ${response.status}`);
+
+                const data = await response.json();
+                
+                let items = data.results || [];
+                
+                if (nameFilter) {
+                    items = items.filter(item => {
+                        const den = item.registrales?.denominacion || '';
+                        return den.toLowerCase().includes(nameFilter);
+                    });
+                }
+
+                renderResults(items);
+
+            } catch (error) {
+                console.error(error);
+                loader.classList.add('hidden');
+                errorState.classList.remove('hidden');
+                document.getElementById('errorMessage').innerText = error.message;
+            }
+        }
+
+        function renderResults(items) {
+            loader.classList.add('hidden');
+
+            if (!items || items.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            statusHeader.classList.remove('hidden');
+            totalCountSpan.innerText = items.length;
+
+            items.forEach(item => {
+                const card = createCard(item);
+                resultsGrid.appendChild(card);
+            });
+            lucide.createIcons();
+        }
+
+        function renderEntityList(list) {
+            if (!Array.isArray(list) || list.length === 0) return '<span class="text-slate-400 italic text-xs">Ninguna</span>';
+            return `<div class="flex flex-wrap gap-2 mt-1">
+                ${list.map(e => {
+                    const nombre = e.denominacion || e.nombre || 'Entidad';
+                    return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                        ${nombre}
+                    </span>`
+                }).join('')}
+            </div>`;
+        }
+
+        function renderCompetencias(compObj) {
+            if (!compObj || !compObj.competencia) return '';
+            return `
+                <div class="mt-3 bg-blue-50/50 rounded-lg p-4 border border-blue-100">
+                    <h5 class="text-xs font-bold text-blue-800 uppercase mb-2 flex items-center gap-1">
+                        <i data-lucide="book-open" class="w-3 h-3"></i> Competencias y Objeto
+                    </h5>
+                    <p class="text-sm text-slate-700 leading-relaxed text-justify">${compObj.competencia}</p>
+                    <div class="mt-2 flex gap-3 text-[10px] text-blue-600/70 font-mono border-t border-blue-100 pt-2">
+                        <span>BOJA: ${compObj.numeroBoja || 'N/A'}</span>
+                        <span>Fecha: ${compObj.fechaBoja || 'N/A'}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderDynamicObject(obj, depth = 0) {
+            if (!obj || typeof obj !== 'object') return '';
+            
+            if (Array.isArray(obj)) {
+                if (obj.length === 0) return '<span class="text-slate-400 italic text-xs">-</span>';
+                
+                if (obj.length > 0 && typeof obj[0] === 'object' && (obj[0].denominacion || obj[0].nombre)) {
+                    return renderEntityList(obj);
+                }
+
+                return `<ul class="list-disc list-inside space-y-1 ml-2 text-xs text-slate-600">
+                    ${obj.map(item => {
+                        if (typeof item === 'object') return `<li>${renderDynamicObject(item, depth + 1)}</li>`;
+                        return `<li>${item}</li>`;
+                    }).join('')}
+                </ul>`;
+            }
+
+            let html = `<div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3 text-sm">`;
+            
+            for (const [key, value] of Object.entries(obj)) {
+                if (value === null || value === '' || key === 'denominacion' || key === 'presupuesto' || key === 'poblacion' || key === 'competencias') continue;
+                
+                const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                
+                if (typeof value === 'object' && !Array.isArray(value)) {
+                     html += `<div class="col-span-1 md:col-span-2 mt-2 border-t border-slate-100 pt-2">
+                        <span class="block text-xs font-bold text-slate-500 uppercase mb-1">${label}</span>
+                        ${renderDynamicObject(value, depth + 1)}
+                     </div>`;
+                } else if (Array.isArray(value)) {
+                    html += `<div class="col-span-1 md:col-span-2 mt-1">
+                        <span class="block text-xs font-bold text-slate-500 uppercase mb-1">${label}</span>
+                        ${renderEntityList(value)}
+                     </div>`;
+                } else {
+                    html += `<div class="flex flex-col">
+                        <dt class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">${label}</dt>
+                        <dd class="text-slate-700 font-medium break-words">${value}</dd>
+                    </div>`;
+                }
+            }
+            html += `</div>`;
+            return html;
+        }
+
+        function createCard(item) {
+            const val = (v) => (v && v !== '-' && v !== '') ? v : null;
+            
+            const denominacion = val(item.registrales?.denominacion) || 'Entidad Sin Nombre';
+            const tipo = val(item.tipoEntidad) || val(item.claseEntidad) || 'Entidad';
+            const provincia = val(item.registrales?.capitalidad?.provincia) || val(item.direccion?.provincia) || '';
+            const municipio = val(item.direccion?.municipio) || val(item.registrales?.capitalidad?.municipio) || '';
+            
+            const web = val(item.direccionWeb);
+            const email = val(item.correo);
+            const tlf = val(item.telefono);
+            const fax = val(item.fax);
+            const direccionCompleta = [
+                val(item.direccion?.tipoVia),
+                val(item.direccion?.nombreVia),
+                val(item.direccion?.numeroVia),
+                val(item.direccion?.codPostal)
+            ].filter(Boolean).join(' ');
+
+            const pNombre = val(item.presidente?.nombre);
+            const pAp1 = val(item.presidente?.apellido1);
+            const pCargo = val(item.presidente?.cargo) || 'Presidencia';
+            const pPartido = val(item.presidente?.grupoPolitico);
+            const presidente = (pNombre) ? `${pNombre} ${pAp1 || ''}` : null;
+
+            const poblacion = val(item.registrales?.poblacion);
+            const pres = item.registrales?.presupuesto;
+            const presupuestoStr = pres && pres.gastos ? parseFloat(pres.gastos).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' }) : null;
+            const ejPresupuesto = pres && pres.ejercicio ? `(${pres.ejercicio})` : '';
+
+            const dynamicRegistrales = {...item.registrales};
+            delete dynamicRegistrales.denominacion;
+            delete dynamicRegistrales.presupuesto;
+            delete dynamicRegistrales.poblacion;
+            delete dynamicRegistrales.competencias;
+
+            const div = document.createElement('div');
+            div.className = 'bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition-shadow animate-fadeIn';
+            
+            div.innerHTML = `
+                <div class="p-6 border-b border-slate-100 bg-gradient-to-r from-white to-slate-50">
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <div class="flex flex-wrap items-center gap-2 mb-2">
+                                <span class="px-2.5 py-1 text-[10px] font-bold rounded-md bg-junta-green text-white uppercase tracking-wider shadow-sm">
+                                    ${tipo}
+                                </span>
+                                ${provincia ? `<span class="px-2 py-1 text-[10px] font-bold rounded-md bg-slate-200 text-slate-600 uppercase tracking-wider">${provincia.replace('PROVINCIA ', '')}</span>` : ''}
+                            </div>
+                            <h3 class="text-xl font-bold text-slate-900 leading-snug">${denominacion}</h3>
+                            <div class="flex items-center gap-4 mt-2 text-sm text-slate-500">
+                                ${municipio ? `<span class="flex items-center gap-1.5"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i> ${municipio}</span>` : ''}
+                                <span class="text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-400">ID: ${item.id}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-6 space-y-6">
+                    
+                    ${(presidente || poblacion || presupuestoStr) ? `
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            ${presidente ? `
+                                <div class="col-span-1 md:col-span-3 lg:col-span-1 bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide block mb-1">${pCargo}</span>
+                                    <div class="font-semibold text-slate-800 text-sm">${presidente}</div>
+                                    ${pPartido ? `<div class="mt-1 inline-block text-[10px] font-bold text-white bg-blue-500 px-2 py-0.5 rounded-full">${pPartido}</div>` : ''}
+                                </div>
+                            ` : ''}
+                            
+                            ${poblacion ? `
+                                <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide block mb-1">Población</span>
+                                    <div class="font-mono text-lg font-semibold text-slate-700">${poblacion} <span class="text-xs font-sans font-normal text-slate-400">hab.</span></div>
+                                </div>
+                            ` : ''}
+                            
+                            ${presupuestoStr ? `
+                                <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide block mb-1">Presupuesto ${ejPresupuesto}</span>
+                                    <div class="font-mono text-lg font-semibold text-green-700">${presupuestoStr}</div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    ` : ''}
+
+                    <div class="flex flex-col sm:flex-row gap-4 text-sm border-b border-slate-100 pb-6">
+                        <div class="flex-1 space-y-2">
+                             <div class="flex items-start gap-2">
+                                <i data-lucide="map" class="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0"></i>
+                                <span class="text-slate-600">${direccionCompleta || 'Dirección no disponible'}</span>
+                            </div>
+                        </div>
+                        <div class="flex-1 space-y-2">
+                            ${tlf ? `<div class="flex items-center gap-2"><i data-lucide="phone" class="w-4 h-4 text-slate-400"></i> <a href="tel:${tlf}" class="text-slate-700 hover:text-green-700 font-medium">${tlf}</a></div>` : ''}
+                            ${fax ? `<div class="flex items-center gap-2"><i data-lucide="printer" class="w-4 h-4 text-slate-400"></i> <span class="text-slate-600">${fax}</span></div>` : ''}
+                            ${email ? `<div class="flex items-center gap-2"><i data-lucide="mail" class="w-4 h-4 text-slate-400"></i> <a href="mailto:${email}" class="text-slate-700 hover:text-green-700 truncate block max-w-[200px]" title="${email}">${email}</a></div>` : ''}
+                        </div>
+                        ${web ? `
+                        <div class="sm:w-auto">
+                             <a href="${web.startsWith('http') ? web : 'http://' + web}" target="_blank" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 hover:text-green-700 hover:border-green-300 rounded-lg transition-colors shadow-sm font-medium text-xs uppercase tracking-wide h-full">
+                                <i data-lucide="external-link" class="w-3 h-3"></i> Web Oficial
+                            </a>
+                        </div>
+                        ` : ''}
+                    </div>
+
+                    ${item.registrales?.competencias ? renderCompetencias(item.registrales.competencias) : ''}
+
+                    <details class="group border border-slate-200 rounded-lg overflow-hidden bg-white">
+                        <summary class="flex items-center justify-between p-4 cursor-pointer bg-slate-50 hover:bg-slate-100 transition-colors">
+                            <span class="text-xs font-bold text-slate-700 uppercase flex items-center gap-2">
+                                <i data-lucide="file-text" class="w-4 h-4 text-slate-400"></i>
+                                Información Registral Detallada
+                            </span>
+                            <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 transition-transform group-open:rotate-180"></i>
+                        </summary>
+                        <div class="p-5 border-t border-slate-200 bg-white">
+                            ${renderDynamicObject(dynamicRegistrales)}
+                        </div>
+                    </details>
+                </div>
+            `;
+            return div;
+        }
+
+        fetchData();
+    </script>
+</body>
+</html>
