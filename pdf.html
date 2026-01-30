@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PDF Master - Móvil & PC</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- LIBRERÍAS (Cargadas de fuentes robustas) -->
+    <!-- PDF-Lib -->
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <!-- PDF.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <!-- SortableJS (Para arrastrar) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <!-- Tesseract.js (OCR) -->
+    <script src="https://unpkg.com/tesseract.js@v4.1.1/dist/tesseract.min.js"></script>
+    <!-- FileSaver -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+    <script>
+        // Configurar Worker de PDF.js
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 500: '#3b82f6', 600: '#2563eb' }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Estilos específicos para móvil */
+        body { -webkit-tap-highlight-color: transparent; }
+        
+        .tab-btn.active {
+            background-color: #eff6ff;
+            color: #2563eb;
+            border-bottom: 2px solid #2563eb;
+        }
+        
+        .drop-zone {
+            transition: all 0.2s;
+            background-color: #f8fafc;
+            border: 2px dashed #cbd5e1;
+        }
+        .drop-zone:active, .drop-zone.dragover {
+            background-color: #eff6ff;
+            border-color: #3b82f6;
+        }
+
+        /* Estilo para la lista arrastrable en móvil */
+        .sortable-ghost { opacity: 0.5; background: #e0e7ff; }
+        .drag-handle { cursor: grab; touch-action: none; }
+        
+        /* Checkbox visual para selección de páginas */
+        .page-checkbox {
+            transition: all 0.2s;
+        }
+        .page-card.selected .page-checkbox {
+            background-color: #3b82f6;
+            border-color: #3b82f6;
+        }
+        
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans min-h-screen flex flex-col pb-20 md:pb-0">
+
+    <!-- Header Móvil -->
+    <header class="bg-white shadow-sm sticky top-0 z-20">
+        <div class="px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-file-circle-check text-brand-600 text-2xl"></i>
+                <h1 class="font-bold text-lg text-gray-800">PDF Master</h1>
+            </div>
+            <div id="status-indicator" class="hidden text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded">
+                Listo
+            </div>
+        </div>
+        
+        <!-- Navegación -->
+        <div class="flex overflow-x-auto bg-white border-b border-gray-200 no-scrollbar">
+            <button onclick="switchTab('merge')" class="tab-btn active flex-1 py-3 px-4 text-sm font-medium whitespace-nowrap text-gray-500 text-center" id="btn-merge">
+                <i class="fa-solid fa-layer-group mr-1"></i> Unir
+            </button>
+            <button onclick="switchTab('split')" class="tab-btn flex-1 py-3 px-4 text-sm font-medium whitespace-nowrap text-gray-500 text-center" id="btn-split">
+                <i class="fa-solid fa-scissors mr-1"></i> Separar
+            </button>
+            <button onclick="switchTab('compress')" class="tab-btn flex-1 py-3 px-4 text-sm font-medium whitespace-nowrap text-gray-500 text-center" id="btn-compress">
+                <i class="fa-solid fa-compress mr-1"></i> Mini
+            </button>
+            <button onclick="switchTab('ocr')" class="tab-btn flex-1 py-3 px-4 text-sm font-medium whitespace-nowrap text-gray-500 text-center" id="btn-ocr">
+                <i class="fa-solid fa-font mr-1"></i> OCR
+            </button>
+        </div>
+    </header>
+
+    <!-- Notificación Flotante -->
+    <div id="toast" class="fixed top-4 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-full shadow-xl z-50 transition-opacity duration-300 opacity-0 pointer-events-none flex items-center text-sm w-11/12 max-w-sm justify-center">
+        <span id="toast-msg">Mensaje</span>
+    </div>
+
+    <!-- Contenido Principal -->
+    <main class="flex-1 p-4 max-w-4xl mx-auto w-full">
+
+        <!-- 1. UNIR (MERGE) -->
+        <div id="section-merge" class="tab-content space-y-4 fade-in">
+            <div class="bg-white p-4 rounded-xl shadow-sm">
+                <h2 class="text-lg font-bold text-gray-800 mb-2">Unir Archivos PDF</h2>
+                <p class="text-sm text-gray-500 mb-4">Sube varios PDFs, mantén pulsado para reordenar y únelos.</p>
+                
+                <div class="drop-zone p-6 rounded-xl text-center cursor-pointer mb-4" onclick="document.getElementById('merge-input').click()">
+                    <input type="file" id="merge-input" multiple accept="application/pdf" class="hidden">
+                    <i class="fa-solid fa-cloud-arrow-up text-3xl text-brand-500 mb-2"></i>
+                    <p class="font-bold text-brand-600">Toque para subir archivos</p>
+                    <p class="text-xs text-gray-400 mt-1">Soporta selección múltiple</p>
+                </div>
+
+                <div id="merge-list" class="space-y-2 mb-4 min-h-[50px]">
+                    <!-- Lista de archivos -->
+                </div>
+
+                <button onclick="mergePDFs()" id="btn-action-merge" class="w-full bg-brand-600 text-white py-3 rounded-xl font-bold shadow-lg hover:bg-brand-500 active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                    Unir PDFs Ahora
+                </button>
+            </div>
+        </div>
+
+        <!-- 2. SEPARAR (SPLIT) -->
+        <div id="section-split" class="tab-content hidden space-y-4 fade-in">
+            <div class="bg-white p-4 rounded-xl shadow-sm">
+                <h2 class="text-lg font-bold text-gray-800 mb-2">Extraer Páginas</h2>
+                
+                <div class="drop-zone p-4 rounded-xl text-center cursor-pointer mb-4" onclick="document.getElementById('split-input').click()">
+                    <input type="file" id="split-input" accept="application/pdf" class="hidden">
+                    <i class="fa-regular fa-file-pdf text-2xl text-gray-400 mb-1"></i>
+                    <p class="text-sm font-medium">Seleccionar PDF</p>
+                </div>
+
+                <!-- Grid de páginas -->
+                <div id="split-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-20">
+                    <p class="col-span-full text-center text-gray-400 py-4 text-sm">Sube un PDF para ver las páginas</p>
+                </div>
+            </div>
+            
+            <!-- Barra flotante de acción para Split -->
+            <div id="split-toolbar" class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-3 shadow-lg flex justify-between items-center hidden z-30">
+                <span class="text-sm font-bold text-gray-700 ml-2"><span id="selected-count">0</span> págs</span>
+                <div class="flex space-x-2">
+                    <button onclick="selectAllPages()" class="text-brand-600 px-3 py-1 text-sm font-medium">Todas</button>
+                    <button onclick="extractPages()" id="btn-extract" class="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow disabled:opacity-50">Descargar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. COMPRIMIR -->
+        <div id="section-compress" class="tab-content hidden space-y-4 fade-in">
+             <div class="bg-white p-6 rounded-xl shadow-sm text-center">
+                <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fa-solid fa-down-left-and-up-right-to-center text-2xl text-brand-600"></i>
+                </div>
+                <h2 class="text-lg font-bold text-gray-900">Comprimir PDF</h2>
+                <p class="text-sm text-gray-500 mb-6">Reduce el tamaño del archivo eliminando redundancias.</p>
+                
+                <input type="file" id="compress-input" accept="application/pdf" class="hidden" onchange="handleCompressSelect(this)">
+                
+                <button onclick="document.getElementById('compress-input').click()" class="w-full border-2 border-dashed border-gray-300 py-8 rounded-xl mb-4 hover:border-brand-500 transition" id="compress-zone">
+                    <span class="block text-gray-600 font-medium">Toca para elegir PDF</span>
+                </button>
+
+                <div id="compress-file-info" class="hidden bg-gray-50 p-3 rounded mb-4 text-left">
+                    <div class="flex items-center">
+                        <i class="fa-solid fa-file-pdf text-red-500 mr-2"></i>
+                        <div class="overflow-hidden">
+                            <p class="text-sm font-bold truncate" id="comp-filename">Nombre</p>
+                            <p class="text-xs text-gray-500" id="comp-size">0 MB</p>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="compressPDF()" id="btn-compress-action" class="w-full bg-green-600 text-white py-3 rounded-xl font-bold shadow disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                    Comprimir
+                </button>
+             </div>
+        </div>
+
+        <!-- 4. OCR -->
+        <div id="section-ocr" class="tab-content hidden space-y-4 fade-in">
+            <div class="bg-white p-4 rounded-xl shadow-sm">
+                <h2 class="text-lg font-bold text-gray-800 mb-2">Imagen a Word (OCR)</h2>
+                <div class="bg-yellow-50 text-yellow-800 text-xs p-2 rounded mb-4 border border-yellow-100">
+                    <i class="fa-solid fa-triangle-exclamation mr-1"></i> El proceso puede tardar en móviles.
+                </div>
+
+                <div class="drop-zone p-6 rounded-xl text-center cursor-pointer mb-4" onclick="document.getElementById('ocr-input').click()">
+                    <input type="file" id="ocr-input" accept="image/*,application/pdf" class="hidden">
+                    <i class="fa-solid fa-camera text-3xl text-purple-500 mb-2"></i>
+                    <p class="font-medium">Foto o PDF</p>
+                </div>
+
+                <!-- Progreso -->
+                <div id="ocr-progress" class="hidden mb-4">
+                    <div class="flex justify-between text-xs text-gray-500 mb-1">
+                        <span id="ocr-status-text">Procesando...</span>
+                        <span id="ocr-percent">0%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-purple-600 h-2 rounded-full transition-all duration-300" style="width: 0%" id="ocr-bar"></div>
+                    </div>
+                </div>
+
+                <textarea id="ocr-result" class="w-full h-40 p-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none mb-3" placeholder="El texto detectado aparecerá aquí..."></textarea>
+                
+                <button onclick="downloadWord()" id="btn-word" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold shadow disabled:opacity-50" disabled>
+                    <i class="fa-solid fa-file-word mr-2"></i> Descargar .DOC
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // --- UTILIDADES ---
+        const showToast = (msg) => {
+            const t = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            t.classList.remove('opacity-0', 'pointer-events-none');
+            setTimeout(() => t.classList.add('opacity-0', 'pointer-events-none'), 3000);
+        };
+
+        const switchTab = (tab) => {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`section-${tab}`).classList.remove('hidden');
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`btn-${tab}`).classList.add('active');
+            
+            // Ocultar toolbar de split si no estamos en split
+            if(tab !== 'split') document.getElementById('split-toolbar').classList.add('hidden');
+            else if (document.querySelectorAll('.page-card').length > 0) document.getElementById('split-toolbar').classList.remove('hidden');
+        };
+
+        const formatBytes = (bytes) => {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024, sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        };
+
+        // --- LÓGICA DE UNIR (MERGE) ---
+        let mergeFiles = [];
+        const mergeList = document.getElementById('merge-list');
+
+        document.getElementById('merge-input').addEventListener('change', function(e) {
+            const files = Array.from(e.target.files).filter(f => f.type === 'application/pdf');
+            if(files.length === 0) return showToast('Por favor selecciona archivos PDF');
+            
+            // Añadir al array global
+            mergeFiles = [...mergeFiles, ...files];
+            renderMergeList();
+            this.value = ''; // Reset para permitir subir lo mismo de nuevo
+        });
+
+        function renderMergeList() {
+            mergeList.innerHTML = '';
+            mergeFiles.forEach((file, index) => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center bg-white p-3 rounded-lg border border-gray-200 shadow-sm';
+                div.innerHTML = `
+                    <div class="drag-handle text-gray-400 px-2 py-2 mr-2">
+                        <i class="fa-solid fa-bars"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-bold text-gray-800 truncate">${file.name}</p>
+                        <p class="text-xs text-gray-500">${formatBytes(file.size)}</p>
+                    </div>
+                    <button onclick="removeFile(${index})" class="text-red-500 p-2 hover:bg-red-50 rounded-full">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                `;
+                mergeList.appendChild(div);
+            });
+
+            // Habilitar botón si hay 2+ archivos
+            const btn = document.getElementById('btn-action-merge');
+            btn.disabled = mergeFiles.length < 2;
+            btn.innerText = mergeFiles.length < 2 ? 'Añade al menos 2 PDFs' : 'Unir PDFs Ahora';
+        }
+
+        function removeFile(index) {
+            mergeFiles.splice(index, 1);
+            renderMergeList();
+        }
+
+        // Inicializar SortableJS para móvil
+        new Sortable(mergeList, {
+            handle: '.drag-handle',
+            animation: 150,
+            delay: 150, // Pequeño retraso para evitar conflicto con scroll en móvil
+            delayOnTouchOnly: true,
+            onEnd: function(evt) {
+                // Sincronizar array con el nuevo orden visual
+                const item = mergeFiles.splice(evt.oldIndex, 1)[0];
+                mergeFiles.splice(evt.newIndex, 0, item);
+            }
+        });
+
+        async function mergePDFs() {
+            if (mergeFiles.length < 2) return;
+            
+            const btn = document.getElementById('btn-action-merge');
+            const originalText = btn.innerText;
+            btn.innerHTML = '<span class="loader border-white w-5 h-5 mr-2"></span> Procesando...';
+            btn.disabled = true;
+
+            try {
+                // Verificar que PDFLib está cargado
+                if (typeof PDFLib === 'undefined') throw new Error("Librería PDF no cargada. Recarga la página.");
+
+                const mergedPdf = await PDFLib.PDFDocument.create();
+                
+                for (const file of mergeFiles) {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const pdf = await PDFLib.PDFDocument.load(arrayBuffer);
+                    const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+                    copiedPages.forEach((page) => mergedPdf.addPage(page));
+                }
+
+                const pdfBytes = await mergedPdf.save();
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                saveAs(blob, `unido_mobile_${Date.now()}.pdf`);
+                showToast('¡PDFs unidos correctamente!');
+                
+                // Reset opcional
+                // mergeFiles = []; renderMergeList();
+
+            } catch (error) {
+                console.error(error);
+                showToast('Error: ' + error.message);
+                alert('Hubo un error al unir. Verifica que los PDFs no estén protegidos con contraseña.');
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // --- LÓGICA DE SEPARAR (SPLIT) ---
+        let splitFile = null;
+        let splitPdfDoc = null;
+        let selectedSplitPages = new Set();
+
+        document.getElementById('split-input').addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            if (!file || file.type !== 'application/pdf') return;
+            
+            splitFile = file;
+            selectedSplitPages.clear();
+            const grid = document.getElementById('split-grid');
+            grid.innerHTML = '<div class="col-span-full py-10 text-center"><div class="loader"></div><p class="mt-2 text-gray-500">Cargando páginas...</p></div>';
+            document.getElementById('split-toolbar').classList.remove('hidden');
+
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                splitPdfDoc = await pdfjsLib.getDocument(arrayBuffer).promise;
+                
+                grid.innerHTML = '';
+                
+                for (let i = 1; i <= splitPdfDoc.numPages; i++) {
+                    // Renderizar miniatura
+                    const page = await splitPdfDoc.getPage(i);
+                    // Escala pequeña para rendimiento en móvil
+                    const viewport = page.getViewport({ scale: 0.3 }); 
+                    
+                    const div = document.createElement('div');
+                    div.className = 'page-card relative bg-white rounded shadow cursor-pointer transition-transform active:scale-95';
+                    div.onclick = () => toggleSplitPage(i, div);
+                    
+                    const canvas = document.createElement('canvas');
+                    canvas.className = 'w-full rounded-t';
+                    const ctx = canvas.getContext('2d');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+                    
+                    const info = document.createElement('div');
+                    info.className = 'p-2 flex justify-between items-center border-t border-gray-100';
+                    info.innerHTML = `
+                        <span class="text-xs text-gray-500 font-bold">Pág ${i}</span>
+                        <div class="page-checkbox w-5 h-5 border-2 border-gray-300 rounded-full"></div>
+                    `;
+
+                    div.appendChild(canvas);
+                    div.appendChild(info);
+                    grid.appendChild(div);
+
+                    // Render asíncrono
+                    page.render({ canvasContext: ctx, viewport: viewport });
+                }
+                updateSplitCounter();
+
+            } catch (err) {
+                console.error(err);
+                grid.innerHTML = '<p class="text-red-500 col-span-full text-center">Error al leer PDF</p>';
+            }
+        });
+
+        function toggleSplitPage(pageNum, element) {
+            if (selectedSplitPages.has(pageNum)) {
+                selectedSplitPages.delete(pageNum);
+                element.classList.remove('selected', 'ring-2', 'ring-brand-500');
+            } else {
+                selectedSplitPages.add(pageNum);
+                element.classList.add('selected', 'ring-2', 'ring-brand-500');
+            }
+            updateSplitCounter();
+        }
+
+        function updateSplitCounter() {
+            document.getElementById('selected-count').innerText = selectedSplitPages.size;
+            document.getElementById('btn-extract').disabled = selectedSplitPages.size === 0;
+        }
+
+        function selectAllPages() {
+            if (!splitPdfDoc) return;
+            const cards = document.querySelectorAll('.page-card');
+            const allSelected = selectedSplitPages.size === splitPdfDoc.numPages;
+            
+            selectedSplitPages.clear();
+            
+            cards.forEach((card, idx) => {
+                const pageNum = idx + 1;
+                if (!allSelected) {
+                    selectedSplitPages.add(pageNum);
+                    card.classList.add('selected', 'ring-2', 'ring-brand-500');
+                } else {
+                    card.classList.remove('selected', 'ring-2', 'ring-brand-500');
+                }
+            });
+            updateSplitCounter();
+        }
+
+        async function extractPages() {
+            if (selectedSplitPages.size === 0) return;
+            const btn = document.getElementById('btn-extract');
+            btn.innerHTML = '...';
+            
+            try {
+                const srcDoc = await PDFLib.PDFDocument.load(await splitFile.arrayBuffer());
+                const newDoc = await PDFLib.PDFDocument.create();
+                
+                // Indices 0-based
+                const indices = Array.from(selectedSplitPages).map(p => p - 1).sort((a,b) => a-b);
+                const copied = await newDoc.copyPages(srcDoc, indices);
+                copied.forEach(p => newDoc.addPage(p));
+                
+                const pdfBytes = await newDoc.save();
+                saveAs(new Blob([pdfBytes], { type: 'application/pdf' }), `paginas_${Date.now()}.pdf`);
+                showToast('Páginas descargadas');
+            } catch (e) {
+                showToast('Error al extraer');
+            }
+            btn.innerHTML = 'Descargar';
+        }
+
+        // --- LÓGICA DE COMPRESIÓN ---
+        let fileToCompress = null;
+        function handleCompressSelect(input) {
+            if(input.files[0]) {
+                fileToCompress = input.files[0];
+                document.getElementById('compress-zone').classList.add('hidden');
+                document.getElementById('compress-file-info').classList.remove('hidden');
+                document.getElementById('comp-filename').innerText = fileToCompress.name;
+                document.getElementById('comp-size').innerText = formatBytes(fileToCompress.size);
+                document.getElementById('btn-compress-action').disabled = false;
+            }
+        }
+
+        async function compressPDF() {
+            if(!fileToCompress) return;
+            const btn = document.getElementById('btn-compress-action');
+            btn.innerHTML = '<span class="loader border-white w-4 h-4"></span> Optimizando...';
+            btn.disabled = true;
+            
+            try {
+                // Cargar
+                const arrayBuffer = await fileToCompress.arrayBuffer();
+                const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
+                
+                // Guardar con optimización básica (remover objetos huerfanos)
+                const pdfBytes = await pdfDoc.save({ useObjectStreams: false });
+                
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                
+                if (blob.size < fileToCompress.size) {
+                    showToast(`Reducido de ${formatBytes(fileToCompress.size)} a ${formatBytes(blob.size)}`);
+                    saveAs(blob, `mini_${fileToCompress.name}`);
+                } else {
+                    showToast('El archivo ya estaba optimizado.');
+                    saveAs(blob, `procesado_${fileToCompress.name}`);
+                }
+            } catch (e) {
+                showToast('Error en compresión');
+            }
+            
+            btn.innerHTML = 'Comprimir';
+            btn.disabled = false;
+        }
+
+        // --- OCR (Imagen a Word) ---
+        document.getElementById('ocr-input').addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            if(!file) return;
+
+            const progressDiv = document.getElementById('ocr-progress');
+            const progressBar = document.getElementById('ocr-bar');
+            const statusText = document.getElementById('ocr-status-text');
+            const percentText = document.getElementById('ocr-percent');
+            const resultArea = document.getElementById('ocr-result');
+            const btnWord = document.getElementById('btn-word');
+
+            progressDiv.classList.remove('hidden');
+            resultArea.value = '';
+            btnWord.disabled = true;
+
+            try {
+                // Si es PDF, simplificación: avisar que puede fallar si no es imagen
+                let imageSrc = file;
+                if (file.type === 'application/pdf') {
+                    statusText.innerText = "Convirtiendo PDF a imagen (Pág 1)...";
+                    const pdf = await pdfjsLib.getDocument(await file.arrayBuffer()).promise;
+                    const page = await pdf.getPage(1);
+                    const viewport = page.getViewport({ scale: 1.5 });
+                    const canvas = document.createElement('canvas');
+                    canvas.width = viewport.width;
+                    canvas.height = viewport.height;
+                    await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+                    imageSrc = canvas.toDataURL('image/png');
+                }
+
+                const worker = await Tesseract.createWorker({
+                    logger: m => {
+                        if (m.status === 'recognizing text') {
+                            const p = Math.round(m.progress * 100);
+                            progressBar.style.width = p + '%';
+                            percentText.innerText = p + '%';
+                            statusText.innerText = "Leyendo texto...";
+                        } else {
+                            statusText.innerText = "Cargando motor OCR...";
+                        }
+                    }
+                });
+
+                await worker.loadLanguage('spa');
+                await worker.initialize('spa');
+                const { data: { text } } = await worker.recognize(imageSrc);
+                
+                resultArea.value = text;
+                btnWord.disabled = false;
+                showToast("Texto extraído");
+                await worker.terminate();
+                progressDiv.classList.add('hidden');
+
+            } catch (error) {
+                console.error(error);
+                statusText.innerText = "Error";
+                resultArea.value = "No se pudo leer el archivo. Intenta con una imagen clara.";
+            }
+        });
+
+        function downloadWord() {
+            const text = document.getElementById("ocr-result").value;
+            const blob = new Blob(['\ufeff', text], { type: 'application/msword' });
+            saveAs(blob, "documento_ocr.doc");
+        }
+
+    </script>
+</body>
+</html>
+
