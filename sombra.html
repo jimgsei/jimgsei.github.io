@@ -284,6 +284,91 @@
         .event-label.sun-event { border-color: #ff9e00; color: #ffd56b; }
         .event-label.moon-event { border-color: #87CEEB; color: #b9e5ff; }
 
+        .dome-tooltip {
+            position: absolute;
+            background: rgba(13, 27, 42, 0.95);
+            border: 1px solid rgba(255, 158, 0, 0.6);
+            color: white;
+            font-size: 11px;
+            padding: 6px 8px;
+            border-radius: 5px;
+            pointer-events: none;
+            z-index: 320;
+            transform: translate(-50%, calc(-100% - 10px));
+            white-space: nowrap;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+            display: none;
+        }
+        .dome-tooltip.moon { border-color: rgba(135, 206, 235, 0.6); }
+        .dome-tooltip .tt-title { color: #ff9e00; font-weight: bold; font-size: 10px; }
+        .dome-tooltip.moon .tt-title { color: #87CEEB; }
+
+        .dome-hover-dot {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.8);
+            border: 2px solid #ff9e00;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 315;
+            display: none;
+        }
+        .dome-hover-dot.moon { border-color: #87CEEB; }
+
+        .dome-legend {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(13, 27, 42, 0.85);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            padding: 8px 10px;
+            font-size: 10px;
+            line-height: 1.6;
+            color: white;
+            z-index: 905;
+            pointer-events: auto;
+            max-width: 180px;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+        }
+        .dome-legend-title { font-weight: bold; color: #ff9e00; margin-bottom: 4px; font-size: 11px; display: flex; justify-content: space-between; align-items: center; }
+        .dome-legend.collapsed .dome-legend-body { display: none; }
+        .dome-legend-row { display: flex; align-items: center; gap: 6px; }
+        .dome-legend-sw { width: 18px; height: 3px; border-radius: 2px; flex-shrink: 0; }
+        .dome-legend-sw.dashed { background: transparent; border-top: 2px dashed currentColor; height: 0; }
+
+        #nowBtn {
+            background: #48cae4; color: #0d1b2a; border: none; padding: 6px 10px;
+            border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 11px;
+            white-space: nowrap;
+        }
+
+        .shadow-multi {
+            position: absolute;
+            z-index: 398;
+            transform-origin: top center;
+            border-radius: 2px;
+            pointer-events: none;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.35), rgba(0,0,0,0.08));
+        }
+
+        .azimuth-ray {
+            position: absolute;
+            height: 2px;
+            z-index: 397;
+            pointer-events: none;
+            transform-origin: left center;
+            background: linear-gradient(to right, rgba(255, 215, 0, 0.9), rgba(255, 215, 0, 0));
+            box-shadow: 0 0 6px rgba(255, 215, 0, 0.5);
+        }
+        .azimuth-ray.moon {
+            background: linear-gradient(to right, rgba(135, 206, 235, 0.9), rgba(135, 206, 235, 0));
+            box-shadow: 0 0 6px rgba(135, 206, 235, 0.5);
+        }
+
         .celestial-marker {
             position: absolute;
             font-size: 20px;
@@ -370,6 +455,21 @@
     </div>
     <div id="sunPathContainer">
         <div class="sun-path" id="sunPath"></div>
+        <div class="dome-hover-dot" id="domeHoverDot"></div>
+        <div class="dome-tooltip" id="domeTooltip">
+            <div class="tt-title" id="ttTitle">—</div>
+            <div id="ttBody"></div>
+        </div>
+    </div>
+    <div class="dome-legend" id="domeLegend">
+        <div class="dome-legend-title"><span>Leyenda</span><span id="legendToggle" style="cursor:pointer; font-weight:normal;">▾</span></div>
+        <div class="dome-legend-body">
+            <div class="dome-legend-row"><div class="dome-legend-sw" style="background:linear-gradient(to right,#ff5a2a,#ffe066,#ff5a2a);"></div><span>Arco del Sol</span></div>
+            <div class="dome-legend-row"><div class="dome-legend-sw" style="background:linear-gradient(to right,#5b8db8,#d9ecff,#5b8db8);"></div><span>Arco de la Luna</span></div>
+            <div class="dome-legend-row"><div class="dome-legend-sw dashed" style="color:#ffcc66;"></div><span>Solsticio verano</span></div>
+            <div class="dome-legend-row"><div class="dome-legend-sw dashed" style="color:#aaddff;"></div><span>Equinoccio</span></div>
+            <div class="dome-legend-row"><div class="dome-legend-sw dashed" style="color:#6699cc;"></div><span>Solsticio invierno</span></div>
+        </div>
     </div>
     <div class="shadow-overlay" id="shadowOverlay"></div>
     
@@ -394,7 +494,10 @@
                         <input type="range" id="timeSlider" min="0" max="24" step="0.1" value="12">
                         <span>24:00</span>
                     </div>
-                     <button id="animationBtn" style="width: 100%; margin-top: 8px;">▶ Animar 24h</button>
+                     <div style="display: flex; gap: 6px; margin-top: 8px;">
+                         <button id="animationBtn" style="flex: 1;">▶ Animar 24h</button>
+                         <button id="nowBtn" title="Sincronizar con hora actual">⦿ Ahora</button>
+                     </div>
                 </div>
                  <div class="control-group">
                     <label class="checkbox-label">
@@ -435,6 +538,9 @@
                         <div class="data-item"><span class="data-label">Acimut Astro</span><span class="data-value" id="solarAzimuth">-</span></div>
                         <div class="data-item"><span class="data-label">Longitud Sombra</span><span class="data-value" id="shadowLength">-</span></div>
                         <div class="data-item"><span class="data-label">Astro Actual</span><span class="data-value" id="activeCelestial">-</span></div>
+                        <div class="data-item"><span class="data-label">Duración Día</span><span class="data-value" id="dayDuration">-</span></div>
+                        <div class="data-item"><span class="data-label">Mediodía Solar</span><span class="data-value" id="solarNoon">-</span></div>
+                        <div class="data-item" style="grid-column: 1 / -1;"><span class="data-label">Fase Lunar</span><span class="data-value" id="moonPhaseText">-</span></div>
                     </div>
                 </div>
             </div>
@@ -464,7 +570,17 @@
               locationSearchBtn = document.getElementById('locationSearchBtn'), currentLocationBtn = document.getElementById('currentLocationBtn'),
               lockMapBtn = document.getElementById('lockMapBtn'), realCompassBtn = document.getElementById('realCompassBtn'),
               animationBtn = document.getElementById('animationBtn'), moonToggle = document.getElementById('moonToggle'),
-              compassInner = document.getElementById('compassInner'), compassNeedle = document.getElementById('compassNeedle');
+              compassInner = document.getElementById('compassInner'), compassNeedle = document.getElementById('compassNeedle'),
+              nowBtn = document.getElementById('nowBtn'),
+              dayDurationDisplay = document.getElementById('dayDuration'),
+              solarNoonDisplay = document.getElementById('solarNoon'),
+              moonPhaseTextDisplay = document.getElementById('moonPhaseText'),
+              domeTooltip = document.getElementById('domeTooltip'),
+              ttTitle = document.getElementById('ttTitle'),
+              ttBody = document.getElementById('ttBody'),
+              domeHoverDot = document.getElementById('domeHoverDot'),
+              domeLegend = document.getElementById('domeLegend'),
+              legendToggle = document.getElementById('legendToggle');
         
         L.DomEvent.disableClickPropagation(controlsPanel);
         L.DomEvent.disableScrollPropagation(controlsPanel);
@@ -474,6 +590,8 @@
         let dragOffset = { x: 0, y: 0 }, animationStartTime = null, isMapLocked = false, isRealCompassActive = false;
         let currentHeading = 0, targetHeading = 0, isCompassLoopRunning = false;
         const ANIMATION_DURATION = 15000;
+
+        let currentDomeData = { sun: [], moon: [], center: {x:0,y:0}, radius: 0, date: null, lat: 0, lng: 0 };
 
         // --- Dome / 3D projection config ---
         // Inclinación de la cúpula vista en perspectiva (0 = cenital plana, 1 = casi horizontal).
@@ -703,9 +821,21 @@
                 { txt: 'O', pos: westPos, dx: -12, dy: 5 }
             ];
             cardinals.forEach(c => {
+                const cx = center.x + c.pos.x + c.dx;
+                const cy = center.y + c.pos.y + c.dy;
+                const bg = document.createElementNS(svgNS, "rect");
+                bg.setAttribute("x", cx - 9);
+                bg.setAttribute("y", cy - 11);
+                bg.setAttribute("width", 18);
+                bg.setAttribute("height", 15);
+                bg.setAttribute("rx", 3);
+                bg.setAttribute("fill", "rgba(13,27,42,0.75)");
+                bg.setAttribute("stroke", "rgba(255,255,255,0.35)");
+                bg.setAttribute("stroke-width", "1");
+                svg.appendChild(bg);
                 const t = document.createElementNS(svgNS, "text");
-                t.setAttribute("x", center.x + c.pos.x + c.dx);
-                t.setAttribute("y", center.y + c.pos.y + c.dy);
+                t.setAttribute("x", cx);
+                t.setAttribute("y", cy);
                 t.setAttribute("fill", "white");
                 t.setAttribute("text-anchor", "middle");
                 t.setAttribute("font-size", "12");
@@ -840,6 +970,7 @@
             const year = date.getFullYear();
             const solsticeSummer = new Date(year, 5, 21);
             const solsticeWinter = new Date(year, 11, 21);
+            const equinoxSpring = new Date(year, 2, 21);
             const drawReferenceArc = (refDate, strokeColor) => {
                 const segs = [];
                 let cur = null;
@@ -871,7 +1002,36 @@
                 });
             };
             drawReferenceArc(solsticeSummer, "#ffcc66");
+            drawReferenceArc(equinoxSpring, "#aaddff");
             drawReferenceArc(solsticeWinter, "#6699cc");
+
+            const drawTwilightHalo = () => {
+                sunSegments.forEach(seg => {
+                    [seg.rise, seg.set].forEach((evt, idx) => {
+                        if (!evt) return;
+                        const sp = getScreenPosFromAzAlt(evt.az, 0, radius);
+                        const cx = center.x + sp.x;
+                        const cy = center.y + sp.y;
+                        const grad = document.createElementNS(svgNS, "radialGradient");
+                        const gid = `twilight-${Math.random().toString(36).substr(2,6)}`;
+                        grad.setAttribute("id", gid);
+                        grad.innerHTML = `
+                            <stop offset="0%" stop-color="rgba(255,140,60,0.55)"/>
+                            <stop offset="40%" stop-color="rgba(255,100,50,0.25)"/>
+                            <stop offset="100%" stop-color="rgba(255,100,50,0)"/>
+                        `;
+                        defs.appendChild(grad);
+                        const halo = document.createElementNS(svgNS, "ellipse");
+                        halo.setAttribute("cx", cx);
+                        halo.setAttribute("cy", cy);
+                        halo.setAttribute("rx", radius * 0.28);
+                        halo.setAttribute("ry", radius * 0.14);
+                        halo.setAttribute("fill", `url(#${gid})`);
+                        svg.insertBefore(halo, svg.children[2] || null);
+                    });
+                });
+            };
+            drawTwilightHalo();
 
             const sunColors = {
                 low: "#ff5a2a",
@@ -1018,11 +1178,68 @@
                     placedLabels.push({ x: labelX, y: labelY });
                 }
             }
+
+            sunSegments.forEach(seg => {
+                if (seg.points.length < 3) return;
+                let maxIdx = 0;
+                for (let k = 1; k < seg.points.length; k++) {
+                    if (seg.points[k].alt > seg.points[maxIdx].alt) maxIdx = k;
+                }
+                const peakPt = seg.points[maxIdx];
+                const sp = getScreenPosFromAzAlt(peakPt.az, peakPt.alt, radius);
+                const groundSp = getScreenPosFromAzAlt(peakPt.az, 0, radius);
+                const dx = sp.x - groundSp.x, dy = sp.y - groundSp.y;
+                const len = Math.hypot(dx, dy) || 1;
+                const nx = -dy / len, ny = dx / len;
+                const dot = document.createElementNS(svgNS, "circle");
+                dot.setAttribute("cx", center.x + sp.x);
+                dot.setAttribute("cy", center.y + sp.y);
+                dot.setAttribute("r", "3.5");
+                dot.setAttribute("fill", "#fff0a0");
+                dot.setAttribute("stroke", "#ff9e00");
+                dot.setAttribute("stroke-width", "1.5");
+                svg.appendChild(dot);
+                const noonLbl = document.createElement('div');
+                noonLbl.className = 'event-label sun-event';
+                noonLbl.textContent = `☀ ${fmtTime(peakPt.date)}`;
+                noonLbl.style.left = `${center.x + sp.x + nx * 22}px`;
+                noonLbl.style.top = `${center.y + sp.y + ny * 22 - 8}px`;
+                sunPath.appendChild(noonLbl);
+            });
+
+            const projectedSun = [];
+            sunSegments.forEach(seg => {
+                seg.points.forEach(pt => {
+                    const sp = getScreenPosFromAzAlt(pt.az, pt.alt, radius);
+                    projectedSun.push({ sx: center.x + sp.x, sy: center.y + sp.y, date: pt.date, alt: pt.alt, az: pt.az });
+                });
+            });
+            const projectedMoon = [];
+            if (moonToggle.checked) {
+                moonSegments.forEach(seg => {
+                    seg.points.forEach(pt => {
+                        const sp = getScreenPosFromAzAlt(pt.az, pt.alt, radius);
+                        projectedMoon.push({ sx: center.x + sp.x, sy: center.y + sp.y, date: pt.date, alt: pt.alt, az: pt.az });
+                    });
+                });
+            }
+            currentDomeData = {
+                sun: projectedSun,
+                moon: projectedMoon,
+                sunSegments: sunSegments,
+                moonSegments: moonSegments,
+                center: center,
+                radius: radius,
+                date: date,
+                lat: lat,
+                lng: lng
+            };
         }
 
         function updateShadowAndMarkers(date, hour, lat, lng) {
             let shadow = document.getElementById('objectShadow');
             if (shadow) shadow.remove();
+            shadowOverlay.querySelectorAll('.azimuth-ray').forEach(el => el.remove());
             
             shadow = document.createElement('div');
             shadow.id = 'objectShadow';
@@ -1161,6 +1378,16 @@
                 solarAltitudeDisplay.textContent = `${(celestialForShadow.altitude * 180 / Math.PI).toFixed(1)}°`;
                 solarAzimuthDisplay.textContent = `${celestialForShadow.azimuth.toFixed(1)}°`;
                 shadowLengthDisplay.textContent = `${shadowLengthMeters.toFixed(1)} m`;
+
+                const ray = document.createElement('div');
+                ray.className = activeCelestialDisplay.textContent === 'Luna' ? 'azimuth-ray moon' : 'azimuth-ray';
+                const rayLength = Math.max(window.innerWidth, window.innerHeight);
+                ray.style.width = `${rayLength}px`;
+                ray.style.left = `50%`;
+                ray.style.top = `50%`;
+                const lightDir = celestialForShadow.azimuth + 180;
+                ray.style.transform = `translate(0, -50%) rotate(${lightDir - 90}deg)`;
+                shadowOverlay.appendChild(ray);
             } else {
                 shadow.style.display = 'none';
                 solarAltitudeDisplay.textContent = '-'; 
@@ -1168,6 +1395,34 @@
                 shadowLengthDisplay.textContent = '-';
                 activeCelestialDisplay.textContent = 'Ninguno';
             }
+
+            const times = SunCalc.getTimes(fullDate, lat, lng);
+            if (times.sunrise && times.sunset && !isNaN(times.sunrise) && !isNaN(times.sunset)) {
+                const durMs = times.sunset - times.sunrise;
+                const durH = Math.floor(durMs / 3600000);
+                const durM = Math.floor((durMs % 3600000) / 60000);
+                dayDurationDisplay.textContent = `${durH}h ${durM}min`;
+            } else {
+                dayDurationDisplay.textContent = '—';
+            }
+            if (times.solarNoon && !isNaN(times.solarNoon)) {
+                const n = times.solarNoon;
+                solarNoonDisplay.textContent = `${n.getHours().toString().padStart(2,'0')}:${n.getMinutes().toString().padStart(2,'0')}`;
+            } else {
+                solarNoonDisplay.textContent = '—';
+            }
+            const moonIll = SunCalc.getMoonIllumination(fullDate);
+            const phaseVal = moonIll.phase;
+            let phaseName;
+            if (phaseVal < 0.03 || phaseVal > 0.97) phaseName = 'Nueva';
+            else if (phaseVal < 0.22) phaseName = 'Creciente';
+            else if (phaseVal < 0.28) phaseName = 'Cuarto Creciente';
+            else if (phaseVal < 0.47) phaseName = 'Gibosa Creciente';
+            else if (phaseVal < 0.53) phaseName = 'Llena';
+            else if (phaseVal < 0.72) phaseName = 'Gibosa Menguante';
+            else if (phaseVal < 0.78) phaseName = 'Cuarto Menguante';
+            else phaseName = 'Menguante';
+            moonPhaseTextDisplay.textContent = `${phaseName} · ${Math.round(moonIll.fraction * 100)}%`;
         }
 
         function updateDisplay(forcePathRedraw = false) {
@@ -1375,12 +1630,103 @@
             }); 
         });
 
+        nowBtn.addEventListener('click', () => {
+            stopAnimation();
+            const now = new Date();
+            dateSlider.value = dateToDayOfYear(now);
+            timeSlider.value = now.getHours() + now.getMinutes() / 60 + now.getSeconds() / 3600;
+            updateDisplay(true);
+        });
+
+        legendToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            domeLegend.classList.toggle('collapsed');
+            legendToggle.textContent = domeLegend.classList.contains('collapsed') ? '▸' : '▾';
+        });
+        domeLegend.addEventListener('click', (e) => {
+            if (e.target === legendToggle) return;
+            domeLegend.classList.toggle('collapsed');
+            legendToggle.textContent = domeLegend.classList.contains('collapsed') ? '▸' : '▾';
+        });
+
+        const hideTooltip = () => {
+            domeTooltip.style.display = 'none';
+            domeHoverDot.style.display = 'none';
+        };
+
+        const findNearestPoint = (mx, my) => {
+            let best = null;
+            let bestDist = Infinity;
+            const consider = (arr, kind) => {
+                for (const p of arr) {
+                    const d = Math.hypot(p.sx - mx, p.sy - my);
+                    if (d < bestDist) { bestDist = d; best = { p, kind }; }
+                }
+            };
+            consider(currentDomeData.sun, 'sun');
+            if (moonToggle.checked) consider(currentDomeData.moon, 'moon');
+            return bestDist < 18 ? best : null;
+        };
+
+        const showTooltipAt = (clientX, clientY) => {
+            const rect = sunPathContainer.getBoundingClientRect();
+            const mx = clientX - rect.left;
+            const my = clientY - rect.top;
+            const hit = findNearestPoint(mx, my);
+            if (!hit) { hideTooltip(); return; }
+            const { p, kind } = hit;
+            domeHoverDot.style.display = 'block';
+            domeHoverDot.style.left = `${p.sx}px`;
+            domeHoverDot.style.top = `${p.sy}px`;
+            domeHoverDot.classList.toggle('moon', kind === 'moon');
+            domeTooltip.classList.toggle('moon', kind === 'moon');
+            const hh = p.date.getHours().toString().padStart(2, '0');
+            const mm = p.date.getMinutes().toString().padStart(2, '0');
+            ttTitle.textContent = kind === 'sun' ? `☀ Sol · ${hh}:${mm}` : `☽ Luna · ${hh}:${mm}`;
+            ttBody.innerHTML = `Altura: <b>${p.alt.toFixed(1)}°</b><br>Acimut: <b>${p.az.toFixed(1)}°</b>`;
+            domeTooltip.style.left = `${p.sx}px`;
+            domeTooltip.style.top = `${p.sy}px`;
+            domeTooltip.style.display = 'block';
+        };
+
+        sunPathContainer.addEventListener('mousemove', (e) => showTooltipAt(e.clientX, e.clientY));
+        sunPathContainer.addEventListener('mouseleave', hideTooltip);
+        sunPathContainer.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) showTooltipAt(e.touches[0].clientX, e.touches[0].clientY);
+        }, { passive: true });
+        sunPathContainer.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 1) showTooltipAt(e.touches[0].clientX, e.touches[0].clientY);
+        }, { passive: true });
+        sunPathContainer.addEventListener('touchend', hideTooltip);
+
+        const saveLocation = () => {
+            try {
+                const c = map.getCenter();
+                localStorage.setItem('simSombras_loc', JSON.stringify({ lat: c.lat, lng: c.lng, zoom: map.getZoom() }));
+            } catch (err) {}
+        };
+        const loadLocation = () => {
+            try {
+                const raw = localStorage.getItem('simSombras_loc');
+                if (!raw) return false;
+                const d = JSON.parse(raw);
+                if (typeof d.lat === 'number' && typeof d.lng === 'number') {
+                    map.setView([d.lat, d.lng], d.zoom || 18);
+                    return true;
+                }
+            } catch (err) {}
+            return false;
+        };
+        map.on('moveend', saveLocation);
+        map.on('zoomend', saveLocation);
+
         function initialize() {
             const initialDate = new Date();
             dateSlider.value = dateToDayOfYear(initialDate);
             timeSlider.value = initialDate.getHours() + initialDate.getMinutes() / 60;
             createObject();
             initPanelDrag();
+            loadLocation();
             updateDisplay(true);
         }
 
