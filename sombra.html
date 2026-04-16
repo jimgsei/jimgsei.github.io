@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+          <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -219,9 +219,17 @@
         }
 
         .shadow-caster {
-            position: absolute; background: rgba(180, 180, 190, 0.9); border: 1px solid #333;
-            z-index: 400; transform: translate(-50%, -50%);
-            box-shadow: 0 0 5px rgba(0,0,0,0.5);
+            position: absolute;
+            z-index: 400;
+            pointer-events: none;
+            width: 0;
+            height: 0;
+        }
+
+        .shadow-caster svg {
+            position: absolute;
+            overflow: visible;
+            display: block;
         }
 
         .shadow {
@@ -614,8 +622,83 @@
 
         // --- Core Calculation & Drawing ---
         function updateScale() { const center = map.getCenter(); const p1 = map.latLngToContainerPoint(center); const p2 = L.point(p1.x + 1, p1.y); metersPerPixel = center.distanceTo(map.containerPointToLatLng(p2)); }
-        function createObject() { if (document.getElementById('shadowCaster')) return; const el = document.createElement('div'); el.className = 'shadow-caster'; el.id = 'shadowCaster'; el.style.left = '50%'; el.style.top = '50%'; shadowOverlay.appendChild(el); }
-        function updateObjectAppearance() { const el = document.getElementById('shadowCaster'); if (!el) return; objectHeightValue.textContent = objectHeightSlider.value; objectWidthValue.textContent = objectWidthSlider.value; el.style.height = `${objectHeightSlider.value / metersPerPixel}px`; el.style.width = `${objectWidthSlider.value / metersPerPixel}px`; }
+        function createObject() {
+            if (document.getElementById('shadowCaster')) return;
+            const el = document.createElement('div');
+            el.className = 'shadow-caster';
+            el.id = 'shadowCaster';
+            el.style.left = '50%';
+            el.style.top = '50%';
+            const svgNS = 'http://www.w3.org/2000/svg';
+            const svg = document.createElementNS(svgNS, 'svg');
+            svg.id = 'isoSvg';
+            svg.setAttribute('xmlns', svgNS);
+            const faceRight = document.createElementNS(svgNS, 'polygon');
+            faceRight.id = 'isoFaceRight';
+            faceRight.setAttribute('stroke', '#3a342a');
+            faceRight.setAttribute('stroke-width', '1');
+            faceRight.setAttribute('stroke-linejoin', 'round');
+            const faceLeft = document.createElementNS(svgNS, 'polygon');
+            faceLeft.id = 'isoFaceLeft';
+            faceLeft.setAttribute('stroke', '#3a342a');
+            faceLeft.setAttribute('stroke-width', '1');
+            faceLeft.setAttribute('stroke-linejoin', 'round');
+            const topFace = document.createElementNS(svgNS, 'polygon');
+            topFace.id = 'isoTopFace';
+            topFace.setAttribute('stroke', '#4a4438');
+            topFace.setAttribute('stroke-width', '1');
+            topFace.setAttribute('stroke-linejoin', 'round');
+            svg.appendChild(faceLeft);
+            svg.appendChild(faceRight);
+            svg.appendChild(topFace);
+            el.appendChild(svg);
+            shadowOverlay.appendChild(el);
+        }
+        function updateObjectAppearance() {
+            const el = document.getElementById('shadowCaster');
+            if (!el) return;
+            objectHeightValue.textContent = objectHeightSlider.value;
+            objectWidthValue.textContent = objectWidthSlider.value;
+            const widthM = parseFloat(objectWidthSlider.value);
+            const heightM = parseFloat(objectHeightSlider.value);
+            const widthPx = widthM / metersPerPixel;
+            const heightPx = heightM / metersPerPixel;
+            const cos30 = Math.cos(30 * Math.PI / 180);
+            const sin30 = Math.sin(30 * Math.PI / 180);
+            const half = widthPx / 2;
+            const project = (x, y, z) => ({
+                px: (x - y) * cos30,
+                py: (x + y) * sin30 - z
+            });
+            const pA = project(-half, -half, 0);
+            const pB = project(half, -half, 0);
+            const pC = project(half, half, 0);
+            const pD = project(-half, half, 0);
+            const pAt = project(-half, -half, heightPx);
+            const pBt = project(half, -half, heightPx);
+            const pCt = project(half, half, heightPx);
+            const pDt = project(-half, half, heightPx);
+            const allX = [pA, pB, pC, pD, pAt, pBt, pCt, pDt].map(p => p.px);
+            const allY = [pA, pB, pC, pD, pAt, pBt, pCt, pDt].map(p => p.py);
+            const minX = Math.min(...allX), maxX = Math.max(...allX);
+            const minY = Math.min(...allY), maxY = Math.max(...allY);
+            const w = maxX - minX;
+            const h = maxY - minY;
+            const groundCenterPx = 0 - minX;
+            const groundCenterPy = 0 - minY;
+            const svg = document.getElementById('isoSvg');
+            svg.setAttribute('width', w);
+            svg.setAttribute('height', h);
+            svg.style.left = `${-groundCenterPx}px`;
+            svg.style.top = `${-groundCenterPy}px`;
+            const toSvg = (p) => `${(p.px - minX).toFixed(1)},${(p.py - minY).toFixed(1)}`;
+            const topFace = document.getElementById('isoTopFace');
+            const faceRight = document.getElementById('isoFaceRight');
+            const faceLeft = document.getElementById('isoFaceLeft');
+            if (topFace) topFace.setAttribute('points', `${toSvg(pAt)} ${toSvg(pBt)} ${toSvg(pCt)} ${toSvg(pDt)}`);
+            if (faceRight) faceRight.setAttribute('points', `${toSvg(pB)} ${toSvg(pC)} ${toSvg(pCt)} ${toSvg(pBt)}`);
+            if (faceLeft) faceLeft.setAttribute('points', `${toSvg(pD)} ${toSvg(pC)} ${toSvg(pCt)} ${toSvg(pDt)}`);
+        }
         function dayOfYearToDate(dayOfYear, year = new Date().getFullYear()) { const date = new Date(year, 0); return new Date(date.setDate(dayOfYear)); }
         function dateToDayOfYear(date) { return (Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) - Date.UTC(date.getFullYear(), 0, 0)) / 86400000; }
         
@@ -692,15 +775,20 @@
             // 2) Gradiente para el cielo (fondo de la cúpula)
             const defs = document.createElementNS(svgNS, "defs");
             defs.innerHTML = `
-                <radialGradient id="domeGrad" cx="50%" cy="40%" r="70%">
+                <radialGradient id="domeGrad" class="sky-bg-dynamic" cx="50%" cy="35%" r="75%">
                     <stop offset="0%" stop-color="rgba(30, 60, 120, 0.35)"/>
-                    <stop offset="60%" stop-color="rgba(15, 30, 60, 0.25)"/>
+                    <stop offset="55%" stop-color="rgba(15, 30, 60, 0.25)"/>
                     <stop offset="100%" stop-color="rgba(0, 0, 0, 0.15)"/>
                 </radialGradient>
                 <linearGradient id="horizonGrad" x1="0%" y1="0%" x2="0%" y2="100%">
                     <stop offset="0%" stop-color="rgba(255,255,255,0.0)"/>
                     <stop offset="100%" stop-color="rgba(255,180,100,0.25)"/>
                 </linearGradient>
+                <radialGradient id="hazeGrad" cx="50%" cy="100%" r="80%">
+                    <stop offset="0%" stop-color="rgba(255,200,150,0.25)"/>
+                    <stop offset="60%" stop-color="rgba(200,170,180,0.1)"/>
+                    <stop offset="100%" stop-color="rgba(0,0,0,0)"/>
+                </radialGradient>
             `;
             svg.appendChild(defs);
 
@@ -715,34 +803,68 @@
             domeBg.setAttribute("stroke-width", "2");
             svg.appendChild(domeBg);
 
-            // 4) Paralelos de altitud (círculos de igual altura: 30°, 60°) proyectados como elipses
-            [30, 60].forEach(alt => {
+            const hazeBand = document.createElementNS(svgNS, "ellipse");
+            hazeBand.setAttribute("cx", center.x);
+            hazeBand.setAttribute("cy", horizonCy);
+            hazeBand.setAttribute("rx", horizonRx * 0.98);
+            hazeBand.setAttribute("ry", horizonRy * 0.96);
+            hazeBand.setAttribute("fill", "url(#hazeGrad)");
+            hazeBand.setAttribute("pointer-events", "none");
+            svg.appendChild(hazeBand);
+
+            const starsGroup = document.createElementNS(svgNS, "g");
+            starsGroup.setAttribute("class", "stars-group");
+            starsGroup.setAttribute("opacity", "0");
+            let seed = Math.floor((lat + 90) * 1000) ^ Math.floor((lng + 180) * 1000);
+            const rnd = () => {
+                seed = (seed * 9301 + 49297) % 233280;
+                return seed / 233280;
+            };
+            const starCount = 90;
+            for (let i = 0; i < starCount; i++) {
+                const u = rnd();
+                const v = rnd();
+                const starAz = u * 360;
+                const starAlt = Math.acos(1 - v * 0.95) * 180 / Math.PI;
+                const sPos = getScreenPosFromAzAlt(starAz, 90 - starAlt, radius);
+                const sizeRand = rnd();
+                const r = sizeRand < 0.7 ? 0.6 : (sizeRand < 0.95 ? 1.1 : 1.6);
+                const brightness = 0.5 + rnd() * 0.5;
+                const star = document.createElementNS(svgNS, "circle");
+                star.setAttribute("cx", (center.x + sPos.x).toFixed(1));
+                star.setAttribute("cy", (center.y + sPos.y).toFixed(1));
+                star.setAttribute("r", r);
+                star.setAttribute("fill", `rgba(255, 255, ${Math.round(220 + rnd() * 35)}, ${brightness.toFixed(2)})`);
+                starsGroup.appendChild(star);
+            }
+            svg.appendChild(starsGroup);
+
+            [15, 30, 45, 60, 75].forEach(alt => {
                 const altRad = alt * Math.PI / 180;
                 const r = radius * Math.cos(altRad);
                 const rx = r;
                 const ry = r * Math.cos(DOME_TILT * Math.PI / 2);
-                // El centro del paralelo se desplaza hacia arriba porque está "flotando" sobre el horizonte
                 const cy = horizonCy - radius * Math.sin(altRad) * Math.sin(DOME_TILT * Math.PI / 2);
-                
+                const isMain = (alt === 30 || alt === 60);
                 const ell = document.createElementNS(svgNS, "ellipse");
                 ell.setAttribute("cx", center.x);
                 ell.setAttribute("cy", cy);
                 ell.setAttribute("rx", rx);
                 ell.setAttribute("ry", ry);
                 ell.setAttribute("fill", "none");
-                ell.setAttribute("stroke", "rgba(255,255,255,0.25)");
+                ell.setAttribute("stroke", isMain ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.10)");
                 ell.setAttribute("stroke-width", "1");
-                ell.setAttribute("stroke-dasharray", "3,3");
+                ell.setAttribute("stroke-dasharray", isMain ? "3,3" : "1,4");
                 svg.appendChild(ell);
-
-                // Etiqueta de grados
-                const lbl = document.createElementNS(svgNS, "text");
-                lbl.setAttribute("x", center.x + rx + 4);
-                lbl.setAttribute("y", cy + 4);
-                lbl.setAttribute("fill", "rgba(255,255,255,0.6)");
-                lbl.setAttribute("font-size", "10");
-                lbl.textContent = `${alt}°`;
-                svg.appendChild(lbl);
+                if (isMain) {
+                    const lbl = document.createElementNS(svgNS, "text");
+                    lbl.setAttribute("x", center.x + rx + 4);
+                    lbl.setAttribute("y", cy + 4);
+                    lbl.setAttribute("fill", "rgba(255,255,255,0.6)");
+                    lbl.setAttribute("font-size", "10");
+                    lbl.textContent = `${alt}°`;
+                    svg.appendChild(lbl);
+                }
             });
 
             // 5) Meridianos (líneas N-S y E-O) proyectados en la cúpula
@@ -798,6 +920,23 @@
             meridEOLine.setAttribute("stroke-dasharray", "2,3");
             svg.appendChild(meridEOLine);
 
+            [[45, 225], [135, 315]].forEach(pair => {
+                const meridDiag = [];
+                for (let a = 0; a <= 180; a += 5) {
+                    const az = a < 90 ? pair[0] : pair[1];
+                    const alt = a < 90 ? a : 180 - a;
+                    const pos = getScreenPosFromAzAlt(az, alt, radius);
+                    meridDiag.push(`${center.x + pos.x},${center.y + pos.y}`);
+                }
+                const line = document.createElementNS(svgNS, "polyline");
+                line.setAttribute("points", meridDiag.join(' '));
+                line.setAttribute("fill", "none");
+                line.setAttribute("stroke", "rgba(255,255,255,0.14)");
+                line.setAttribute("stroke-width", "1");
+                line.setAttribute("stroke-dasharray", "1,4");
+                svg.appendChild(line);
+            });
+
             // 6) Marcador del cenit
             const zenMark = document.createElementNS(svgNS, "circle");
             zenMark.setAttribute("cx", center.x + zenithPos.x);
@@ -820,6 +959,27 @@
                 { txt: 'E', pos: eastPos, dx: 12, dy: 5 },
                 { txt: 'O', pos: westPos, dx: -12, dy: 5 }
             ];
+            const intermCardinals = [
+                { txt: 'NE', az: 45 },
+                { txt: 'SE', az: 135 },
+                { txt: 'SO', az: 225 },
+                { txt: 'NO', az: 315 }
+            ];
+            intermCardinals.forEach(ic => {
+                const pos = getScreenPosFromAzAlt(ic.az, 0, radius);
+                const outDirX = Math.sin(ic.az * Math.PI / 180);
+                const outDirY = -Math.cos(ic.az * Math.PI / 180);
+                const lx = center.x + pos.x + outDirX * 10;
+                const ly = center.y + pos.y + outDirY * 6;
+                const t = document.createElementNS(svgNS, "text");
+                t.setAttribute("x", lx);
+                t.setAttribute("y", ly);
+                t.setAttribute("fill", "rgba(255,255,255,0.5)");
+                t.setAttribute("text-anchor", "middle");
+                t.setAttribute("font-size", "9");
+                t.textContent = ic.txt;
+                svg.appendChild(t);
+            });
             cardinals.forEach(c => {
                 const cx = center.x + c.pos.x + c.dx;
                 const cy = center.y + c.pos.y + c.dy;
@@ -1181,16 +1341,28 @@
 
             sunSegments.forEach(seg => {
                 if (seg.points.length < 3) return;
-                let maxIdx = 0;
-                for (let k = 1; k < seg.points.length; k++) {
-                    if (seg.points[k].alt > seg.points[maxIdx].alt) maxIdx = k;
+                const times = SunCalc.getTimes(seg.points[Math.floor(seg.points.length / 2)].date, lat, lng);
+                let peakDate, peakAz, peakAlt;
+                if (times.solarNoon && !isNaN(times.solarNoon) && times.solarNoon >= seg.points[0].date && times.solarNoon <= seg.points[seg.points.length - 1].date) {
+                    peakDate = times.solarNoon;
+                    const pp = SunCalc.getPosition(peakDate, lat, lng);
+                    peakAz = (pp.azimuth * 180 / Math.PI) + 180;
+                    peakAlt = pp.altitude * 180 / Math.PI;
+                } else {
+                    let maxIdx = 0;
+                    for (let k = 1; k < seg.points.length; k++) {
+                        if (seg.points[k].alt > seg.points[maxIdx].alt) maxIdx = k;
+                    }
+                    peakDate = seg.points[maxIdx].date;
+                    peakAz = seg.points[maxIdx].az;
+                    peakAlt = seg.points[maxIdx].alt;
                 }
-                const peakPt = seg.points[maxIdx];
-                const sp = getScreenPosFromAzAlt(peakPt.az, peakPt.alt, radius);
-                const groundSp = getScreenPosFromAzAlt(peakPt.az, 0, radius);
+                const sp = getScreenPosFromAzAlt(peakAz, peakAlt, radius);
+                const groundSp = getScreenPosFromAzAlt(peakAz, 0, radius);
                 const dx = sp.x - groundSp.x, dy = sp.y - groundSp.y;
                 const len = Math.hypot(dx, dy) || 1;
-                const nx = -dy / len, ny = dx / len;
+                let nx = -dy / len, ny = dx / len;
+                if (Math.hypot(nx, ny) < 0.3) { nx = 0; ny = -1; }
                 const dot = document.createElementNS(svgNS, "circle");
                 dot.setAttribute("cx", center.x + sp.x);
                 dot.setAttribute("cy", center.y + sp.y);
@@ -1201,7 +1373,7 @@
                 svg.appendChild(dot);
                 const noonLbl = document.createElement('div');
                 noonLbl.className = 'event-label sun-event';
-                noonLbl.textContent = `☀ ${fmtTime(peakPt.date)}`;
+                noonLbl.textContent = `☀ ${fmtTime(peakDate)}`;
                 noonLbl.style.left = `${center.x + sp.x + nx * 22}px`;
                 noonLbl.style.top = `${center.y + sp.y + ny * 22 - 8}px`;
                 sunPath.appendChild(noonLbl);
@@ -1262,6 +1434,87 @@
                 celestialForShadow = {altitude: moonPos.altitude, azimuth: moonAzimuth}; 
                 shadow.classList.add('moon-shadow');
                 activeCelestialDisplay.textContent = 'Luna'; 
+            }
+
+            const isoTop = document.getElementById('isoTopFace');
+            const isoFaceR = document.getElementById('isoFaceRight');
+            const isoFaceL = document.getElementById('isoFaceLeft');
+            if (isoTop && isoFaceR && isoFaceL) {
+                let brR = 0.35, brL = 0.35, brT = 0.55;
+                let isSunLight = false;
+                if (celestialForShadow) {
+                    isSunLight = activeCelestialDisplay.textContent === 'Sol';
+                    const azDeg2 = celestialForShadow.azimuth;
+                    const intensity = Math.max(0.2, Math.sin(celestialForShadow.altitude));
+                    brT = 0.45 + intensity * 0.75;
+                    const azRightDeg = 90;
+                    const azLeftDeg = 180;
+                    const diffR = (azDeg2 - azRightDeg) * Math.PI / 180;
+                    const diffL = (azDeg2 - azLeftDeg) * Math.PI / 180;
+                    const dotR = Math.max(0, Math.cos(diffR));
+                    const dotL = Math.max(0, Math.cos(diffL));
+                    brR = 0.28 + dotR * intensity * 0.85;
+                    brL = 0.28 + dotL * intensity * 0.85;
+                } else {
+                    brT = 0.18;
+                    brR = 0.14;
+                    brL = 0.14;
+                }
+                const tint = (brightness, isSun) => {
+                    const warm = isSun ? [255, 240, 200] : [180, 200, 230];
+                    const base = 230;
+                    const r = Math.round(base * brightness + (warm[0] - base) * brightness * 0.2);
+                    const g = Math.round(base * brightness + (warm[1] - base) * brightness * 0.2);
+                    const b = Math.round(base * brightness + (warm[2] - base) * brightness * 0.2);
+                    return `rgb(${Math.max(15,Math.min(255,r))}, ${Math.max(15,Math.min(255,g))}, ${Math.max(15,Math.min(255,b))})`;
+                };
+                isoTop.setAttribute('fill', tint(brT, isSunLight));
+                isoFaceR.setAttribute('fill', tint(brR, isSunLight));
+                isoFaceL.setAttribute('fill', tint(brL, isSunLight));
+            }
+
+            const skyBg = sunPath.querySelector('.sky-bg-dynamic');
+            if (skyBg) {
+                let topColor, midColor, horizonColor;
+                const sAlt = sunPos.altitude * 180 / Math.PI;
+                if (sAlt > 15) {
+                    topColor = 'rgba(30, 90, 170, 0.55)';
+                    midColor = 'rgba(60, 130, 200, 0.35)';
+                    horizonColor = 'rgba(180, 210, 230, 0.25)';
+                } else if (sAlt > 0) {
+                    const t = sAlt / 15;
+                    topColor = `rgba(${Math.round(60-t*30)}, ${Math.round(70+t*20)}, ${Math.round(130+t*40)}, 0.55)`;
+                    midColor = `rgba(${Math.round(200-t*140)}, ${Math.round(120+t*10)}, ${Math.round(80+t*50)}, 0.40)`;
+                    horizonColor = `rgba(${Math.round(255-t*75)}, ${Math.round(140+t*70)}, ${Math.round(60+t*150)}, 0.45)`;
+                } else if (sAlt > -6) {
+                    topColor = 'rgba(30, 35, 80, 0.65)';
+                    midColor = 'rgba(90, 60, 110, 0.45)';
+                    horizonColor = 'rgba(200, 100, 70, 0.35)';
+                } else if (sAlt > -18) {
+                    topColor = 'rgba(10, 15, 40, 0.75)';
+                    midColor = 'rgba(20, 25, 60, 0.55)';
+                    horizonColor = 'rgba(50, 40, 70, 0.35)';
+                } else {
+                    topColor = 'rgba(5, 8, 25, 0.85)';
+                    midColor = 'rgba(8, 12, 30, 0.7)';
+                    horizonColor = 'rgba(15, 20, 40, 0.5)';
+                }
+                const stops = skyBg.querySelectorAll('stop');
+                if (stops.length >= 3) {
+                    stops[0].setAttribute('stop-color', topColor);
+                    stops[1].setAttribute('stop-color', midColor);
+                    stops[2].setAttribute('stop-color', horizonColor);
+                }
+            }
+
+            const starsGroup = sunPath.querySelector('.stars-group');
+            if (starsGroup) {
+                const sAlt2 = sunPos.altitude * 180 / Math.PI;
+                let starOpacity = 0;
+                if (sAlt2 < -12) starOpacity = 1;
+                else if (sAlt2 < -6) starOpacity = (Math.abs(sAlt2) - 6) / 6;
+                else if (sAlt2 < 0) starOpacity = 0;
+                starsGroup.setAttribute('opacity', starOpacity.toFixed(2));
             }
             
             const w = sunPath.clientWidth, h = sunPath.clientHeight;
@@ -1371,7 +1624,7 @@
                 shadow.style.width = `${objectWidthPx}px`;
                 shadow.style.height = `${shadowLengthPx}px`;
                 shadow.style.left = '50%';
-                shadow.style.top = `calc(50% + ${objectHeightPx/2}px)`;
+                shadow.style.top = `calc(50% + ${objectWidthPx/2}px)`;
                 shadow.style.transform = `translateX(-50%) rotate(${celestialForShadow.azimuth}deg)`;
                 shadow.style.display = 'block';
                 
@@ -1434,10 +1687,10 @@
             currentDate.textContent = date.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
             const center = map.getCenter();
             
-            if (forcePathRedraw || sunPath.dataset.day !== dayOfYear.toString() || sunPath.dataset.lat !== center.lat.toString()) {
+            const cacheKey = `${dayOfYear}_${center.lat.toFixed(4)}_${center.lng.toFixed(4)}`;
+            if (forcePathRedraw || sunPath.dataset.cacheKey !== cacheKey) {
                  drawPaths(date, center.lat, center.lng);
-                 sunPath.dataset.day = dayOfYear;
-                 sunPath.dataset.lat = center.lat;
+                 sunPath.dataset.cacheKey = cacheKey;
             }
             updateShadowAndMarkers(date, hour, center.lat, center.lng);
         }
@@ -1670,8 +1923,19 @@
 
         const showTooltipAt = (clientX, clientY) => {
             const rect = sunPathContainer.getBoundingClientRect();
-            const mx = clientX - rect.left;
-            const my = clientY - rect.top;
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            let rx = clientX - cx;
+            let ry = clientY - cy;
+            if (isRealCompassActive || Math.abs(currentHeading) > 0.5) {
+                const a = currentHeading * Math.PI / 180;
+                const cosA = Math.cos(a), sinA = Math.sin(a);
+                const nrx = rx * cosA - ry * sinA;
+                const nry = rx * sinA + ry * cosA;
+                rx = nrx; ry = nry;
+            }
+            const mx = rx + rect.width / 2;
+            const my = ry + rect.height / 2;
             const hit = findNearestPoint(mx, my);
             if (!hit) { hideTooltip(); return; }
             const { p, kind } = hit;
@@ -1699,11 +1963,15 @@
         }, { passive: true });
         sunPathContainer.addEventListener('touchend', hideTooltip);
 
+        let saveLocationTimer = null;
         const saveLocation = () => {
-            try {
-                const c = map.getCenter();
-                localStorage.setItem('simSombras_loc', JSON.stringify({ lat: c.lat, lng: c.lng, zoom: map.getZoom() }));
-            } catch (err) {}
+            if (saveLocationTimer) clearTimeout(saveLocationTimer);
+            saveLocationTimer = setTimeout(() => {
+                try {
+                    const c = map.getCenter();
+                    localStorage.setItem('simSombras_loc', JSON.stringify({ lat: c.lat, lng: c.lng, zoom: map.getZoom() }));
+                } catch (err) {}
+            }, 600);
         };
         const loadLocation = () => {
             try {
