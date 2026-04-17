@@ -1,4 +1,4 @@
-          <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -230,6 +230,33 @@
             position: absolute;
             overflow: visible;
             display: block;
+        }
+
+        .constellation-popup {
+            position: absolute;
+            background: rgba(13, 27, 42, 0.95);
+            border: 1px solid rgba(150, 200, 255, 0.6);
+            color: #d8e9ff;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 6px 12px;
+            border-radius: 5px;
+            pointer-events: none;
+            z-index: 330;
+            transform: translate(-50%, calc(-100% - 8px));
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+            display: none;
+            text-shadow: 0 0 2px rgba(150,200,255,0.4);
+        }
+        .constellation-popup::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: rgba(13, 27, 42, 0.95);
         }
 
         .shadow {
@@ -468,6 +495,7 @@
             <div class="tt-title" id="ttTitle">—</div>
             <div id="ttBody"></div>
         </div>
+        <div class="constellation-popup" id="constellationPopup"></div>
     </div>
     <div class="dome-legend" id="domeLegend">
         <div class="dome-legend-title"><span>Leyenda</span><span id="legendToggle" style="cursor:pointer; font-weight:normal;">▾</span></div>
@@ -563,7 +591,6 @@
             attribution: 'Tiles &copy; Esri'
         }).addTo(map);
 
-        // --- DOM Elements ---
         const controlsPanel = document.getElementById('controlsPanel'), panelTitle = document.getElementById('panelTitle'),
               dateSlider = document.getElementById('dateSlider'), currentDate = document.getElementById('currentDate'),
               timeSlider = document.getElementById('timeSlider'), currentTimeDisplay = document.getElementById('currentTime'),
@@ -588,12 +615,12 @@
               ttBody = document.getElementById('ttBody'),
               domeHoverDot = document.getElementById('domeHoverDot'),
               domeLegend = document.getElementById('domeLegend'),
-              legendToggle = document.getElementById('legendToggle');
+              legendToggle = document.getElementById('legendToggle'),
+              constellationPopup = document.getElementById('constellationPopup');
         
         L.DomEvent.disableClickPropagation(controlsPanel);
         L.DomEvent.disableScrollPropagation(controlsPanel);
 
-        // --- State Variables ---
         let metersPerPixel = 1, animationFrameId = null, isPlaying = false, isDragging = false;
         let dragOffset = { x: 0, y: 0 }, animationStartTime = null, isMapLocked = false, isRealCompassActive = false;
         let currentHeading = 0, targetHeading = 0, isCompassLoopRunning = false;
@@ -601,15 +628,93 @@
 
         let currentDomeData = { sun: [], moon: [], center: {x:0,y:0}, radius: 0, date: null, lat: 0, lng: 0 };
 
-        // --- Dome / 3D projection config ---
-        // Inclinación de la cúpula vista en perspectiva (0 = cenital plana, 1 = casi horizontal).
-        // Debe estar por debajo de 0.5 para que el cenit quede SIEMPRE arriba de los puntos
-        // del horizonte; 0.35 ≈ tilt de 31.5°, vista desde arriba con perspectiva suave.
+        const STAR_CATALOG = {
+            "Polaris":{ra:2.530,dec:89.264,mag:1.98},"Dubhe":{ra:11.062,dec:61.751,mag:1.79},
+            "Merak":{ra:11.031,dec:56.382,mag:2.37},"Phecda":{ra:11.897,dec:53.695,mag:2.44},
+            "Megrez":{ra:12.257,dec:57.033,mag:3.31},"Alioth":{ra:12.900,dec:55.960,mag:1.76},
+            "Mizar":{ra:13.399,dec:54.925,mag:2.23},"Alkaid":{ra:13.792,dec:49.313,mag:1.85},
+            "Kochab":{ra:14.845,dec:74.156,mag:2.07},"Pherkad":{ra:15.345,dec:71.834,mag:3.05},
+            "Schedar":{ra:0.675,dec:56.537,mag:2.24},"Caph":{ra:0.153,dec:59.150,mag:2.28},
+            "Gamma_Cas":{ra:0.945,dec:60.717,mag:2.47},"Ruchbah":{ra:1.430,dec:60.235,mag:2.68},
+            "Segin":{ra:1.906,dec:63.670,mag:3.38},"Mirfak":{ra:3.405,dec:49.861,mag:1.79},
+            "Algol":{ra:3.136,dec:40.956,mag:2.12},"Atik":{ra:3.902,dec:31.884,mag:2.85},
+            "Aldebaran":{ra:4.598,dec:16.509,mag:0.85},"Elnath":{ra:5.438,dec:28.608,mag:1.65},
+            "Capella":{ra:5.278,dec:45.998,mag:0.08},"Menkalinan":{ra:5.992,dec:44.947,mag:1.90},
+            "Rigel":{ra:5.242,dec:-8.202,mag:0.18},"Bellatrix":{ra:5.418,dec:6.350,mag:1.64},
+            "Betelgeuse":{ra:5.919,dec:7.407,mag:0.50},"Mintaka":{ra:5.533,dec:-0.299,mag:2.25},
+            "Alnilam":{ra:5.603,dec:-1.202,mag:1.69},"Alnitak":{ra:5.679,dec:-1.943,mag:1.74},
+            "Saiph":{ra:5.796,dec:-9.670,mag:2.07},"Sirius":{ra:6.752,dec:-16.716,mag:-1.46},
+            "Mirzam":{ra:6.378,dec:-17.956,mag:1.98},"Adhara":{ra:6.977,dec:-28.972,mag:1.50},
+            "Wezen":{ra:7.140,dec:-26.393,mag:1.83},"Procyon":{ra:7.655,dec:5.225,mag:0.34},
+            "Castor":{ra:7.577,dec:31.888,mag:1.58},"Pollux":{ra:7.755,dec:28.026,mag:1.14},
+            "Alhena":{ra:6.629,dec:16.399,mag:1.93},"Regulus":{ra:10.139,dec:11.967,mag:1.40},
+            "Denebola":{ra:11.818,dec:14.572,mag:2.14},"Algieba":{ra:10.333,dec:19.842,mag:2.28},
+            "Zosma":{ra:11.235,dec:20.524,mag:2.56},"Chertan":{ra:11.237,dec:15.430,mag:3.33},
+            "Spica":{ra:13.420,dec:-11.161,mag:0.97},"Arcturus":{ra:14.261,dec:19.182,mag:-0.05},
+            "Vega":{ra:18.616,dec:38.784,mag:0.03},"Sheliak":{ra:18.834,dec:33.363,mag:3.52},
+            "Sulafat":{ra:18.983,dec:32.690,mag:3.25},"Deneb":{ra:20.691,dec:45.280,mag:1.25},
+            "Sadr":{ra:20.371,dec:40.257,mag:2.23},"Gienah_Cyg":{ra:20.770,dec:33.970,mag:2.48},
+            "Delta_Cyg":{ra:19.749,dec:45.131,mag:2.87},"Albireo":{ra:19.512,dec:27.960,mag:3.05},
+            "Altair":{ra:19.846,dec:8.868,mag:0.77},"Tarazed":{ra:19.771,dec:10.613,mag:2.72},
+            "Alshain":{ra:19.922,dec:6.407,mag:3.71},"Antares":{ra:16.490,dec:-26.432,mag:1.09},
+            "Shaula":{ra:17.560,dec:-37.104,mag:1.62},"Sargas":{ra:17.622,dec:-42.997,mag:1.87},
+            "Dschubba":{ra:16.005,dec:-22.621,mag:2.29},"Acrux":{ra:12.443,dec:-63.099,mag:0.77},
+            "Gacrux":{ra:12.519,dec:-57.113,mag:1.59},"Mimosa":{ra:12.795,dec:-59.689,mag:1.25},
+            "Imai":{ra:12.252,dec:-58.749,mag:2.79},"Rigil_Kent":{ra:14.661,dec:-60.836,mag:-0.01},
+            "Hadar":{ra:14.064,dec:-60.373,mag:0.61},"Fomalhaut":{ra:22.961,dec:-29.622,mag:1.16},
+            "Alpheratz":{ra:0.140,dec:29.091,mag:2.06},"Mirach":{ra:1.163,dec:35.621,mag:2.05},
+            "Almach":{ra:2.065,dec:42.330,mag:2.10},"Hamal":{ra:2.120,dec:23.462,mag:2.01},
+            "Markab":{ra:23.079,dec:15.205,mag:2.48},"Scheat":{ra:23.063,dec:28.083,mag:2.42},
+            "Algenib":{ra:0.221,dec:15.184,mag:2.83},"Enif":{ra:21.736,dec:9.875,mag:2.38},
+            "Alderamin":{ra:21.309,dec:62.586,mag:2.45},"Alpha_Oph":{ra:17.582,dec:12.560,mag:2.08},
+            "Izar":{ra:14.749,dec:27.074,mag:2.37},"Muphrid":{ra:13.912,dec:18.398,mag:2.68}
+        };
+
+        const CONSTELLATIONS = {
+            "Osa Mayor":{stars:["Dubhe","Merak","Phecda","Megrez","Alioth","Mizar","Alkaid"],lines:[["Dubhe","Merak"],["Merak","Phecda"],["Phecda","Megrez"],["Megrez","Dubhe"],["Megrez","Alioth"],["Alioth","Mizar"],["Mizar","Alkaid"]]},
+            "Osa Menor":{stars:["Polaris","Kochab","Pherkad"],lines:[["Polaris","Kochab"],["Kochab","Pherkad"]]},
+            "Casiopea":{stars:["Schedar","Caph","Gamma_Cas","Ruchbah","Segin"],lines:[["Caph","Schedar"],["Schedar","Gamma_Cas"],["Gamma_Cas","Ruchbah"],["Ruchbah","Segin"]]},
+            "Orión":{stars:["Betelgeuse","Bellatrix","Mintaka","Alnilam","Alnitak","Saiph","Rigel"],lines:[["Betelgeuse","Bellatrix"],["Bellatrix","Mintaka"],["Mintaka","Alnilam"],["Alnilam","Alnitak"],["Alnitak","Saiph"],["Saiph","Rigel"],["Rigel","Mintaka"],["Betelgeuse","Alnitak"]]},
+            "Tauro":{stars:["Aldebaran","Elnath"],lines:[["Aldebaran","Elnath"]]},
+            "Géminis":{stars:["Castor","Pollux","Alhena"],lines:[["Castor","Pollux"],["Pollux","Alhena"]]},
+            "Can Mayor":{stars:["Sirius","Mirzam","Adhara","Wezen"],lines:[["Sirius","Mirzam"],["Sirius","Adhara"],["Adhara","Wezen"],["Wezen","Sirius"]]},
+            "Leo":{stars:["Regulus","Denebola","Algieba","Zosma","Chertan"],lines:[["Regulus","Algieba"],["Algieba","Zosma"],["Zosma","Denebola"],["Denebola","Chertan"],["Chertan","Regulus"]]},
+            "Cisne":{stars:["Deneb","Sadr","Gienah_Cyg","Delta_Cyg","Albireo"],lines:[["Deneb","Sadr"],["Sadr","Albireo"],["Sadr","Gienah_Cyg"],["Sadr","Delta_Cyg"]]},
+            "Lira":{stars:["Vega","Sheliak","Sulafat"],lines:[["Vega","Sheliak"],["Sheliak","Sulafat"],["Sulafat","Vega"]]},
+            "Águila":{stars:["Altair","Tarazed","Alshain"],lines:[["Tarazed","Altair"],["Altair","Alshain"]]},
+            "Escorpión":{stars:["Antares","Shaula","Sargas","Dschubba"],lines:[["Dschubba","Antares"],["Antares","Sargas"],["Sargas","Shaula"]]},
+            "Cruz del Sur":{stars:["Acrux","Gacrux","Mimosa","Imai"],lines:[["Acrux","Gacrux"],["Mimosa","Imai"]]},
+            "Centauro":{stars:["Rigil_Kent","Hadar"],lines:[["Rigil_Kent","Hadar"]]},
+            "Perseo":{stars:["Mirfak","Algol","Atik"],lines:[["Mirfak","Algol"],["Mirfak","Atik"]]},
+            "Pegaso":{stars:["Markab","Scheat","Algenib","Alpheratz","Enif"],lines:[["Markab","Scheat"],["Scheat","Alpheratz"],["Alpheratz","Algenib"],["Algenib","Markab"],["Markab","Enif"]]},
+            "Boyero":{stars:["Arcturus","Izar","Muphrid"],lines:[["Arcturus","Izar"],["Arcturus","Muphrid"]]}
+        };
+
+        function equatorialToHorizontal(raHours, decDeg, date, lat, lng) {
+            const raDeg = raHours * 15;
+            const raRad = raDeg * Math.PI / 180;
+            const decRad = decDeg * Math.PI / 180;
+            const latRad = lat * Math.PI / 180;
+            const jd = date.getTime() / 86400000 + 2440587.5;
+            const T = (jd - 2451545.0) / 36525;
+            let gmst = 280.46061837 + 360.98564736629 * (jd - 2451545.0) + T * T * 0.000387933;
+            gmst = ((gmst % 360) + 360) % 360;
+            const lst = (gmst + lng) * Math.PI / 180;
+            let ha = lst - raRad;
+            while (ha > Math.PI) ha -= 2 * Math.PI;
+            while (ha < -Math.PI) ha += 2 * Math.PI;
+            const sinAlt = Math.sin(decRad) * Math.sin(latRad) + Math.cos(decRad) * Math.cos(latRad) * Math.cos(ha);
+            const alt = Math.asin(sinAlt);
+            const cosAz = (Math.sin(decRad) - Math.sin(alt) * Math.sin(latRad)) / (Math.cos(alt) * Math.cos(latRad));
+            const sinAz = -Math.cos(decRad) * Math.sin(ha) / Math.cos(alt);
+            let az = Math.atan2(sinAz, cosAz);
+            if (az < 0) az += 2 * Math.PI;
+            return { alt: alt * 180 / Math.PI, az: az * 180 / Math.PI };
+        }
+
         const DOME_TILT = 0.35;
-        // Desplazamiento vertical del centro del horizonte dentro del círculo (positivo = hacia abajo)
         const DOME_VERTICAL_OFFSET = 0.10;
         
-        // --- UI & Panel Functions ---
         function initPanelDrag() { panelTitle.addEventListener('mousedown', startDrag); panelTitle.addEventListener('touchstart', startDragTouch); document.addEventListener('mousemove', drag); document.addEventListener('touchmove', dragTouch); document.addEventListener('mouseup', stopDrag); document.addEventListener('touchend', stopDrag); }
         function startDrag(e) { if (e.target.closest('button')) return; isDragging = true; const rect = controlsPanel.getBoundingClientRect(); dragOffset.x = e.clientX - rect.left; dragOffset.y = e.clientY - rect.top; controlsPanel.style.transition = 'none'; }
         function startDragTouch(e) { if (e.target.closest('button')) return; if (e.touches.length === 1) { isDragging = true; const rect = controlsPanel.getBoundingClientRect(); dragOffset.x = e.touches[0].clientX - rect.left; dragOffset.y = e.touches[0].clientY - rect.top; controlsPanel.style.transition = 'none'; } }
@@ -620,7 +725,6 @@
         function hidePanel() { controlsPanel.classList.add('hidden'); showPanelBtn.style.display = 'block'; }
         function showPanel() { controlsPanel.classList.remove('hidden'); showPanelBtn.style.display = 'none'; }
 
-        // --- Core Calculation & Drawing ---
         function updateScale() { const center = map.getCenter(); const p1 = map.latLngToContainerPoint(center); const p2 = L.point(p1.x + 1, p1.y); metersPerPixel = center.distanceTo(map.containerPointToLatLng(p2)); }
         function createObject() {
             if (document.getElementById('shadowCaster')) return;
@@ -701,53 +805,24 @@
         }
         function dayOfYearToDate(dayOfYear, year = new Date().getFullYear()) { const date = new Date(year, 0); return new Date(date.setDate(dayOfYear)); }
         function dateToDayOfYear(date) { return (Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) - Date.UTC(date.getFullYear(), 0, 0)) / 86400000; }
-        
-        /**
-         * Proyección de cúpula celeste en perspectiva.
-         * Convierte azimut/altitud en coordenadas de pantalla simulando una esfera 3D
-         * vista desde un ángulo ligeramente elevado (tilt). Esto da sensación real
-         * de "arco del cielo": el astro en el cenit aparece arriba, y en el horizonte
-         * abajo, no todo aplastado al centro como en una proyección polar plana.
-         * 
-         * Matemáticamente:
-         *   1) Vector 3D en la esfera unidad: x = sin(az)·cos(alt), y = cos(az)·cos(alt), z = sin(alt)
-         *      (z = arriba, x = este, y = norte)
-         *   2) Se rota alrededor del eje este-oeste (x) un ángulo de inclinación
-         *      para "asomar" la cúpula hacia el observador.
-         *   3) Proyección ortográfica: se descarta la profundidad final y se escala a pixeles.
-         * 
-         * Devuelve {x, y, scale, z} donde:
-         *   - x, y: offset en pixeles respecto al centro del contenedor
-         *   - scale: factor de tamaño (astros más altos se ven ligeramente más grandes)
-         *   - z: profundidad relativa (útil para saber si está delante o detrás)
-         */
         function getScreenPosFromAzAlt(azimuth, altitude, radius) {
             const azRad = azimuth * Math.PI / 180;
             const altRad = altitude * Math.PI / 180;
             
-            // Vector 3D en la bóveda celeste (esfera unidad)
-            // Sistema: x=este(+), y=norte(+), z=arriba(+)
             const x3d = Math.sin(azRad) * Math.cos(altRad);
             const y3d = Math.cos(azRad) * Math.cos(altRad);
             const z3d = Math.sin(altRad);
             
-            // Inclinamos la esfera: rotación alrededor del eje X (este-oeste)
-            // El ángulo tilt define cuánto "se asoma" el observador al hemisferio
             const tiltAngle = DOME_TILT * Math.PI / 2; // 0..PI/2
             const cosT = Math.cos(tiltAngle);
             const sinT = Math.sin(tiltAngle);
             
-            // Rotación: y' = y*cos - z*sin ; z' = y*sin + z*cos
             const yRot = y3d * cosT - z3d * sinT;
             const zRot = y3d * sinT + z3d * cosT;
             
-            // Proyección ortográfica: pantalla (X, -Y) -> (px, py)
-            // Invertimos Y porque en pantalla "arriba" es Y negativo
             const px = x3d * radius;
             const py = -zRot * radius + DOME_VERTICAL_OFFSET * radius;
             
-            // Escala: astros más cercanos al cenit se ven algo más grandes (sutil perspectiva)
-            // zRot va de -1 (detrás/abajo) a +1 (arriba), lo mapeamos a 0.85..1.15
             const scale = 0.85 + 0.30 * Math.max(0, zRot);
             
             return { x: px, y: py, scale: scale, z: yRot };
@@ -766,13 +841,10 @@
             const center = { x: w / 2, y: h / 2 };
             const radius = Math.min(w, h) / 2 * 0.85;
 
-            // ---- Dibujo de la cúpula (bóveda celeste) en perspectiva ----
-            // 1) Elipse del horizonte (altitud = 0): es el círculo visto en perspectiva
             const horizonRx = radius;
             const horizonRy = radius * Math.cos(DOME_TILT * Math.PI / 2);
             const horizonCy = center.y + DOME_VERTICAL_OFFSET * radius;
             
-            // 2) Gradiente para el cielo (fondo de la cúpula)
             const defs = document.createElementNS(svgNS, "defs");
             defs.innerHTML = `
                 <radialGradient id="domeGrad" class="sky-bg-dynamic" cx="50%" cy="35%" r="75%">
@@ -792,7 +864,6 @@
             `;
             svg.appendChild(defs);
 
-            // 3) Fondo del domo (elipse rellena)
             const domeBg = document.createElementNS(svgNS, "ellipse");
             domeBg.setAttribute("cx", center.x);
             domeBg.setAttribute("cy", horizonCy);
@@ -814,30 +885,15 @@
 
             const starsGroup = document.createElementNS(svgNS, "g");
             starsGroup.setAttribute("class", "stars-group");
+            starsGroup.setAttribute("id", "starsGroup");
             starsGroup.setAttribute("opacity", "0");
-            let seed = Math.floor((lat + 90) * 1000) ^ Math.floor((lng + 180) * 1000);
-            const rnd = () => {
-                seed = (seed * 9301 + 49297) % 233280;
-                return seed / 233280;
-            };
-            const starCount = 90;
-            for (let i = 0; i < starCount; i++) {
-                const u = rnd();
-                const v = rnd();
-                const starAz = u * 360;
-                const starAlt = Math.acos(1 - v * 0.95) * 180 / Math.PI;
-                const sPos = getScreenPosFromAzAlt(starAz, 90 - starAlt, radius);
-                const sizeRand = rnd();
-                const r = sizeRand < 0.7 ? 0.6 : (sizeRand < 0.95 ? 1.1 : 1.6);
-                const brightness = 0.5 + rnd() * 0.5;
-                const star = document.createElementNS(svgNS, "circle");
-                star.setAttribute("cx", (center.x + sPos.x).toFixed(1));
-                star.setAttribute("cy", (center.y + sPos.y).toFixed(1));
-                star.setAttribute("r", r);
-                star.setAttribute("fill", `rgba(255, 255, ${Math.round(220 + rnd() * 35)}, ${brightness.toFixed(2)})`);
-                starsGroup.appendChild(star);
-            }
             svg.appendChild(starsGroup);
+
+            const constellationsGroup = document.createElementNS(svgNS, "g");
+            constellationsGroup.setAttribute("class", "constellations-group");
+            constellationsGroup.setAttribute("id", "constellationsGroup");
+            constellationsGroup.setAttribute("opacity", "0");
+            svg.appendChild(constellationsGroup);
 
             [15, 30, 45, 60, 75].forEach(alt => {
                 const altRad = alt * Math.PI / 180;
@@ -867,15 +923,12 @@
                 }
             });
 
-            // 5) Meridianos (líneas N-S y E-O) proyectados en la cúpula
-            // Meridiano N-S: une el punto norte del horizonte con el sur pasando por el cenit
             const northPos = getScreenPosFromAzAlt(0, 0, radius);
             const southPos = getScreenPosFromAzAlt(180, 0, radius);
             const zenithPos = getScreenPosFromAzAlt(0, 90, radius);
             const eastPos = getScreenPosFromAzAlt(90, 0, radius);
             const westPos = getScreenPosFromAzAlt(270, 0, radius);
             
-            // Meridiano N-S: curva cuadrática pasando por N, cenit, S
             const pathNS = document.createElementNS(svgNS, "path");
             pathNS.setAttribute("d", 
                 `M ${center.x + northPos.x} ${center.y + northPos.y} ` +
@@ -883,16 +936,12 @@
                 `${center.x + zenithPos.x} ${center.y + zenithPos.y} ` +
                 `T ${center.x + southPos.x} ${center.y + southPos.y}`
             );
-            // En realidad para un meridiano hay que muestrear puntos (la proyección no es cuadrática).
-            // Lo hacemos como polyline muestreando altitudes.
             pathNS.remove();
             
             const meridianNS = [];
             for (let a = 0; a <= 180; a += 5) {
-                // Altitud desde 0 (norte) → 90 (cenit) → 0 (sur): parametrizamos con "a"
                 const az = a < 90 ? 0 : 180;
                 const alt = a < 90 ? a : 180 - a;
-                // Excepto cuando a = 90 que es el cenit (az indefinido, pero proyección única)
                 const pos = getScreenPosFromAzAlt(az, alt, radius);
                 meridianNS.push(`${center.x + pos.x},${center.y + pos.y}`);
             }
@@ -904,7 +953,6 @@
             meridNSLine.setAttribute("stroke-dasharray", "2,3");
             svg.appendChild(meridNSLine);
 
-            // Meridiano E-O
             const meridianEO = [];
             for (let a = 0; a <= 180; a += 5) {
                 const az = a < 90 ? 90 : 270;
@@ -937,7 +985,6 @@
                 svg.appendChild(line);
             });
 
-            // 6) Marcador del cenit
             const zenMark = document.createElementNS(svgNS, "circle");
             zenMark.setAttribute("cx", center.x + zenithPos.x);
             zenMark.setAttribute("cy", center.y + zenithPos.y);
@@ -952,7 +999,6 @@
             zenLbl.textContent = "Cenit";
             svg.appendChild(zenLbl);
 
-            // 7) Etiquetas cardinales (N,S,E,O) en el horizonte
             const cardinals = [
                 { txt: 'N', pos: northPos, dx: 0, dy: -8 },
                 { txt: 'S', pos: southPos, dx: 0, dy: 16 },
@@ -1507,14 +1553,89 @@
                 }
             }
 
-            const starsGroup = sunPath.querySelector('.stars-group');
-            if (starsGroup) {
+            const starsGroup = document.getElementById('starsGroup');
+            const constellationsGroup = document.getElementById('constellationsGroup');
+            if (starsGroup && constellationsGroup) {
                 const sAlt2 = sunPos.altitude * 180 / Math.PI;
                 let starOpacity = 0;
                 if (sAlt2 < -12) starOpacity = 1;
                 else if (sAlt2 < -6) starOpacity = (Math.abs(sAlt2) - 6) / 6;
                 else if (sAlt2 < 0) starOpacity = 0;
+
+                if (starOpacity > 0.01) {
+                    const dW = sunPath.clientWidth, dH = sunPath.clientHeight;
+                    const dCenter = { x: dW / 2, y: dH / 2 };
+                    const dRadius = Math.min(dW, dH) / 2 * 0.85;
+                    const svgNS = "http://www.w3.org/2000/svg";
+                    const starPositions = {};
+                    while (starsGroup.firstChild) starsGroup.removeChild(starsGroup.firstChild);
+                    while (constellationsGroup.firstChild) constellationsGroup.removeChild(constellationsGroup.firstChild);
+
+                    for (const [name, s] of Object.entries(STAR_CATALOG)) {
+                        const pos = equatorialToHorizontal(s.ra, s.dec, fullDate, lat, lng);
+                        if (pos.alt <= 0) continue;
+                        const sp = getScreenPosFromAzAlt(pos.az, pos.alt, dRadius);
+                        const sx = dCenter.x + sp.x;
+                        const sy = dCenter.y + sp.y;
+                        starPositions[name] = { x: sx, y: sy, mag: s.mag, az: pos.az, alt: pos.alt };
+                        const r = Math.max(0.6, 2.8 - s.mag * 0.55);
+                        const b = Math.max(0.4, 1 - s.mag * 0.15);
+                        const star = document.createElementNS(svgNS, "circle");
+                        star.setAttribute("cx", sx.toFixed(1));
+                        star.setAttribute("cy", sy.toFixed(1));
+                        star.setAttribute("r", r.toFixed(1));
+                        star.setAttribute("fill", `rgba(255, 255, 235, ${b.toFixed(2)})`);
+                        if (s.mag < 1.5) {
+                            star.setAttribute("filter", "drop-shadow(0 0 2px rgba(255,255,220,0.6))");
+                        }
+                        starsGroup.appendChild(star);
+                    }
+
+                    for (const [constName, cdata] of Object.entries(CONSTELLATIONS)) {
+                        const g = document.createElementNS(svgNS, "g");
+                        g.setAttribute("class", "constellation");
+                        g.setAttribute("data-name", constName);
+                        g.style.cursor = "pointer";
+                        g.style.pointerEvents = "auto";
+                        let visibleStars = 0;
+                        let avgX = 0, avgY = 0, topStar = null;
+                        for (const starName of cdata.stars) {
+                            if (starPositions[starName]) {
+                                visibleStars++;
+                                avgX += starPositions[starName].x;
+                                avgY += starPositions[starName].y;
+                                if (!topStar || starPositions[starName].alt > topStar.alt) {
+                                    topStar = { ...starPositions[starName], name: starName };
+                                }
+                            }
+                        }
+                        if (visibleStars < 2) continue;
+                        avgX /= visibleStars;
+                        avgY /= visibleStars;
+                        for (const [a, b] of cdata.lines) {
+                            if (starPositions[a] && starPositions[b]) {
+                                const line = document.createElementNS(svgNS, "line");
+                                line.setAttribute("x1", starPositions[a].x.toFixed(1));
+                                line.setAttribute("y1", starPositions[a].y.toFixed(1));
+                                line.setAttribute("x2", starPositions[b].x.toFixed(1));
+                                line.setAttribute("y2", starPositions[b].y.toFixed(1));
+                                line.setAttribute("stroke", "rgba(150, 200, 255, 0.4)");
+                                line.setAttribute("stroke-width", "0.8");
+                                g.appendChild(line);
+                            }
+                        }
+                        const hit = document.createElementNS(svgNS, "circle");
+                        hit.setAttribute("cx", avgX.toFixed(1));
+                        hit.setAttribute("cy", avgY.toFixed(1));
+                        hit.setAttribute("r", "22");
+                        hit.setAttribute("fill", "transparent");
+                        hit.setAttribute("data-const-name", constName);
+                        g.appendChild(hit);
+                        constellationsGroup.appendChild(g);
+                    }
+                }
                 starsGroup.setAttribute('opacity', starOpacity.toFixed(2));
+                constellationsGroup.setAttribute('opacity', starOpacity.toFixed(2));
             }
             
             const w = sunPath.clientWidth, h = sunPath.clientHeight;
@@ -1529,13 +1650,10 @@
                 marker.className = 'celestial-marker';
                 marker.style.left = `${center.x + screenPos.x}px`;
                 marker.style.top = `${center.y + screenPos.y}px`;
-                // Tamaño escalado según altura: más grande arriba, más pequeño cerca del horizonte
                 marker.style.fontSize = `${20 * screenPos.scale}px`;
                 marker.textContent = '☀️';
                 sunPath.appendChild(marker);
 
-                // Eje vertical "de caída": desde la posición del sol al punto del horizonte directamente debajo
-                // Esto visualiza la altura del sol sobre el plano del suelo de forma muy intuitiva.
                 const groundPos = getScreenPosFromAzAlt(sunAzimuth, 0, radius);
                 const axis = document.createElementNS("http://www.w3.org/2000/svg", "line");
                 axis.setAttribute('x1', center.x + screenPos.x);
@@ -1548,7 +1666,6 @@
                 axis.classList.add('axis-line');
                 sunPath.querySelector('svg').appendChild(axis);
 
-                // Línea radial desde el centro hasta el punto del horizonte (azimut en el suelo)
                 const axisGround = document.createElementNS("http://www.w3.org/2000/svg", "line");
                 axisGround.setAttribute('x1', center.x);
                 axisGround.setAttribute('y1', center.y + DOME_VERTICAL_OFFSET * radius);
@@ -1568,7 +1685,6 @@
                 moonPhase.className = 'moon-phase';
                 moonPhase.style.left = `${center.x + screenPos.x}px`;
                 moonPhase.style.top = `${center.y + screenPos.y}px`;
-                // Tamaño también escalado
                 const moonSize = 24 * screenPos.scale;
                 moonPhase.style.width = `${moonSize}px`;
                 moonPhase.style.height = `${moonSize}px`;
@@ -1590,7 +1706,6 @@
                 moonPhase.appendChild(mask);
                 sunPath.appendChild(moonPhase);
 
-                // Eje vertical de caída para la luna también
                 const groundPos = getScreenPosFromAzAlt(moonAzimuth, 0, radius);
                 const axis = document.createElementNS("http://www.w3.org/2000/svg", "line");
                 axis.setAttribute('x1', center.x + screenPos.x);
@@ -1858,7 +1973,6 @@
             }
         }
 
-        // --- Event Listeners ---
         animationBtn.addEventListener('click', toggleAnimation);
         dateSlider.addEventListener('input', () => { stopAnimation(); updateDisplay(true); });
         timeSlider.addEventListener('input', () => { stopAnimation(); updateDisplay(); });
@@ -1962,6 +2076,73 @@
             if (e.touches.length === 1) showTooltipAt(e.touches[0].clientX, e.touches[0].clientY);
         }, { passive: true });
         sunPathContainer.addEventListener('touchend', hideTooltip);
+
+        let constPopupTimer = null;
+        const showConstellationPopup = (clientX, clientY, name) => {
+            const rect = sunPathContainer.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            let rx = clientX - cx;
+            let ry = clientY - cy;
+            if (isRealCompassActive || Math.abs(currentHeading) > 0.5) {
+                const a = currentHeading * Math.PI / 180;
+                const cosA = Math.cos(a), sinA = Math.sin(a);
+                const nrx = rx * cosA - ry * sinA;
+                const nry = rx * sinA + ry * cosA;
+                rx = nrx; ry = nry;
+            }
+            const mx = rx + rect.width / 2;
+            const my = ry + rect.height / 2;
+            constellationPopup.textContent = name;
+            constellationPopup.style.left = `${mx}px`;
+            constellationPopup.style.top = `${my}px`;
+            constellationPopup.style.display = 'block';
+            if (constPopupTimer) clearTimeout(constPopupTimer);
+            constPopupTimer = setTimeout(() => { constellationPopup.style.display = 'none'; }, 2500);
+        };
+
+        const handleConstellationClick = (clientX, clientY) => {
+            const rect = sunPathContainer.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            let rx = clientX - cx;
+            let ry = clientY - cy;
+            if (isRealCompassActive || Math.abs(currentHeading) > 0.5) {
+                const a = currentHeading * Math.PI / 180;
+                const cosA = Math.cos(a), sinA = Math.sin(a);
+                const nrx = rx * cosA - ry * sinA;
+                const nry = rx * sinA + ry * cosA;
+                rx = nrx; ry = nry;
+            }
+            const mx = rx + rect.width / 2;
+            const my = ry + rect.height / 2;
+            const cg = document.getElementById('constellationsGroup');
+            if (!cg || parseFloat(cg.getAttribute('opacity') || '0') < 0.3) return false;
+            const groups = cg.querySelectorAll('g.constellation');
+            let best = null, bestDist = 40;
+            for (const g of groups) {
+                const hit = g.querySelector('circle[data-const-name]');
+                if (!hit) continue;
+                const hx = parseFloat(hit.getAttribute('cx'));
+                const hy = parseFloat(hit.getAttribute('cy'));
+                const d = Math.hypot(mx - hx, my - hy);
+                if (d < bestDist) { bestDist = d; best = { name: hit.getAttribute('data-const-name'), x: hx, y: hy }; }
+            }
+            if (best) {
+                constellationPopup.textContent = best.name;
+                constellationPopup.style.left = `${best.x}px`;
+                constellationPopup.style.top = `${best.y}px`;
+                constellationPopup.style.display = 'block';
+                if (constPopupTimer) clearTimeout(constPopupTimer);
+                constPopupTimer = setTimeout(() => { constellationPopup.style.display = 'none'; }, 2500);
+                return true;
+            }
+            return false;
+        };
+
+        sunPathContainer.addEventListener('click', (e) => {
+            handleConstellationClick(e.clientX, e.clientY);
+        });
 
         let saveLocationTimer = null;
         const saveLocation = () => {
