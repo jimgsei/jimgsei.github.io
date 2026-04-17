@@ -124,21 +124,6 @@
             pointer-events: none;
         }
 
-        #toggleControlsBtn {
-            position: absolute;
-            top: 19px;
-            right: 40px;
-            background: rgba(255, 158, 0, 0.8);
-            color: #0d1b2a;
-            border: none;
-            border-radius: 4px;
-            padding: 2px 8px;
-            font-size: 11px;
-            font-weight: bold;
-            cursor: pointer;
-            z-index: 1001;
-        }
-        
         #hidePanelBtn {
             position: absolute;
             top: 19px;
@@ -175,7 +160,6 @@
             backdrop-filter: blur(10px);
         }
 
-        .controls.minimized #extra-controls { display: none; }
         .control-group { margin-bottom: 12px; }
         .control-group:last-child { margin-bottom: 0; }
         label { display: block; font-size: 13px; margin-bottom: 6px; color: #90e0ef; font-weight: 600; }
@@ -285,6 +269,151 @@
             border: 6px solid transparent;
             border-top-color: rgba(13, 27, 42, 0.96);
         }
+
+        .moon-block {
+            background: rgba(30, 50, 80, 0.4);
+            border-radius: 4px;
+            padding: 6px 8px;
+            margin-bottom: 8px;
+            font-size: 10.5px;
+            line-height: 1.5;
+        }
+        .moon-block-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+        .moon-emoji {
+            font-size: 22px;
+            line-height: 1;
+        }
+        .moon-name {
+            font-size: 12px;
+            font-weight: bold;
+            color: #d8e9ff;
+        }
+        .moon-data b { color: #a8c8e8; font-weight: 600; }
+        .star-list-header {
+            font-size: 10.5px;
+            color: #a8c8e8;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+        .star-list-empty {
+            font-size: 10.5px;
+            color: #8fa8c8;
+            font-style: italic;
+            padding: 4px 0;
+        }
+        .star-list {
+            max-height: 180px;
+            overflow-y: auto;
+            border: 1px solid rgba(150, 200, 255, 0.15);
+            border-radius: 4px;
+            padding: 2px;
+        }
+        .star-list::-webkit-scrollbar { width: 6px; }
+        .star-list::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 3px; }
+        .star-list::-webkit-scrollbar-thumb { background: rgba(150, 200, 255, 0.3); border-radius: 3px; }
+        .star-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 6px;
+            font-size: 10.5px;
+            cursor: pointer;
+            border-radius: 3px;
+            color: #d8e9ff;
+            line-height: 1.3;
+        }
+        .star-item:hover { background: rgba(150, 200, 255, 0.12); }
+        .star-item.selected {
+            background: rgba(255, 220, 100, 0.18);
+            color: #ffe066;
+        }
+        .star-item-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: white;
+            flex-shrink: 0;
+            box-shadow: 0 0 4px rgba(255,255,255,0.6);
+        }
+        .star-item-name {
+            flex-grow: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .star-item-rise {
+            font-size: 9px;
+            color: #8fa8c8;
+            flex-shrink: 0;
+        }
+        .star-item.below .star-item-dot { opacity: 0.35; }
+        .star-item.below .star-item-name { color: #8fa8c8; }
+        .star-list-toggle {
+            font-size: 10px;
+            color: #a8c8e8;
+            cursor: pointer;
+            text-align: center;
+            padding: 4px;
+            margin-top: 4px;
+            border-radius: 3px;
+            user-select: none;
+        }
+        .star-list-toggle:hover { background: rgba(150, 200, 255, 0.12); }
+
+        .star-highlighted {
+            filter: drop-shadow(0 0 4px rgba(255, 220, 100, 0.9)) drop-shadow(0 0 8px rgba(255, 220, 100, 0.6));
+        }
+
+        .panel-section {
+            margin-bottom: 8px;
+            border: 1px solid rgba(150, 200, 255, 0.15);
+            border-radius: 6px;
+            overflow: hidden;
+            background: rgba(13, 27, 42, 0.4);
+        }
+        .panel-section-title {
+            font-size: 12px;
+            font-weight: bold;
+            color: #b9e5ff;
+            padding: 8px 10px;
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            background: rgba(30, 60, 100, 0.35);
+            transition: background 0.15s;
+        }
+        .panel-section-title:hover {
+            background: rgba(30, 60, 100, 0.55);
+        }
+        .panel-section-title .ps-left {
+            flex-grow: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .panel-section-title .ps-summary {
+            font-size: 10px;
+            font-weight: normal;
+            color: #a8c8e8;
+            margin-left: 6px;
+        }
+        .panel-section-title .ps-arrow {
+            color: #a8c8e8;
+            flex-shrink: 0;
+        }
+        .panel-section-body {
+            padding: 10px;
+        }
+        .panel-section.collapsed .panel-section-body { display: none; }
+        .panel-section .control-group:last-child { margin-bottom: 0; }
 
         .shadow {
             position: absolute; 
@@ -540,71 +669,118 @@
         <div class="title" id="panelTitle">
             <span>Simulador de Sombras</span>
         </div>
-        <button id="toggleControlsBtn">Menos Opciones</button>
         <button id="hidePanelBtn">X</button>
 
         <div id="collapsible-content">
-            <div id="essential-controls">
-                <div class="control-group">
-                    <label for="dateSlider">Día del año: <span id="currentDate"></span></label>
-                    <div class="time-slider-container"><span>Ene</span><input type="range" id="dateSlider" min="1" max="365" ><span>Dic</span></div>
+            <div class="panel-section" id="secHorario" data-section="horario">
+                <div class="panel-section-title">
+                    <span class="ps-left">⏱ Horario <span class="ps-summary" id="sumHorario"></span></span>
+                    <span class="ps-arrow">▸</span>
                 </div>
-
-                <div class="control-group">
-                    <label for="timeSlider">Hora del día: <span id="currentTime">12:00</span></label>
-                    <div class="time-slider-container">
-                        <span>00:00</span>
-                        <input type="range" id="timeSlider" min="0" max="24" step="0.1" value="12">
-                        <span>24:00</span>
+                <div class="panel-section-body">
+                    <div class="control-group">
+                        <label for="dateSlider">Día del año: <span id="currentDate"></span></label>
+                        <div class="time-slider-container"><span>Ene</span><input type="range" id="dateSlider" min="1" max="365" ><span>Dic</span></div>
                     </div>
-                     <div style="display: flex; gap: 6px; margin-top: 8px;">
-                         <button id="animationBtn" style="flex: 1;">▶ Animar 24h</button>
-                         <button id="nowBtn" title="Sincronizar con hora actual">⦿ Ahora</button>
-                     </div>
-                </div>
-                 <div class="control-group">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="moonToggle" checked> Mostrar Simulación Lunar
-                    </label>
+                    <div class="control-group">
+                        <label for="timeSlider">Hora del día: <span id="currentTime">12:00</span></label>
+                        <div class="time-slider-container">
+                            <span>00:00</span>
+                            <input type="range" id="timeSlider" min="0" max="24" step="0.1" value="12">
+                            <span>24:00</span>
+                        </div>
+                        <div style="display: flex; gap: 6px; margin-top: 8px;">
+                            <button id="animationBtn" style="flex: 1;">▶ Animar 24h</button>
+                            <button id="nowBtn" title="Sincronizar con hora actual">⦿ Ahora</button>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div id="extra-controls">
-                <div class="control-group">
-                    <label for="objectHeightSlider">Altura Objeto: <span id="objectHeightValue">15</span> m</label>
-                    <input type="range" id="objectHeightSlider" min="1" max="50" value="15">
+
+            <div class="panel-section" id="secObjeto" data-section="objeto">
+                <div class="panel-section-title">
+                    <span class="ps-left">🏢 Objeto <span class="ps-summary" id="sumObjeto"></span></span>
+                    <span class="ps-arrow">▸</span>
                 </div>
-                <div class="control-group">
-                    <label for="objectWidthSlider">Ancho Objeto: <span id="objectWidthValue">10</span> m</label>
-                    <input type="range" id="objectWidthSlider" min="1" max="50" value="10">
-                </div>
-                <div class="control-group">
-                     <label>Ubicación</label>
-                     <div class="location-search">
-                         <input type="text" id="locationSearchInput" placeholder="Buscar ciudad...">
-                         <button id="locationSearchBtn">Buscar</button>
-                     </div>
-                     <div class="location-buttons">
-                         <button id="currentLocationBtn" title="Centrar en mi ubicación actual">📍 Mi Ubicación</button>
-                         <button id="lockMapBtn" title="Bloquear/Desbloquear el movimiento del mapa">🔒 Bloquear Mapa</button>
-                         <button id="realCompassBtn" title="Activar/desactivar brújula y rotación del mapa con el móvil">🛰️ Brújula Real</button>
-                     </div>
-                     <div class="capital-buttons">
-                         <button data-lat="40.4168" data-lng="-3.7038">Madrid</button>
-                         <button data-lat="41.3851" data-lng="2.1734">Barcelona</button>
-                         <button data-lat="37.3891" data-lng="-5.9845">Sevilla</button>
-                         <button data-lat="43.2630" data-lng="-2.9350">Bilbao</button>
-                     </div>
-                </div>
-                <div class="info-panel">
-                    <div class="solar-data">
-                        <div class="data-item"><span class="data-label">Altura Astro</span><span class="data-value" id="solarAltitude">-</span></div>
-                        <div class="data-item"><span class="data-label">Acimut Astro</span><span class="data-value" id="solarAzimuth">-</span></div>
-                        <div class="data-item"><span class="data-label">Longitud Sombra</span><span class="data-value" id="shadowLength">-</span></div>
-                        <div class="data-item"><span class="data-label">Astro Actual</span><span class="data-value" id="activeCelestial">-</span></div>
-                        <div class="data-item"><span class="data-label">Duración Día</span><span class="data-value" id="dayDuration">-</span></div>
-                        <div class="data-item"><span class="data-label">Mediodía Solar</span><span class="data-value" id="solarNoon">-</span></div>
-                        <div class="data-item" style="grid-column: 1 / -1;"><span class="data-label">Fase Lunar</span><span class="data-value" id="moonPhaseText">-</span></div>
+                <div class="panel-section-body">
+                    <div class="control-group">
+                        <label for="objectHeightSlider">Altura: <span id="objectHeightValue">15</span> m</label>
+                        <input type="range" id="objectHeightSlider" min="1" max="50" value="15">
                     </div>
+                    <div class="control-group">
+                        <label for="objectWidthSlider">Ancho: <span id="objectWidthValue">10</span> m</label>
+                        <input type="range" id="objectWidthSlider" min="1" max="50" value="10">
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-section" id="secUbicacion" data-section="ubicacion">
+                <div class="panel-section-title">
+                    <span class="ps-left">📍 Ubicación <span class="ps-summary" id="sumUbicacion"></span></span>
+                    <span class="ps-arrow">▸</span>
+                </div>
+                <div class="panel-section-body">
+                    <div class="control-group">
+                        <div class="location-search">
+                            <input type="text" id="locationSearchInput" placeholder="Buscar ciudad...">
+                            <button id="locationSearchBtn">Buscar</button>
+                        </div>
+                        <div class="location-buttons">
+                            <button id="currentLocationBtn" title="Centrar en mi ubicación actual">📍 Mi Ubicación</button>
+                            <button id="lockMapBtn" title="Bloquear/Desbloquear el movimiento del mapa">🔒 Bloquear Mapa</button>
+                            <button id="realCompassBtn" title="Activar/desactivar brújula y rotación del mapa con el móvil">🛰️ Brújula Real</button>
+                        </div>
+                        <div class="capital-buttons">
+                            <button data-lat="40.4168" data-lng="-3.7038">Madrid</button>
+                            <button data-lat="41.3851" data-lng="2.1734">Barcelona</button>
+                            <button data-lat="37.3891" data-lng="-5.9845">Sevilla</button>
+                            <button data-lat="43.2630" data-lng="-2.9350">Bilbao</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-section" id="secMediciones" data-section="mediciones">
+                <div class="panel-section-title">
+                    <span class="ps-left">🔭 Mediciones <span class="ps-summary" id="sumMediciones"></span></span>
+                    <span class="ps-arrow">▸</span>
+                </div>
+                <div class="panel-section-body">
+                    <div class="info-panel">
+                        <div class="solar-data">
+                            <div class="data-item"><span class="data-label">Altura Astro</span><span class="data-value" id="solarAltitude">-</span></div>
+                            <div class="data-item"><span class="data-label">Acimut Astro</span><span class="data-value" id="solarAzimuth">-</span></div>
+                            <div class="data-item"><span class="data-label">Longitud Sombra</span><span class="data-value" id="shadowLength">-</span></div>
+                            <div class="data-item"><span class="data-label">Astro Actual</span><span class="data-value" id="activeCelestial">-</span></div>
+                            <div class="data-item"><span class="data-label">Duración Día</span><span class="data-value" id="dayDuration">-</span></div>
+                            <div class="data-item"><span class="data-label">Mediodía Solar</span><span class="data-value" id="solarNoon">-</span></div>
+                            <div class="data-item" style="grid-column: 1 / -1;"><span class="data-label">Fase Lunar</span><span class="data-value" id="moonPhaseText">-</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-section" id="secCielo" data-section="cielo">
+                <div class="panel-section-title">
+                    <span class="ps-left">🌙 Luna y Estrellas <span class="ps-summary" id="sumCielo"></span></span>
+                    <span class="ps-arrow">▸</span>
+                </div>
+                <div class="panel-section-body">
+                    <div class="control-group" style="margin-bottom: 10px;">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="moonToggle" checked> Mostrar Simulación Lunar en la cúpula
+                        </label>
+                    </div>
+                    <div class="moon-block" id="moonBlock">
+                        <div class="moon-block-header">
+                            <span class="moon-emoji" id="moonEmoji">🌑</span>
+                            <span class="moon-name" id="moonName">—</span>
+                        </div>
+                        <div class="moon-data" id="moonData">—</div>
+                    </div>
+                    <div class="star-list-header" id="starListHeader">Estrellas visibles</div>
+                    <div class="star-list" id="starList"></div>
+                    <div class="star-list-toggle" id="starListToggle" style="display:none;">Ver más ▾</div>
                 </div>
             </div>
         </div>
@@ -627,7 +803,7 @@
               sunPathContainer = document.getElementById('sunPathContainer'),
               objectHeightSlider = document.getElementById('objectHeightSlider'), objectWidthSlider = document.getElementById('objectWidthSlider'),
               objectHeightValue = document.getElementById('objectHeightValue'), objectWidthValue = document.getElementById('objectWidthValue'),
-              toggleControlsBtn = document.getElementById('toggleControlsBtn'), hidePanelBtn = document.getElementById('hidePanelBtn'),
+              hidePanelBtn = document.getElementById('hidePanelBtn'),
               showPanelBtn = document.getElementById('showPanelBtn'), locationSearchInput = document.getElementById('locationSearchInput'),
               locationSearchBtn = document.getElementById('locationSearchBtn'), currentLocationBtn = document.getElementById('currentLocationBtn'),
               lockMapBtn = document.getElementById('lockMapBtn'), realCompassBtn = document.getElementById('realCompassBtn'),
@@ -643,7 +819,13 @@
               domeHoverDot = document.getElementById('domeHoverDot'),
               domeLegend = document.getElementById('domeLegend'),
               legendToggle = document.getElementById('legendToggle'),
-              constellationPopup = document.getElementById('constellationPopup');
+              constellationPopup = document.getElementById('constellationPopup'),
+              moonEmoji = document.getElementById('moonEmoji'),
+              moonName = document.getElementById('moonName'),
+              moonData = document.getElementById('moonData'),
+              starListHeader = document.getElementById('starListHeader'),
+              starList = document.getElementById('starList'),
+              starListToggle = document.getElementById('starListToggle');
         
         L.DomEvent.disableClickPropagation(controlsPanel);
         L.DomEvent.disableScrollPropagation(controlsPanel);
@@ -654,6 +836,9 @@
         const ANIMATION_DURATION = 15000;
 
         let currentDomeData = { sun: [], moon: [], center: {x:0,y:0}, radius: 0, date: null, lat: 0, lng: 0 };
+        let selectedStarName = null;
+        let starListExpanded = false;
+        const STAR_LIST_INITIAL_LIMIT = 12;
 
         const STAR_CATALOG = {
             "Polaris":{ra:2.530,dec:89.264,mag:1.98},"Dubhe":{ra:11.062,dec:61.751,mag:1.79},
@@ -717,6 +902,33 @@
             "Boyero":{latin:"Boötes",season:"Primavera-Verano",main:"Arcturus",info:"El boyero. Arturo es la estrella más brillante del hemisferio norte celeste.",stars:["Arcturus","Izar","Muphrid"],lines:[["Arcturus","Izar"],["Arcturus","Muphrid"]]}
         };
 
+        const STAR_TO_CONSTELLATION = {};
+        for (const [constName, c] of Object.entries(CONSTELLATIONS)) {
+            for (const starName of c.stars) {
+                if (!STAR_TO_CONSTELLATION[starName]) STAR_TO_CONSTELLATION[starName] = constName;
+            }
+        }
+
+        function findNextStarRise(starData, fromDate, lat, lng) {
+            let prev = equatorialToHorizontal(starData.ra, starData.dec, fromDate, lat, lng);
+            const stepMin = 10;
+            for (let i = 1; i <= 24 * 60 / stepMin; i++) {
+                const t = new Date(fromDate.getTime() + i * stepMin * 60 * 1000);
+                const cur = equatorialToHorizontal(starData.ra, starData.dec, t, lat, lng);
+                if (prev.alt <= 0 && cur.alt > 0) {
+                    let lo = new Date(fromDate.getTime() + (i - 1) * stepMin * 60 * 1000), hi = t;
+                    for (let k = 0; k < 12; k++) {
+                        const mid = new Date((lo.getTime() + hi.getTime()) / 2);
+                        const mp = equatorialToHorizontal(starData.ra, starData.dec, mid, lat, lng);
+                        if (mp.alt <= 0) lo = mid; else hi = mid;
+                    }
+                    return hi;
+                }
+                prev = cur;
+            }
+            return null;
+        }
+
         function equatorialToHorizontal(raHours, decDeg, date, lat, lng) {
             const raDeg = raHours * 15;
             const raRad = raDeg * Math.PI / 180;
@@ -748,7 +960,6 @@
         function drag(e) { if (!isDragging) return; const x = e.clientX - dragOffset.x; const y = e.clientY - dragOffset.y; controlsPanel.style.right = 'auto'; controlsPanel.style.left = `${x}px`; controlsPanel.style.top = `${y}px`; }
         function dragTouch(e) { if (!isDragging || e.touches.length !== 1) return; const x = e.touches[0].clientX - dragOffset.x; const y = e.touches[0].clientY - dragOffset.y; controlsPanel.style.right = 'auto'; controlsPanel.style.left = `${x}px`; controlsPanel.style.top = `${y}px`; }
         function stopDrag() { isDragging = false; controlsPanel.style.transition = 'all 0.3s ease';}
-        function toggleMinimizePanel() { controlsPanel.classList.toggle('minimized'); toggleControlsBtn.textContent = controlsPanel.classList.contains('minimized') ? 'Más Opciones' : 'Menos Opciones'; }
         function hidePanel() { controlsPanel.classList.add('hidden'); showPanelBtn.style.display = 'block'; }
         function showPanel() { controlsPanel.classList.remove('hidden'); showPanelBtn.style.display = 'none'; }
 
@@ -1641,10 +1852,19 @@
                         const star = document.createElementNS(svgNS, "circle");
                         star.setAttribute("cx", sx.toFixed(1));
                         star.setAttribute("cy", sy.toFixed(1));
-                        star.setAttribute("r", r.toFixed(1));
-                        star.setAttribute("fill", `rgba(255, 255, 235, ${b.toFixed(2)})`);
-                        if (s.mag < 1.5) {
-                            star.setAttribute("filter", "drop-shadow(0 0 2px rgba(255,255,220,0.6))");
+                        const isSelected = selectedStarName === name;
+                        if (isSelected) {
+                            star.setAttribute("r", (r * 2.2).toFixed(1));
+                            star.setAttribute("fill", "rgba(255, 220, 100, 1)");
+                            star.setAttribute("class", "star-highlighted");
+                            star.setAttribute("stroke", "rgba(255, 255, 255, 0.9)");
+                            star.setAttribute("stroke-width", "1.5");
+                        } else {
+                            star.setAttribute("r", r.toFixed(1));
+                            star.setAttribute("fill", `rgba(255, 255, 235, ${b.toFixed(2)})`);
+                            if (s.mag < 1.5) {
+                                star.setAttribute("filter", "drop-shadow(0 0 2px rgba(255,255,220,0.6))");
+                            }
                         }
                         starsGroup.appendChild(star);
                     }
@@ -1849,6 +2069,198 @@
             else if (phaseVal < 0.78) phaseName = 'Cuarto Menguante';
             else phaseName = 'Menguante';
             moonPhaseTextDisplay.textContent = `${phaseName} · ${Math.round(moonIll.fraction * 100)}%`;
+            updateNightSkySection(fullDate, lat, lng, moonIll, phaseName);
+        }
+
+        function updateNightSkySection(fullDate, lat, lng, moonIll, phaseName) {
+            if (!starList || !moonEmoji) return;
+            const moonPos = SunCalc.getMoonPosition(fullDate, lat, lng);
+            const moonAltDeg = moonPos.altitude * 180 / Math.PI;
+            const moonAzDeg = (moonPos.azimuth * 180 / Math.PI) + 180;
+            const moonTimes = SunCalc.getMoonTimes(fullDate, lat, lng);
+            const phaseVal = moonIll.phase;
+            let emoji;
+            if (phaseVal < 0.03 || phaseVal > 0.97) emoji = '🌑';
+            else if (phaseVal < 0.22) emoji = '🌒';
+            else if (phaseVal < 0.28) emoji = '🌓';
+            else if (phaseVal < 0.47) emoji = '🌔';
+            else if (phaseVal < 0.53) emoji = '🌕';
+            else if (phaseVal < 0.72) emoji = '🌖';
+            else if (phaseVal < 0.78) emoji = '🌗';
+            else emoji = '🌘';
+            moonEmoji.textContent = emoji;
+            moonName.textContent = `${phaseName} · ${Math.round(moonIll.fraction * 100)}%`;
+            const ageDays = (phaseVal * 29.53).toFixed(1);
+            const fmt = (d) => d && !isNaN(d) ? `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}` : '—';
+            const altTxt = moonAltDeg > 0 ? `${moonAltDeg.toFixed(0)}° sobre horizonte` : `${Math.abs(moonAltDeg).toFixed(0)}° bajo horizonte`;
+            moonData.innerHTML = `
+                <div><b>Edad:</b> ${ageDays} días</div>
+                <div><b>Altitud:</b> ${altTxt}</div>
+                <div><b>Salida:</b> ${fmt(moonTimes.rise)} · <b>Puesta:</b> ${fmt(moonTimes.set)}</div>
+            `;
+
+            const MAG_LIMIT = 2.5;
+            const candidates = [];
+            for (const [name, data] of Object.entries(STAR_CATALOG)) {
+                if (data.mag > MAG_LIMIT) continue;
+                const pos = equatorialToHorizontal(data.ra, data.dec, fullDate, lat, lng);
+                candidates.push({ name, data, pos, visible: pos.alt > 0 });
+            }
+            candidates.sort((a, b) => a.data.mag - b.data.mag);
+
+            const anyVisible = candidates.some(c => c.visible);
+            const sunPos = SunCalc.getPosition(fullDate, lat, lng);
+            const isDaytime = sunPos.altitude * 180 / Math.PI > -6;
+            if (isDaytime && !anyVisible) {
+                starListHeader.innerHTML = `Estrellas principales <span style="color:#8fa8c8;font-weight:normal;">(ninguna visible ahora)</span>`;
+            } else {
+                const visCount = candidates.filter(c => c.visible).length;
+                starListHeader.innerHTML = `Estrellas principales <span style="color:#8fa8c8;font-weight:normal;">(${visCount} visibles)</span>`;
+            }
+
+            const toRender = starListExpanded ? candidates : candidates.slice(0, STAR_LIST_INITIAL_LIMIT);
+            while (starList.firstChild) starList.removeChild(starList.firstChild);
+            for (const c of toRender) {
+                const item = document.createElement('div');
+                item.className = 'star-item' + (c.visible ? '' : ' below') + (selectedStarName === c.name ? ' selected' : '');
+                item.dataset.starName = c.name;
+                const dot = document.createElement('span');
+                dot.className = 'star-item-dot';
+                const size = Math.max(5, 11 - c.data.mag * 1.8);
+                dot.style.width = `${size}px`;
+                dot.style.height = `${size}px`;
+                item.appendChild(dot);
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'star-item-name';
+                const displayName = c.name.replace(/_/g, ' ');
+                const constName = STAR_TO_CONSTELLATION[c.name];
+                nameSpan.textContent = constName ? `${displayName} · ${constName}` : displayName;
+                item.appendChild(nameSpan);
+                if (!c.visible) {
+                    const rise = findNextStarRise(c.data, fullDate, lat, lng);
+                    if (rise) {
+                        const riseSpan = document.createElement('span');
+                        riseSpan.className = 'star-item-rise';
+                        riseSpan.textContent = `↑${fmt(rise)}`;
+                        item.appendChild(riseSpan);
+                    }
+                }
+                starList.appendChild(item);
+            }
+
+            if (candidates.length > STAR_LIST_INITIAL_LIMIT) {
+                starListToggle.style.display = 'block';
+                starListToggle.textContent = starListExpanded ? 'Ver menos ▴' : `Ver más (${candidates.length - STAR_LIST_INITIAL_LIMIT}) ▾`;
+            } else {
+                starListToggle.style.display = 'none';
+            }
+        }
+
+        function handleStarClick(name) {
+            if (!STAR_CATALOG[name]) return;
+            const data = STAR_CATALOG[name];
+            const dayOfYear = parseInt(dateSlider.value);
+            const date = dayOfYearToDate(dayOfYear);
+            const hour = parseFloat(timeSlider.value);
+            const fullDate = new Date(date.getTime() + hour * 3600 * 1000);
+            const centerLL = map.getCenter();
+            const pos = equatorialToHorizontal(data.ra, data.dec, fullDate, centerLL.lat, centerLL.lng);
+            if (pos.alt <= 0) {
+                const rise = findNextStarRise(data, fullDate, centerLL.lat, centerLL.lng);
+                if (rise) {
+                    const newDayOfYear = dateToDayOfYear(rise);
+                    const newHour = rise.getHours() + rise.getMinutes() / 60 + 0.05;
+                    dateSlider.value = newDayOfYear;
+                    timeSlider.value = newHour;
+                    selectedStarName = name;
+                    stopAnimation();
+                    updateDisplay(true);
+                    setTimeout(() => showStarPopup(name), 50);
+                    return;
+                }
+            }
+            selectedStarName = name;
+            showStarPopup(name);
+            updateDisplay(false);
+        }
+
+        function showStarPopup(name) {
+            if (!STAR_CATALOG[name]) return;
+            const data = STAR_CATALOG[name];
+            const dayOfYear = parseInt(dateSlider.value);
+            const date = dayOfYearToDate(dayOfYear);
+            const hour = parseFloat(timeSlider.value);
+            const fullDate = new Date(date.getTime() + hour * 3600 * 1000);
+            const centerLL = map.getCenter();
+            const pos = equatorialToHorizontal(data.ra, data.dec, fullDate, centerLL.lat, centerLL.lng);
+            const dW = sunPath.clientWidth, dH = sunPath.clientHeight;
+            const dCenter = { x: dW / 2, y: dH / 2 };
+            const dRadius = Math.min(dW, dH) / 2 * 0.85;
+            let px = dCenter.x, py = dCenter.y - dRadius * 0.5;
+            if (pos.alt > 0) {
+                const sp = getScreenPosFromAzAlt(pos.az, pos.alt, dRadius);
+                px = dCenter.x + sp.x;
+                py = dCenter.y + sp.y;
+            }
+            const constName = STAR_TO_CONSTELLATION[name] || '—';
+            const displayName = name.replace(/_/g, ' ');
+            let magDesc;
+            if (data.mag < 0) magDesc = 'muy brillante';
+            else if (data.mag < 1.5) magDesc = 'brillante';
+            else if (data.mag < 2.5) magDesc = 'media';
+            else magDesc = 'débil';
+            const rise = findNextStarRise(data, fullDate, centerLL.lat, centerLL.lng);
+            const fmt = (d) => d && !isNaN(d) ? `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}` : '—';
+            const altTxt = pos.alt > 0 ? `${pos.alt.toFixed(1)}°` : `bajo horizonte`;
+            constellationPopup.innerHTML = `
+                <div class="cp-title">✦ ${displayName}</div>
+                <div class="cp-latin">${constName}</div>
+                <div class="cp-row"><b>Magnitud:</b> ${data.mag.toFixed(2)} (${magDesc})</div>
+                <div class="cp-row"><b>Altura:</b> ${altTxt}</div>
+                <div class="cp-row"><b>Acimut:</b> ${pos.az.toFixed(1)}°</div>
+                <div class="cp-row"><b>Próxima salida:</b> ${fmt(rise)}</div>
+            `;
+            constellationPopup.style.left = `${px}px`;
+            constellationPopup.style.top = `${py}px`;
+            constellationPopup.style.display = 'block';
+            if (constPopupTimer) clearTimeout(constPopupTimer);
+            constPopupTimer = setTimeout(() => {
+                constellationPopup.style.display = 'none';
+                selectedStarName = null;
+                updateDisplay(false);
+            }, 8000);
+        }
+
+        function updateSectionSummaries() {
+            const sumHorario = document.getElementById('sumHorario');
+            const sumObjeto = document.getElementById('sumObjeto');
+            const sumUbicacion = document.getElementById('sumUbicacion');
+            const sumMediciones = document.getElementById('sumMediciones');
+            const sumCielo = document.getElementById('sumCielo');
+            if (sumHorario) {
+                const h = Math.floor(parseFloat(timeSlider.value));
+                const m = Math.round((parseFloat(timeSlider.value) - h) * 60);
+                const d = dayOfYearToDate(parseInt(dateSlider.value));
+                sumHorario.textContent = `· ${d.toLocaleDateString('es-ES',{day:'numeric',month:'short'})} ${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}`;
+            }
+            if (sumObjeto) {
+                sumObjeto.textContent = `· ${objectWidthSlider.value}×${objectHeightSlider.value}m`;
+            }
+            if (sumUbicacion) {
+                const c = map.getCenter();
+                sumUbicacion.textContent = `· ${c.lat.toFixed(2)},${c.lng.toFixed(2)}`;
+            }
+            if (sumMediciones) {
+                const alt = solarAltitudeDisplay.textContent;
+                const sh = shadowLengthDisplay.textContent;
+                const astro = activeCelestialDisplay.textContent;
+                if (alt !== '-') sumMediciones.textContent = `· ${astro} ${alt} · sombra ${sh}`;
+                else sumMediciones.textContent = '· sin astro';
+            }
+            if (sumCielo) {
+                const mn = moonName ? moonName.textContent : '';
+                sumCielo.textContent = mn && mn !== '—' ? `· ${mn}` : '';
+            }
         }
 
         function updateDisplay(forcePathRedraw = false) {
@@ -1866,6 +2278,7 @@
                  sunPath.dataset.cacheKey = cacheKey;
             }
             updateShadowAndMarkers(date, hour, center.lat, center.lng);
+            updateSectionSummaries();
         }
 
         function stopAnimation() {
@@ -2043,7 +2456,6 @@
         currentLocationBtn.addEventListener('click', getCurrentLocation);
         lockMapBtn.addEventListener('click', toggleMapLock);
         realCompassBtn.addEventListener('click', toggleRealCompass);
-        toggleControlsBtn.addEventListener('click', toggleMinimizePanel);
         hidePanelBtn.addEventListener('click', hidePanel);
         showPanelBtn.addEventListener('click', showPanel);
         locationSearchBtn.addEventListener('click', searchLocation);
@@ -2072,6 +2484,69 @@
             if (e.target === legendToggle) return;
             domeLegend.classList.toggle('collapsed');
             legendToggle.textContent = domeLegend.classList.contains('collapsed') ? '▸' : '▾';
+        });
+
+        const defaultOpenSections = { horario: true, objeto: false, ubicacion: false, mediciones: false, cielo: false };
+        let sectionsState = { ...defaultOpenSections };
+        try {
+            const saved = localStorage.getItem('simSombras_sections');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                if (parsed && typeof parsed === 'object') {
+                    sectionsState = { ...defaultOpenSections, ...parsed };
+                }
+            }
+        } catch (e) {}
+
+        const applySectionState = () => {
+            document.querySelectorAll('.panel-section').forEach(sec => {
+                const key = sec.dataset.section;
+                const open = sectionsState[key];
+                sec.classList.toggle('collapsed', !open);
+                const arrow = sec.querySelector('.ps-arrow');
+                if (arrow) arrow.textContent = open ? '▾' : '▸';
+            });
+        };
+        applySectionState();
+
+        document.querySelectorAll('.panel-section').forEach(sec => {
+            const title = sec.querySelector('.panel-section-title');
+            if (!title) return;
+            title.addEventListener('click', () => {
+                const key = sec.dataset.section;
+                sectionsState[key] = !sectionsState[key];
+                applySectionState();
+                try { localStorage.setItem('simSombras_sections', JSON.stringify(sectionsState)); } catch (e) {}
+            });
+        });
+
+        starList.addEventListener('click', (e) => {
+            const item = e.target.closest('.star-item');
+            if (!item) return;
+            const name = item.dataset.starName;
+            if (!name) return;
+            handleStarClick(name);
+        });
+
+        starListToggle.addEventListener('click', () => {
+            starListExpanded = !starListExpanded;
+            const dayOfYear = parseInt(dateSlider.value);
+            const date = dayOfYearToDate(dayOfYear);
+            const hour = parseFloat(timeSlider.value);
+            const fullDate = new Date(date.getTime() + hour * 3600 * 1000);
+            const c = map.getCenter();
+            const moonIll = SunCalc.getMoonIllumination(fullDate);
+            const phaseVal = moonIll.phase;
+            let phaseName;
+            if (phaseVal < 0.03 || phaseVal > 0.97) phaseName = 'Nueva';
+            else if (phaseVal < 0.22) phaseName = 'Creciente';
+            else if (phaseVal < 0.28) phaseName = 'Cuarto Creciente';
+            else if (phaseVal < 0.47) phaseName = 'Gibosa Creciente';
+            else if (phaseVal < 0.53) phaseName = 'Llena';
+            else if (phaseVal < 0.72) phaseName = 'Gibosa Menguante';
+            else if (phaseVal < 0.78) phaseName = 'Cuarto Menguante';
+            else phaseName = 'Menguante';
+            updateNightSkySection(fullDate, c.lat, c.lng, moonIll, phaseName);
         });
 
         const hideTooltip = () => {
