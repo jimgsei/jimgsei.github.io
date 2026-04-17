@@ -234,20 +234,47 @@
 
         .constellation-popup {
             position: absolute;
-            background: rgba(13, 27, 42, 0.95);
-            border: 1px solid rgba(150, 200, 255, 0.6);
+            background: rgba(13, 27, 42, 0.96);
+            border: 1px solid rgba(150, 200, 255, 0.7);
             color: #d8e9ff;
-            font-size: 12px;
-            font-weight: bold;
-            padding: 6px 12px;
-            border-radius: 5px;
-            pointer-events: none;
+            font-size: 11px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            pointer-events: auto;
+            cursor: pointer;
             z-index: 330;
-            transform: translate(-50%, calc(-100% - 8px));
-            white-space: nowrap;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+            transform: translate(-50%, calc(-100% - 10px));
+            box-shadow: 0 4px 14px rgba(0,0,0,0.7);
             display: none;
-            text-shadow: 0 0 2px rgba(150,200,255,0.4);
+            max-width: 240px;
+            line-height: 1.4;
+        }
+        .constellation-popup .cp-title {
+            font-size: 13px;
+            font-weight: bold;
+            color: #b9e5ff;
+            margin-bottom: 2px;
+        }
+        .constellation-popup .cp-latin {
+            font-size: 10px;
+            font-style: italic;
+            color: #8fa8c8;
+            margin-bottom: 6px;
+        }
+        .constellation-popup .cp-row {
+            font-size: 10.5px;
+            margin: 2px 0;
+        }
+        .constellation-popup .cp-row b {
+            color: #a8c8e8;
+            font-weight: 600;
+        }
+        .constellation-popup .cp-info {
+            font-size: 10.5px;
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px solid rgba(150,200,255,0.2);
+            color: #c8d9e8;
         }
         .constellation-popup::after {
             content: '';
@@ -255,8 +282,8 @@
             top: 100%;
             left: 50%;
             transform: translateX(-50%);
-            border: 5px solid transparent;
-            border-top-color: rgba(13, 27, 42, 0.95);
+            border: 6px solid transparent;
+            border-top-color: rgba(13, 27, 42, 0.96);
         }
 
         .shadow {
@@ -671,23 +698,23 @@
         };
 
         const CONSTELLATIONS = {
-            "Osa Mayor":{stars:["Dubhe","Merak","Phecda","Megrez","Alioth","Mizar","Alkaid"],lines:[["Dubhe","Merak"],["Merak","Phecda"],["Phecda","Megrez"],["Megrez","Dubhe"],["Megrez","Alioth"],["Alioth","Mizar"],["Mizar","Alkaid"]]},
-            "Osa Menor":{stars:["Polaris","Kochab","Pherkad"],lines:[["Polaris","Kochab"],["Kochab","Pherkad"]]},
-            "Casiopea":{stars:["Schedar","Caph","Gamma_Cas","Ruchbah","Segin"],lines:[["Caph","Schedar"],["Schedar","Gamma_Cas"],["Gamma_Cas","Ruchbah"],["Ruchbah","Segin"]]},
-            "Orión":{stars:["Betelgeuse","Bellatrix","Mintaka","Alnilam","Alnitak","Saiph","Rigel"],lines:[["Betelgeuse","Bellatrix"],["Bellatrix","Mintaka"],["Mintaka","Alnilam"],["Alnilam","Alnitak"],["Alnitak","Saiph"],["Saiph","Rigel"],["Rigel","Mintaka"],["Betelgeuse","Alnitak"]]},
-            "Tauro":{stars:["Aldebaran","Elnath"],lines:[["Aldebaran","Elnath"]]},
-            "Géminis":{stars:["Castor","Pollux","Alhena"],lines:[["Castor","Pollux"],["Pollux","Alhena"]]},
-            "Can Mayor":{stars:["Sirius","Mirzam","Adhara","Wezen"],lines:[["Sirius","Mirzam"],["Sirius","Adhara"],["Adhara","Wezen"],["Wezen","Sirius"]]},
-            "Leo":{stars:["Regulus","Denebola","Algieba","Zosma","Chertan"],lines:[["Regulus","Algieba"],["Algieba","Zosma"],["Zosma","Denebola"],["Denebola","Chertan"],["Chertan","Regulus"]]},
-            "Cisne":{stars:["Deneb","Sadr","Gienah_Cyg","Delta_Cyg","Albireo"],lines:[["Deneb","Sadr"],["Sadr","Albireo"],["Sadr","Gienah_Cyg"],["Sadr","Delta_Cyg"]]},
-            "Lira":{stars:["Vega","Sheliak","Sulafat"],lines:[["Vega","Sheliak"],["Sheliak","Sulafat"],["Sulafat","Vega"]]},
-            "Águila":{stars:["Altair","Tarazed","Alshain"],lines:[["Tarazed","Altair"],["Altair","Alshain"]]},
-            "Escorpión":{stars:["Antares","Shaula","Sargas","Dschubba"],lines:[["Dschubba","Antares"],["Antares","Sargas"],["Sargas","Shaula"]]},
-            "Cruz del Sur":{stars:["Acrux","Gacrux","Mimosa","Imai"],lines:[["Acrux","Gacrux"],["Mimosa","Imai"]]},
-            "Centauro":{stars:["Rigil_Kent","Hadar"],lines:[["Rigil_Kent","Hadar"]]},
-            "Perseo":{stars:["Mirfak","Algol","Atik"],lines:[["Mirfak","Algol"],["Mirfak","Atik"]]},
-            "Pegaso":{stars:["Markab","Scheat","Algenib","Alpheratz","Enif"],lines:[["Markab","Scheat"],["Scheat","Alpheratz"],["Alpheratz","Algenib"],["Algenib","Markab"],["Markab","Enif"]]},
-            "Boyero":{stars:["Arcturus","Izar","Muphrid"],lines:[["Arcturus","Izar"],["Arcturus","Muphrid"]]}
+            "Osa Mayor":{latin:"Ursa Major",season:"Todo el año (norte)",main:"Alioth",info:"Contiene el asterismo del Carro, siete estrellas que apuntan a Polaris.",stars:["Dubhe","Merak","Phecda","Megrez","Alioth","Mizar","Alkaid"],lines:[["Dubhe","Merak"],["Merak","Phecda"],["Phecda","Megrez"],["Megrez","Dubhe"],["Megrez","Alioth"],["Alioth","Mizar"],["Mizar","Alkaid"]]},
+            "Osa Menor":{latin:"Ursa Minor",season:"Todo el año (norte)",main:"Polaris",info:"Alberga la Estrella Polar, que marca el norte celeste.",stars:["Polaris","Kochab","Pherkad"],lines:[["Polaris","Kochab"],["Kochab","Pherkad"]]},
+            "Casiopea":{latin:"Cassiopeia",season:"Todo el año (norte)",main:"Schedar",info:"Forma una W característica opuesta a la Osa Mayor respecto al Polo.",stars:["Schedar","Caph","Gamma_Cas","Ruchbah","Segin"],lines:[["Caph","Schedar"],["Schedar","Gamma_Cas"],["Gamma_Cas","Ruchbah"],["Ruchbah","Segin"]]},
+            "Orión":{latin:"Orion",season:"Invierno",main:"Rigel",info:"El cazador mitológico. Destacan el Cinturón de Orión y la estrella Betelgeuse.",stars:["Betelgeuse","Bellatrix","Mintaka","Alnilam","Alnitak","Saiph","Rigel"],lines:[["Betelgeuse","Bellatrix"],["Bellatrix","Mintaka"],["Mintaka","Alnilam"],["Alnilam","Alnitak"],["Alnitak","Saiph"],["Saiph","Rigel"],["Rigel","Mintaka"],["Betelgeuse","Alnitak"]]},
+            "Tauro":{latin:"Taurus",season:"Invierno",main:"Aldebaran",info:"El toro zodiacal. Aldebarán es su ojo rojo brillante.",stars:["Aldebaran","Elnath"],lines:[["Aldebaran","Elnath"]]},
+            "Géminis":{latin:"Gemini",season:"Invierno-Primavera",main:"Pollux",info:"Los gemelos Cástor y Pólux. Constelación zodiacal.",stars:["Castor","Pollux","Alhena"],lines:[["Castor","Pollux"],["Pollux","Alhena"]]},
+            "Can Mayor":{latin:"Canis Major",season:"Invierno",main:"Sirius",info:"Contiene Sirio, la estrella más brillante del cielo nocturno.",stars:["Sirius","Mirzam","Adhara","Wezen"],lines:[["Sirius","Mirzam"],["Sirius","Adhara"],["Adhara","Wezen"],["Wezen","Sirius"]]},
+            "Leo":{latin:"Leo",season:"Primavera",main:"Regulus",info:"León zodiacal. La hoz marca su cabeza y melena.",stars:["Regulus","Denebola","Algieba","Zosma","Chertan"],lines:[["Regulus","Algieba"],["Algieba","Zosma"],["Zosma","Denebola"],["Denebola","Chertan"],["Chertan","Regulus"]]},
+            "Cisne":{latin:"Cygnus",season:"Verano",main:"Deneb",info:"También llamada Cruz del Norte. Vuela por la Vía Láctea.",stars:["Deneb","Sadr","Gienah_Cyg","Delta_Cyg","Albireo"],lines:[["Deneb","Sadr"],["Sadr","Albireo"],["Sadr","Gienah_Cyg"],["Sadr","Delta_Cyg"]]},
+            "Lira":{latin:"Lyra",season:"Verano",main:"Vega",info:"Pequeña pero con Vega, una de las estrellas más brillantes del verano.",stars:["Vega","Sheliak","Sulafat"],lines:[["Vega","Sheliak"],["Sheliak","Sulafat"],["Sulafat","Vega"]]},
+            "Águila":{latin:"Aquila",season:"Verano",main:"Altair",info:"Con Vega y Deneb forma el Triángulo del Verano.",stars:["Altair","Tarazed","Alshain"],lines:[["Tarazed","Altair"],["Altair","Alshain"]]},
+            "Escorpión":{latin:"Scorpius",season:"Verano",main:"Antares",info:"Zodiacal. Antares, su corazón rojo, rivaliza con Marte en color.",stars:["Antares","Shaula","Sargas","Dschubba"],lines:[["Dschubba","Antares"],["Antares","Sargas"],["Sargas","Shaula"]]},
+            "Cruz del Sur":{latin:"Crux",season:"Otoño-Invierno (sur)",main:"Acrux",info:"La constelación más pequeña. Señala el polo sur celeste.",stars:["Acrux","Gacrux","Mimosa","Imai"],lines:[["Acrux","Gacrux"],["Mimosa","Imai"]]},
+            "Centauro":{latin:"Centaurus",season:"Otoño-Invierno (sur)",main:"Rigil Kent.",info:"Alberga Alfa Centauri, el sistema estelar más cercano al Sol.",stars:["Rigil_Kent","Hadar"],lines:[["Rigil_Kent","Hadar"]]},
+            "Perseo":{latin:"Perseus",season:"Otoño-Invierno",main:"Mirfak",info:"El héroe que decapitó a Medusa. Contiene Algol, estrella variable famosa.",stars:["Mirfak","Algol","Atik"],lines:[["Mirfak","Algol"],["Mirfak","Atik"]]},
+            "Pegaso":{latin:"Pegasus",season:"Otoño",main:"Markab",info:"El caballo alado. Su Gran Cuadrado domina el cielo otoñal.",stars:["Markab","Scheat","Algenib","Alpheratz","Enif"],lines:[["Markab","Scheat"],["Scheat","Alpheratz"],["Alpheratz","Algenib"],["Algenib","Markab"],["Markab","Enif"]]},
+            "Boyero":{latin:"Boötes",season:"Primavera-Verano",main:"Arcturus",info:"El boyero. Arturo es la estrella más brillante del hemisferio norte celeste.",stars:["Arcturus","Izar","Muphrid"],lines:[["Arcturus","Izar"],["Arcturus","Muphrid"]]}
         };
 
         function equatorialToHorizontal(raHours, decDeg, date, lat, lng) {
@@ -864,15 +891,46 @@
             `;
             svg.appendChild(defs);
 
-            const domeBg = document.createElementNS(svgNS, "ellipse");
-            domeBg.setAttribute("cx", center.x);
-            domeBg.setAttribute("cy", horizonCy);
-            domeBg.setAttribute("rx", horizonRx);
-            domeBg.setAttribute("ry", horizonRy);
-            domeBg.setAttribute("fill", "url(#domeGrad)");
-            domeBg.setAttribute("stroke", "rgba(255,255,255,0.5)");
-            domeBg.setAttribute("stroke-width", "2");
-            svg.appendChild(domeBg);
+            const allDomePoints = [];
+            for (let az = 0; az < 360; az += 4) {
+                for (let alt = 0; alt <= 90; alt += 4) {
+                    const p = getScreenPosFromAzAlt(az, alt, radius);
+                    allDomePoints.push([center.x + p.x, center.y + p.y]);
+                }
+            }
+            const cross = (O, A, B) => (A[0]-O[0])*(B[1]-O[1]) - (A[1]-O[1])*(B[0]-O[0]);
+            const sortedPts = allDomePoints.slice().sort((a,b) => a[0]-b[0] || a[1]-b[1]);
+            const lowerHull = [];
+            for (const p of sortedPts) {
+                while (lowerHull.length >= 2 && cross(lowerHull[lowerHull.length-2], lowerHull[lowerHull.length-1], p) <= 0) lowerHull.pop();
+                lowerHull.push(p);
+            }
+            const upperHull = [];
+            for (let i = sortedPts.length - 1; i >= 0; i--) {
+                const p = sortedPts[i];
+                while (upperHull.length >= 2 && cross(upperHull[upperHull.length-2], upperHull[upperHull.length-1], p) <= 0) upperHull.pop();
+                upperHull.push(p);
+            }
+            const hull = lowerHull.slice(0, -1).concat(upperHull.slice(0, -1));
+            let skyD = `M ${hull[0][0].toFixed(1)} ${hull[0][1].toFixed(1)}`;
+            for (let i = 1; i < hull.length; i++) skyD += ` L ${hull[i][0].toFixed(1)} ${hull[i][1].toFixed(1)}`;
+            skyD += ' Z';
+            const skyPath = document.createElementNS(svgNS, "path");
+            skyPath.setAttribute("d", skyD);
+            skyPath.setAttribute("fill", "url(#domeGrad)");
+            skyPath.setAttribute("stroke", "rgba(255,255,255,0.4)");
+            skyPath.setAttribute("stroke-width", "1.5");
+            svg.appendChild(skyPath);
+
+            const horizonLine = document.createElementNS(svgNS, "ellipse");
+            horizonLine.setAttribute("cx", center.x);
+            horizonLine.setAttribute("cy", horizonCy);
+            horizonLine.setAttribute("rx", horizonRx);
+            horizonLine.setAttribute("ry", horizonRy);
+            horizonLine.setAttribute("fill", "none");
+            horizonLine.setAttribute("stroke", "rgba(255,255,255,0.55)");
+            horizonLine.setAttribute("stroke-width", "1.5");
+            svg.appendChild(horizonLine);
 
             const hazeBand = document.createElementNS(svgNS, "ellipse");
             hazeBand.setAttribute("cx", center.x);
@@ -2078,28 +2136,36 @@
         sunPathContainer.addEventListener('touchend', hideTooltip);
 
         let constPopupTimer = null;
-        const showConstellationPopup = (clientX, clientY, name) => {
-            const rect = sunPathContainer.getBoundingClientRect();
-            const cx = rect.left + rect.width / 2;
-            const cy = rect.top + rect.height / 2;
-            let rx = clientX - cx;
-            let ry = clientY - cy;
-            if (isRealCompassActive || Math.abs(currentHeading) > 0.5) {
-                const a = currentHeading * Math.PI / 180;
-                const cosA = Math.cos(a), sinA = Math.sin(a);
-                const nrx = rx * cosA - ry * sinA;
-                const nry = rx * sinA + ry * cosA;
-                rx = nrx; ry = nry;
-            }
-            const mx = rx + rect.width / 2;
-            const my = ry + rect.height / 2;
-            constellationPopup.textContent = name;
-            constellationPopup.style.left = `${mx}px`;
-            constellationPopup.style.top = `${my}px`;
+
+        const buildConstellationHTML = (name) => {
+            const c = CONSTELLATIONS[name];
+            if (!c) return `<div class="cp-title">${name}</div>`;
+            const mainStar = c.main;
+            const mainData = STAR_CATALOG[mainStar.replace(/\s/g, '_')] || STAR_CATALOG[mainStar];
+            const magTxt = mainData ? `mag ${mainData.mag.toFixed(2)}` : '';
+            return `
+                <div class="cp-title">${name}</div>
+                <div class="cp-latin">${c.latin}</div>
+                <div class="cp-row"><b>Temporada:</b> ${c.season}</div>
+                <div class="cp-row"><b>Estrella principal:</b> ${c.main}${magTxt ? ' ('+magTxt+')' : ''}</div>
+                <div class="cp-row"><b>Estrellas visibles:</b> ${c.stars.length}</div>
+                <div class="cp-info">${c.info}</div>
+            `;
+        };
+
+        const showPopupAt = (x, y, name) => {
+            constellationPopup.innerHTML = buildConstellationHTML(name);
+            constellationPopup.style.left = `${x}px`;
+            constellationPopup.style.top = `${y}px`;
             constellationPopup.style.display = 'block';
             if (constPopupTimer) clearTimeout(constPopupTimer);
-            constPopupTimer = setTimeout(() => { constellationPopup.style.display = 'none'; }, 2500);
+            constPopupTimer = setTimeout(() => { constellationPopup.style.display = 'none'; }, 6000);
         };
+
+        constellationPopup.addEventListener('click', () => {
+            constellationPopup.style.display = 'none';
+            if (constPopupTimer) clearTimeout(constPopupTimer);
+        });
 
         const handleConstellationClick = (clientX, clientY) => {
             const rect = sunPathContainer.getBoundingClientRect();
@@ -2129,12 +2195,7 @@
                 if (d < bestDist) { bestDist = d; best = { name: hit.getAttribute('data-const-name'), x: hx, y: hy }; }
             }
             if (best) {
-                constellationPopup.textContent = best.name;
-                constellationPopup.style.left = `${best.x}px`;
-                constellationPopup.style.top = `${best.y}px`;
-                constellationPopup.style.display = 'block';
-                if (constPopupTimer) clearTimeout(constPopupTimer);
-                constPopupTimer = setTimeout(() => { constellationPopup.style.display = 'none'; }, 2500);
+                showPopupAt(best.x, best.y, best.name);
                 return true;
             }
             return false;
