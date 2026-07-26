@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monitor Sísmico España - Tiempo Real y Didáctico</title>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    @keyframes pulse-wave {
+      0% { transform: scale(0.2); opacity: 0.9; }
+      100% { transform: scale(3.5); opacity: 0; }
+    }
+
+    .seismic-pulse {
+      position: absolute;
+      border-radius: 50%;
+      border: 2px solid #ef4444;
+      background: rgba(239, 68, 68, 0.25);
+      animation: pulse-wave 2s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+      pointer-events: none;
+    }
+
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #020617;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 3px;
+    }
+
+    .leaflet-popup-content-wrapper {
+      background-color: #0f172a;
+      color: #f8fafc;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 0px;
+    }
+    .leaflet-popup-content {
+      margin: 12px;
+    }
+    .leaflet-popup-tip {
+      background-color: #0f172a;
+    }
+
+    .no-tap-highlight {
+      -webkit-tap-highlight-color: transparent;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans h-screen flex flex-col overflow-hidden no-tap-highlight">
+
+  <header class="bg-slate-900 border-b border-slate-800 px-3 py-2.5 flex items-center justify-between gap-2 shrink-0 shadow-md">
+    <div class="flex items-center space-x-2 min-w-0">
+      <div class="relative flex items-center justify-center shrink-0">
+        <span class="animate-ping absolute inline-flex h-3.5 w-3.5 rounded-full bg-red-500 opacity-75"></span>
+        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-600"></span>
+      </div>
+      <div class="min-w-0">
+        <h1 class="text-sm sm:text-base font-bold tracking-wide text-white truncate flex items-center gap-1.5">
+          <span>Sismología España</span>
+          <span class="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">DIRECTO</span>
+        </h1>
+        <p class="text-[10px] text-slate-400 truncate hidden sm:block">USGS FDSN • GeoJSON • Red Nacional</p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-1.5 shrink-0">
+      <button id="notify-btn" onclick="requestNotificationPermission()" class="flex items-center gap-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-2 py-1.5 rounded-lg text-xs font-medium transition">
+        <i data-lucide="bell" id="bell-icon" class="w-3.5 h-3.5 text-amber-400"></i>
+        <span id="notify-status" class="hidden md:inline text-[11px]">Alertas</span>
+      </button>
+
+      <button onclick="toggleDidacticModal()" class="flex items-center gap-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2.5 py-1.5 rounded-lg text-xs font-medium transition">
+        <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
+        <span class="hidden sm:inline text-[11px]">Guía Didáctica</span>
+      </button>
+
+      <button onclick="fetchSeismicData()" class="flex items-center gap-1 bg-sky-600 hover:bg-sky-500 text-white px-2.5 py-1.5 rounded-lg text-xs font-medium transition shadow-sm">
+        <i data-lucide="refresh-cw" id="refresh-icon" class="w-3.5 h-3.5"></i>
+      </button>
+    </div>
+  </header>
+
+  <div class="flex-1 flex flex-col md:flex-row overflow-hidden relative">
+
+    <aside class="w-full md:w-80 lg:w-96 bg-slate-900/95 border-r border-slate-800 flex flex-col shrink-0 z-10 h-1/2 md:h-full order-2 md:order-1">
+      
+      <div class="p-2.5 grid grid-cols-3 gap-1.5 border-b border-slate-800 bg-slate-950/60">
+        <div class="bg-slate-900 p-2 rounded-lg border border-slate-800 text-center">
+          <span class="text-[9px] text-slate-400 uppercase font-medium block">Total</span>
+          <span id="stat-total" class="text-sm font-bold text-sky-400">0</span>
+        </div>
+        <div class="bg-slate-900 p-2 rounded-lg border border-slate-800 text-center">
+          <span class="text-[9px] text-slate-400 uppercase font-medium block">Mag. Máx</span>
+          <span id="stat-max" class="text-sm font-bold text-amber-400">-</span>
+        </div>
+        <div class="bg-slate-900 p-2 rounded-lg border border-slate-800 text-center">
+          <span class="text-[9px] text-slate-400 uppercase font-medium block">Último</span>
+          <span id="stat-last-time" class="text-xs font-bold text-emerald-400 truncate block">--:--</span>
+        </div>
+      </div>
+
+      <div class="p-2 border-b border-slate-800 bg-slate-900 space-y-2">
+        <div class="grid grid-cols-2 gap-1.5">
+          <select id="filter-days" onchange="fetchSeismicData()" class="bg-slate-950 border border-slate-800 text-slate-200 text-xs rounded-lg p-1.5 outline-none">
+            <option value="1">Últimas 24h</option>
+            <option value="7" selected>Últimos 7 días</option>
+            <option value="30">Últimos 30 días</option>
+          </select>
+
+          <select id="filter-region" onchange="filterAndRenderData()" class="bg-slate-950 border border-slate-800 text-slate-200 text-xs rounded-lg p-1.5 outline-none">
+            <option value="all">Toda España</option>
+            <option value="canarias">Canarias</option>
+            <option value="sur">Sur / Béticas</option>
+            <option value="norte">Norte / Pirineos</option>
+          </select>
+        </div>
+
+        <div class="flex items-center justify-between text-[11px] text-slate-400 px-0.5">
+          <label class="flex items-center gap-1.5 cursor-pointer">
+            <input type="checkbox" id="min-mag-check" onchange="filterAndRenderData()" class="rounded border-slate-800 bg-slate-950 text-sky-500">
+            <span>Solo Mag ≥ 2.0</span>
+          </label>
+          <span id="last-update-time" class="text-[10px] text-slate-500">Actualizando...</span>
+        </div>
+      </div>
+
+      <div class="flex-1 overflow-y-auto" id="quake-list-container">
+        <ul id="quake-list" class="divide-y divide-slate-800/60">
+          <li class="p-6 text-center text-slate-500 text-xs">Cargando eventos sísmicos en tiempo real...</li>
+        </ul>
+      </div>
+
+      <div class="p-2.5 bg-slate-950 border-t border-slate-800 text-[10px] space-y-1 shrink-0">
+        <div class="flex items-center justify-between text-slate-400 font-medium">
+          <span>Profundidad (Hipocentro):</span>
+          <span class="text-slate-500">Sismología Didáctica</span>
+        </div>
+        <div class="grid grid-cols-3 gap-1 text-center font-medium">
+          <span class="bg-rose-500/20 text-rose-300 border border-rose-500/30 rounded py-0.5">&lt;30km Sup.</span>
+          <span class="bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded py-0.5">30-150km Inter.</span>
+          <span class="bg-sky-500/20 text-sky-300 border border-sky-500/30 rounded py-0.5">&gt;150km Prof.</span>
+        </div>
+      </div>
+    </aside>
+
+    <main class="flex-1 relative bg-slate-950 h-1/2 md:h-full order-1 md:order-2">
+      <div id="map" class="w-full h-full z-0"></div>
+
+      <div class="absolute bottom-3 right-3 bg-slate-900/90 backdrop-blur border border-slate-800 p-2 rounded-lg shadow-lg z-[400] text-[10px] hidden sm:block max-w-[200px]">
+        <div class="font-bold text-slate-300 mb-1">Leyenda Interactiva</div>
+        <p class="text-slate-400 leading-tight mb-1">Círculo = Magnitud | Color = Profundidad. Toca cualquier marcador para simular el sonido sísmico.</p>
+        <div class="flex justify-between border-t border-slate-800 pt-1 text-[9px]">
+          <span class="text-rose-400">● Más Sentido</span>
+          <span class="text-sky-400">● Menos Sentido</span>
+        </div>
+      </div>
+    </main>
+
+  </div>
+
+  <div id="didactic-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[1000] hidden flex items-center justify-center p-3">
+    <div class="bg-slate-900 border border-slate-800 rounded-xl max-w-xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+      
+      <div class="p-3 border-b border-slate-800 flex items-center justify-between bg-slate-950">
+        <div class="flex items-center gap-2">
+          <i data-lucide="graduation-cap" class="w-4 h-4 text-amber-400"></i>
+          <h2 class="font-bold text-sm text-slate-100">Guía de Sismología y Datos Completos</h2>
+        </div>
+        <button onclick="toggleDidacticModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="flex border-b border-slate-800 bg-slate-950/50 text-[11px] font-medium overflow-x-auto">
+        <button onclick="switchTab('data')" id="tab-btn-data" class="flex-1 min-w-[90px] py-2 px-2 border-b-2 border-sky-400 text-sky-400 font-semibold transition">Parámetros</button>
+        <button onclick="switchTab('waves')" id="tab-btn-waves" class="flex-1 min-w-[90px] py-2 px-2 border-b-2 border-transparent text-slate-400 transition">Ondas</button>
+        <button onclick="switchTab('scale')" id="tab-btn-scale" class="flex-1 min-w-[90px] py-2 px-2 border-b-2 border-transparent text-slate-400 transition">Escalas</button>
+        <button onclick="switchTab('spain')" id="tab-btn-spain" class="flex-1 min-w-[90px] py-2 px-2 border-b-2 border-transparent text-slate-400 transition">Tectónica</button>
+        <button onclick="switchTab('safety')" id="tab-btn-safety" class="flex-1 min-w-[90px] py-2 px-2 border-b-2 border-transparent text-slate-400 transition">Seguridad</button>
+      </div>
+
+      <div class="p-4 overflow-y-auto space-y-3 text-xs text-slate-300 leading-relaxed flex-1">
+        
+        <div id="tab-data" class="tab-content space-y-2">
+          <h3 class="font-bold text-sky-400">¿Qué variables mide una estación sísmica?</h3>
+          <ul class="space-y-1.5">
+            <li class="bg-slate-950 p-2 rounded border border-slate-800"><strong>Epicentro:</strong> Punto exacto en la superficie terrestre directamente sobre el origen del terremoto.</li>
+            <li class="bg-slate-950 p-2 rounded border border-slate-800"><strong>Hipocentro (Foco):</strong> Punto subterráneo en el interior de la corteza donde se produce la fractura o deslizamiento de la falla.</li>
+            <li class="bg-slate-950 p-2 rounded border border-slate-800"><strong>Magnitud (Mw / mb / mbLg):</strong> Medida física objetiva de la cantidad de energía liberada en la fuente. En España se suele usar la escala de magnitud con ondas de cuerpo o momento.</li>
+            <li class="bg-slate-950 p-2 rounded border border-slate-800"><strong>Aceleración Máxima del Suelo (PGA):</strong> Mide la intensidad del movimiento percibido por los edificios. Crucial para la normativa de construcción sismorresistente.</li>
+            <li class="bg-slate-950 p-2 rounded border border-slate-800"><strong>Profundidad:</strong> Cuanto más cerca de la superficie (<30km), mayor es la sacudida violenta percibida por la población.</li>
+          </ul>
+        </div>
+
+        <div id="tab-waves" class="tab-content hidden space-y-2">
+          <h3 class="font-bold text-sky-400">Tipos de Ondas Sísmicas</h3>
+          <div class="grid gap-2">
+            <div class="bg-slate-950 p-2 rounded border border-slate-800">
+              <span class="font-bold text-sky-400">Ondas P (Primarias):</span> Longitudinales y de compresión. Son las más rápidas (~6-8 km/s). Alertan a los sistemas automáticos antes de la sacudida principal.
+            </div>
+            <div class="bg-slate-950 p-2 rounded border border-slate-800">
+              <span class="font-bold text-amber-400">Ondas S (Secundarias):</span> Transversales. Mueven la tierra de lado a lado a menor velocidad (~3-4 km/s). No se propagan por fluidos.
+            </div>
+            <div class="bg-slate-950 p-2 rounded border border-slate-800">
+              <span class="font-bold text-rose-400">Ondas Superficiales (Rayleigh y Love):</span> Viajan por la superficie terrestre. Tienen mayor amplitud y son responsables de la mayoría de los daños estructurales.
+            </div>
+          </div>
+        </div>
+
+        <div id="tab-scale" class="tab-content hidden space-y-2">
+          <h3 class="font-bold text-sky-400">Escalas: Magnitud vs Intensidad</h3>
+          <p><strong>Magnitud (Escala Logarítmica):</strong> Cada incremento de 1 punto representa aproximadamente 32 veces más energía liberada. Un terremoto de M5.0 libera ~1000 veces más energía que uno de M3.0.</p>
+          <p><strong>Intensidad (EMS-98 / Mercalli):</strong> Evalúa el impacto observable en las personas, objetos y estructuras en una ubicación concreta (I a XII).</p>
+        </div>
+
+        <div id="tab-spain" class="tab-content hidden space-y-2">
+          <h3 class="font-bold text-sky-400">Sismicidad en la Península Ibérica y Canarias</h3>
+          <p>La actividad en España se debe a la convergencia entre la Placa Euroasiática y la Africana (4-5 mm/año):</p>
+          <ul class="list-disc pl-4 space-y-1 text-slate-400">
+            <li><strong>Cordilleras Béticas y Mar de Alborán:</strong> La zona con mayor densidad de terremotos por choque tectónico activo.</li>
+            <li><strong>Canarias:</strong> Sismicidad volcánica y tectónica asociada a intrusiones de magma y fallas submarinas.</li>
+            <li><strong>Pirineos:</strong> Actividad derivada de la colisión tectónica histórica que formó la cordillera.</li>
+          </ul>
+        </div>
+
+        <div id="tab-safety" class="tab-content hidden space-y-2">
+          <h3 class="font-bold text-emerald-400">Protocolo de Autoprotección PAS</h3>
+          <div class="grid grid-cols-3 gap-1.5 text-center my-1">
+            <div class="bg-slate-950 p-2 rounded border border-slate-800">
+              <div class="font-bold text-amber-400 text-xs">1. Agáchate</div>
+              <p class="text-[10px] text-slate-400">Evita caídas</p>
+            </div>
+            <div class="bg-slate-950 p-2 rounded border border-slate-800">
+              <div class="font-bold text-sky-400 text-xs">2. Cúbrete</div>
+              <p class="text-[10px] text-slate-400">Bajo mesa resistente</p>
+            </div>
+            <div class="bg-slate-950 p-2 rounded border border-slate-800">
+              <div class="font-bold text-emerald-400 text-xs">3. Agárrate</div>
+              <p class="text-[10px] text-slate-400">Hasta que cese</p>
+            </div>
+          </div>
+          <p class="text-[11px] text-slate-400">Mantente alejado de ventanas, fachadas, balcones y tendidos eléctricos.</p>
+        </div>
+
+      </div>
+
+      <div class="p-2.5 bg-slate-950 border-t border-slate-800 flex justify-end">
+        <button onclick="toggleDidacticModal()" class="bg-sky-600 hover:bg-sky-500 text-white font-medium px-4 py-1 rounded text-xs">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script>
+    lucide.createIcons();
+
+    const SPAIN_BBOX = {
+      minlat: 27.0,
+      maxlat: 44.5,
+      minlon: -18.5,
+      maxlon: 4.5
+    };
+
+    let map;
+    let quakeLayerGroup;
+    let rawQuakeData = [];
+    let knownQuakeIds = new Set();
+    let audioCtx = null;
+    let notificationsEnabled = false;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function playEarthquakeSound(magnitude) {
+      try {
+        initAudio();
+        if (!audioCtx) return;
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        const baseFreq = 30 + (magnitude * 18);
+
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(baseFreq, audioCtx.currentTime);
+
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(140, audioCtx.currentTime);
+
+        gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.0);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start();
+        osc.stop(audioCtx.currentTime + 1.0);
+      } catch (e) {}
+    }
+
+    function requestNotificationPermission() {
+      if (!("Notification" in window)) {
+        alert("Tu navegador no soporta notificaciones de escritorio.");
+        return;
+      }
+
+      if (Notification.permission === "granted") {
+        notificationsEnabled = true;
+        updateNotificationUI("Activas");
+        new Notification("Notificaciones Sísmicas Activas", {
+          body: "Recibirás alertas en tiempo real de nuevos terremotos registrados en España.",
+          icon: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png"
+        });
+      } else if (Notification.permission !== "denied") {
+        Notification.requestPermission().then(permission => {
+          if (permission === "granted") {
+            notificationsEnabled = true;
+            updateNotificationUI("Activas");
+          } else {
+            updateNotificationUI("Bloqueadas");
+          }
+        });
+      } else {
+        alert("Las notificaciones están bloqueadas en los ajustes de tu navegador.");
+      }
+    }
+
+    function updateNotificationUI(statusText) {
+      const statusEl = document.getElementById('notify-status');
+      const bellEl = document.getElementById('bell-icon');
+      if (statusEl) statusEl.textContent = statusText;
+      if (bellEl) {
+        if (notificationsEnabled) {
+          bellEl.classList.remove('text-amber-400');
+          bellEl.classList.add('text-emerald-400');
+        }
+      }
+    }
+
+    function checkNewQuakesAndNotify(data) {
+      if (!notificationsEnabled) return;
+
+      data.forEach(quake => {
+        const id = quake.id;
+        if (!knownQuakeIds.has(id)) {
+          knownQuakeIds.add(id);
+          
+          if (knownQuakeIds.size > data.length) {
+            const mag = quake.properties.mag ? quake.properties.mag.toFixed(1) : 'N/A';
+            const place = cleanPlaceString(quake.properties.place);
+            
+            new Notification(`⚠️ Nuevo Terremoto M${mag} en España`, {
+              body: `${place} - Profundidad: ${quake.geometry.coordinates[2]} km`,
+              icon: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png"
+            });
+            
+            playEarthquakeSound(quake.properties.mag || 2);
+          }
+        }
+      });
+    }
+
+    function initMap() {
+      map = L.map('map', {
+        center: [36.5, -4.5],
+        zoom: 5,
+        zoomControl: false
+      });
+
+      L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; OpenStreetMap &copy; CARTO',
+        subdomains: 'abcd',
+        maxZoom: 18
+      }).addTo(map);
+
+      quakeLayerGroup = L.layerGroup().addTo(map);
+    }
+
+    async function fetchSeismicData() {
+      const refreshIcon = document.getElementById('refresh-icon');
+      const listContainer = document.getElementById('quake-list');
+      
+      if (refreshIcon) refreshIcon.classList.add('animate-spin');
+      
+      const days = document.getElementById('filter-days').value;
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setDate(endDate.getDate() - parseInt(days));
+
+      const url = `https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson` +
+        `&starttime=${startDate.toISOString()}` +
+        `&endtime=${endDate.toISOString()}` +
+        `&minlatitude=${SPAIN_BBOX.minlat}&maxlatitude=${SPAIN_BBOX.maxlat}` +
+        `&minlongitude=${SPAIN_BBOX.minlon}&maxlongitude=${SPAIN_BBOX.maxlon}` +
+        `&orderby=time`;
+
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Error al conectar con la red sísmica.');
+        
+        const data = await response.json();
+        rawQuakeData = data.features || [];
+
+        const now = new Date();
+        document.getElementById('last-update-time').textContent = `${now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+
+        checkNewQuakesAndNotify(rawQuakeData);
+        
+        rawQuakeData.forEach(q => knownQuakeIds.add(q.id));
+
+        filterAndRenderData();
+      } catch (error) {
+        listContainer.innerHTML = `
+          <li class="p-4 text-center text-rose-400 text-xs">
+            Error de conexión sísmica en directo. Reintentando...
+          </li>
+        `;
+      } finally {
+        if (refreshIcon) refreshIcon.classList.remove('animate-spin');
+      }
+    }
+
+    function getDepthColor(depth) {
+      if (depth < 30) return '#f43f5e';
+      if (depth < 150) return '#f59e0b';
+      return '#38bdf8';
+    }
+
+    function filterAndRenderData() {
+      const region = document.getElementById('filter-region').value;
+      const minMagOnly = document.getElementById('min-mag-check').checked;
+      const listContainer = document.getElementById('quake-list');
+
+      quakeLayerGroup.clearLayers();
+      listContainer.innerHTML = '';
+
+      let filtered = rawQuakeData.filter(quake => {
+        const mag = quake.properties.mag || 0;
+        const lat = quake.geometry.coordinates[1];
+        const lon = quake.geometry.coordinates[0];
+
+        if (minMagOnly && mag < 2.0) return false;
+
+        if (region === 'canarias') {
+          if (lat > 29.5 || lon > -13.0) return false;
+        } else if (region === 'sur') {
+          if (lat < 35.0 || lat > 38.5 || lon < -10.0 || lon > 0.5) return false;
+        } else if (region === 'norte') {
+          if (lat < 41.5) return false;
+        }
+
+        return true;
+      });
+
+      document.getElementById('stat-total').textContent = filtered.length;
+      
+      if (filtered.length > 0) {
+        const maxM = Math.max(...filtered.map(q => q.properties.mag || 0));
+        document.getElementById('stat-max').textContent = maxM.toFixed(1);
+        
+        const lastDate = new Date(filtered[0].properties.time);
+        document.getElementById('stat-last-time').textContent = lastDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      } else {
+        document.getElementById('stat-max').textContent = '-';
+        document.getElementById('stat-last-time').textContent = '--:--';
+        listContainer.innerHTML = `<li class="p-6 text-center text-slate-500 text-xs">No hay eventos para el filtro.</li>`;
+        return;
+      }
+
+      filtered.forEach((quake) => {
+        const props = quake.properties;
+        const coords = quake.geometry.coordinates;
+        const lon = coords[0];
+        const lat = coords[1];
+        const depth = coords[2] || 0;
+        const mag = props.mag != null ? props.mag.toFixed(1) : 'N/A';
+        const place = cleanPlaceString(props.place);
+        const date = new Date(props.time);
+        const formattedTime = date.toLocaleString('es-ES', {
+          day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
+        });
+
+        const color = getDepthColor(depth);
+        const radius = Math.max((props.mag || 1) * 3.5, 4);
+
+        const circle = L.circleMarker([lat, lon], {
+          radius: radius,
+          fillColor: color,
+          color: '#ffffff',
+          weight: 1,
+          opacity: 0.85,
+          fillOpacity: 0.7
+        });
+
+        const depthCategory = depth < 30 ? 'Superficial (<30km)' : (depth < 150 ? 'Intermedio (30-150km)' : 'Profundo (>150km)');
+        
+        circle.bindPopup(`
+          <div class="p-2 space-y-1.5 text-xs">
+            <div class="flex items-center justify-between border-b border-slate-700 pb-1 gap-2">
+              <span class="font-bold text-amber-400 text-sm">Magnitud ${mag}</span>
+              <span class="text-[10px] text-slate-400">${formattedTime}</span>
+            </div>
+            <div>
+              <p class="font-medium text-slate-200">${place}</p>
+              <p class="text-[10px] text-slate-400">Lat: ${lat.toFixed(3)}° | Lon: ${lon.toFixed(3)}°</p>
+            </div>
+            <div class="bg-slate-950 p-1.5 rounded border border-slate-800 text-[10px] space-y-0.5">
+              <div>Profundidad Hipocentro: <strong class="text-white">${depth.toFixed(1)} km</strong></div>
+              <div>Régimen: <strong class="text-sky-400">${depthCategory}</strong></div>
+              <div>Red: <span class="text-slate-400">${props.net || 'IGN/USGS'}</span></div>
+            </div>
+          </div>
+        `);
+
+        circle.on('click', () => {
+          playEarthquakeSound(props.mag || 2);
+          triggerPulseAnimation(lat, lon);
+        });
+
+        quakeLayerGroup.addLayer(circle);
+
+        const li = document.createElement('li');
+        li.className = 'p-2.5 hover:bg-slate-800/60 cursor-pointer transition flex items-center justify-between group no-tap-highlight';
+        li.innerHTML = `
+          <div class="flex items-center space-x-2.5 min-w-0">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 shadow-inner" 
+                 style="background-color: ${color}25; color: ${color}; border: 1px solid ${color}40">
+              ${mag}
+            </div>
+            <div class="min-w-0 flex-1">
+              <p class="text-xs font-semibold text-slate-200 group-hover:text-sky-400 transition truncate">${place}</p>
+              <p class="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5">
+                <span>${formattedTime}</span>
+                <span>•</span>
+                <span>Prof: ${depth.toFixed(0)}km</span>
+              </p>
+            </div>
+          </div>
+          <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-600 group-hover:text-slate-300 transition shrink-0"></i>
+        `;
+
+        li.addEventListener('click', () => {
+          map.flyTo([lat, lon], 7.5, { duration: 0.8 });
+          circle.openPopup();
+          playEarthquakeSound(props.mag || 2);
+          triggerPulseAnimation(lat, lon);
+        });
+
+        listContainer.appendChild(li);
+      });
+
+      lucide.createIcons();
+    }
+
+    function cleanPlaceString(place) {
+      if (!place) return 'Sismo en región de España';
+      return place
+        .replace(/km\s+[A-Z]+\s+of\s+/i, 'km al ')
+        .replace(/Spain/i, 'España')
+        .replace(/Canary Islands/i, 'Islas Canarias')
+        .replace(/Portugal/i, 'Portugal')
+        .replace(/Morocco/i, 'Marruecos')
+        .replace(/Gibraltar/i, 'Estrecho de Gibraltar');
+    }
+
+    function triggerPulseAnimation(lat, lon) {
+      const point = map.latLngToContainerPoint([lat, lon]);
+      const pulse = document.createElement('div');
+      pulse.className = 'seismic-pulse';
+      pulse.style.width = '50px';
+      pulse.style.height = '50px';
+      pulse.style.left = `${point.x - 25}px`;
+      pulse.style.top = `${point.y - 25}px`;
+
+      document.getElementById('map').appendChild(pulse);
+
+      setTimeout(() => {
+        pulse.remove();
+      }, 2000);
+    }
+
+    function toggleDidacticModal() {
+      const modal = document.getElementById('didactic-modal');
+      modal.classList.toggle('hidden');
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      
+      ['data', 'waves', 'scale', 'spain', 'safety'].forEach(id => {
+        const btn = document.getElementById(`tab-btn-${id}`);
+        if (btn) {
+          btn.classList.remove('border-sky-400', 'text-sky-400', 'font-semibold');
+          btn.classList.add('border-transparent', 'text-slate-400');
+        }
+      });
+
+      const currentTab = document.getElementById(`tab-${tabId}`);
+      if (currentTab) currentTab.classList.remove('hidden');
+      
+      const activeBtn = document.getElementById(`tab-btn-${tabId}`);
+      if (activeBtn) {
+        activeBtn.classList.add('border-sky-400', 'text-sky-400', 'font-semibold');
+        activeBtn.classList.remove('border-transparent', 'text-slate-400');
+      }
+    }
+
+    window.onload = function() {
+      initMap();
+      fetchSeismicData();
+
+      setInterval(fetchSeismicData, 60000);
+
+      document.body.addEventListener('click', () => {
+        initAudio();
+      }, { once: true });
+
+      if ("Notification" in window && Notification.permission === "granted") {
+        notificationsEnabled = true;
+        updateNotificationUI("Activas");
+      }
+    };
+  </script>
+</body>
+</html>
+
